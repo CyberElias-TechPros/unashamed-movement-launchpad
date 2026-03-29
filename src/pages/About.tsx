@@ -1,6 +1,8 @@
 import { motion } from "framer-motion";
 import Layout from "@/components/Layout";
 import SectionWrapper from "@/components/SectionWrapper";
+import FloatingParticles from "@/components/FloatingParticles";
+import TiltCard from "@/components/TiltCard";
 import { Heart, Users, Globe, Target } from "lucide-react";
 
 const values = [
@@ -19,6 +21,7 @@ const About = () => {
           <div className="absolute top-20 right-10 w-48 h-48 sm:w-72 sm:h-72 bg-secondary/20 rounded-full blur-3xl" />
           <div className="absolute bottom-10 left-10 w-40 h-40 sm:w-60 sm:h-60 bg-accent/10 rounded-full blur-3xl" />
         </div>
+        <FloatingParticles count={18} color="hsl(43 78% 56%)" />
         <div className="container-custom relative z-10">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
@@ -88,7 +91,7 @@ const About = () => {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
             {values.map((v, i) => (
               <SectionWrapper key={v.title} delay={i * 0.1}>
-                <div className="bg-background rounded-2xl p-8 text-center border border-border hover:border-accent transition-all duration-500 hover:-translate-y-2">
+                <TiltCard className="relative bg-background rounded-2xl p-8 text-center border border-border hover:border-accent transition-all duration-500 hover:-translate-y-2">
                   <div className="w-14 h-14 rounded-xl bg-primary text-primary-foreground flex items-center justify-center mx-auto mb-6">
                     {v.icon}
                   </div>
@@ -96,7 +99,7 @@ const About = () => {
                     {v.title}
                   </h3>
                   <p className="font-body text-muted-foreground">{v.desc}</p>
-                </div>
+                </TiltCard>
               </SectionWrapper>
             ))}
           </div>

@@ -61,13 +61,20 @@ const Navbar = () => {
             <Link
               key={link.path}
               to={link.path}
-              className={`font-body text-sm font-medium tracking-wide uppercase transition-all duration-300 hover:text-accent ${
+              className={`relative font-body text-sm font-medium tracking-wide uppercase transition-all duration-300 hover:text-accent group ${
                 location.pathname === link.path
                   ? "text-accent"
                   : "text-primary-foreground"
               }`}
             >
               {link.name}
+              <motion.span
+                className="absolute -bottom-1 left-0 h-[2px] bg-accent"
+                initial={{ width: location.pathname === link.path ? "100%" : "0%" }}
+                animate={{ width: location.pathname === link.path ? "100%" : "0%" }}
+                whileHover={{ width: "100%" }}
+                transition={{ duration: 0.3 }}
+              />
             </Link>
           ))}
         </div>

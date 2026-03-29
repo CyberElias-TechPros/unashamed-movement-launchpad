@@ -2,6 +2,7 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Layout from "@/components/Layout";
 import SectionWrapper from "@/components/SectionWrapper";
+import FloatingParticles from "@/components/FloatingParticles";
 import { Button } from "@/components/ui/button";
 import { ShoppingCart, Eye, X } from "lucide-react";
 
@@ -38,6 +39,7 @@ const Shop = () => {
         <div className="absolute inset-0">
           <div className="absolute bottom-0 right-0 w-48 h-48 sm:w-64 sm:h-64 lg:w-80 lg:h-80 bg-accent/15 rounded-full blur-3xl" />
         </div>
+        <FloatingParticles count={15} color="hsl(43 78% 56%)" />
         <div className="container-custom relative z-10">
           <motion.div
             initial={{ opacity: 0, y: 30 }}

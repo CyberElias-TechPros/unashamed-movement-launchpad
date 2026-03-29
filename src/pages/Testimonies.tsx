@@ -2,6 +2,7 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Layout from "@/components/Layout";
 import SectionWrapper from "@/components/SectionWrapper";
+import FloatingParticles from "@/components/FloatingParticles";
 import { Button } from "@/components/ui/button";
 import { Quote, ArrowRight } from "lucide-react";
 
@@ -62,6 +63,7 @@ const Testimonies = () => {
         <div className="absolute inset-0">
           <div className="absolute top-20 left-20 w-48 h-48 sm:w-72 sm:h-72 bg-accent/10 rounded-full blur-3xl" />
         </div>
+        <FloatingParticles count={15} color="hsl(43 78% 56%)" />
         <div className="container-custom relative z-10">
           <motion.div
             initial={{ opacity: 0, y: 30 }}

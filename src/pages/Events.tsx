@@ -2,6 +2,7 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import Layout from "@/components/Layout";
 import SectionWrapper from "@/components/SectionWrapper";
+import FloatingParticles from "@/components/FloatingParticles";
 import { Button } from "@/components/ui/button";
 import { Calendar as CalendarIcon, MapPin, Clock, ArrowRight } from "lucide-react";
 
@@ -57,6 +58,7 @@ const Events = () => {
         <div className="absolute inset-0">
           <div className="absolute top-20 right-20 w-48 h-48 sm:w-72 sm:h-72 bg-accent/10 rounded-full blur-3xl" />
         </div>
+        <FloatingParticles count={15} color="hsl(43 78% 56%)" />
         <div className="container-custom relative z-10 text-center">
           <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7 }}>
             <p className="font-body text-accent text-sm tracking-[0.3em] uppercase mb-4">Come Together</p>

@@ -2,6 +2,7 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Layout from "@/components/Layout";
 import SectionWrapper from "@/components/SectionWrapper";
+import FloatingParticles from "@/components/FloatingParticles";
 import { Button } from "@/components/ui/button";
 import { Download, BookOpen, FileText, Headphones, ExternalLink } from "lucide-react";
 
@@ -43,6 +44,7 @@ const Resources = () => {
         <div className="absolute inset-0">
           <div className="absolute bottom-10 left-10 w-48 h-48 sm:w-72 sm:h-72 bg-secondary/15 rounded-full blur-3xl" />
         </div>
+        <FloatingParticles count={12} color="hsl(43 78% 56%)" />
         <div className="container-custom relative z-10 text-center">
           <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7 }}>
             <p className="font-body text-accent text-sm tracking-[0.3em] uppercase mb-4">Grow Your Faith</p>

@@ -3,6 +3,10 @@ import { Link } from "react-router-dom";
 import { ArrowRight, Calendar, ShoppingBag, BookOpen } from "lucide-react";
 import Layout from "@/components/Layout";
 import SectionWrapper from "@/components/SectionWrapper";
+import FloatingParticles from "@/components/FloatingParticles";
+import MagneticButton from "@/components/MagneticButton";
+import TextReveal from "@/components/TextReveal";
+import TiltCard from "@/components/TiltCard";
 import { Button } from "@/components/ui/button";
 
 const heroVariants = {
@@ -31,6 +35,8 @@ const Index = () => {
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[400px] sm:w-[800px] sm:h-[800px] border border-primary-foreground/3 rounded-full" />
         </div>
 
+        <FloatingParticles count={25} color="hsl(43 78% 56%)" />
+
         <motion.div
           variants={heroVariants}
           initial="hidden"
@@ -44,12 +50,11 @@ const Index = () => {
             The Timidity Is Not
           </motion.p>
 
-          <motion.h1
-            variants={itemVariant}
+          <TextReveal
+            text="UNASHAMED"
             className="font-heading text-4xl sm:text-6xl md:text-7xl lg:text-8xl xl:text-9xl tracking-wider text-primary-foreground leading-none mb-8"
-          >
-            UNASHAMED
-          </motion.h1>
+            delay={0.3}
+          />
 
           <motion.p
             variants={itemVariant}
@@ -69,16 +74,20 @@ const Index = () => {
             variants={itemVariant}
             className="flex flex-col sm:flex-row gap-4 justify-center"
           >
-            <Link to="/about">
-              <Button variant="hero" size="lg" className="px-10">
-                Join The Movement <ArrowRight className="ml-2" size={18} />
-              </Button>
-            </Link>
-            <Link to="/unashamed">
-              <Button variant="brand" size="lg" className="px-10">
-                Watch Unashamed
-              </Button>
-            </Link>
+            <MagneticButton>
+              <Link to="/about">
+                <Button variant="hero" size="lg" className="px-10">
+                  Join The Movement <ArrowRight className="ml-2" size={18} />
+                </Button>
+              </Link>
+            </MagneticButton>
+            <MagneticButton>
+              <Link to="/unashamed">
+                <Button variant="brand" size="lg" className="px-10">
+                  Watch Unashamed
+                </Button>
+              </Link>
+            </MagneticButton>
           </motion.div>
         </motion.div>
 
@@ -186,7 +195,7 @@ const Index = () => {
             ].map((item, i) => (
               <SectionWrapper key={item.title} delay={i * 0.15}>
                 <Link to={item.link} className="group block">
-                  <div className="bg-background rounded-2xl p-8 h-full border border-border hover:border-accent transition-all duration-500 hover:shadow-xl hover:-translate-y-2">
+                  <TiltCard className="relative bg-background rounded-2xl p-8 h-full border border-border hover:border-accent transition-all duration-500 hover:shadow-xl hover:-translate-y-2">
                     <div className="w-16 h-16 rounded-xl bg-primary flex items-center justify-center text-primary-foreground mb-6 group-hover:bg-accent group-hover:text-accent-foreground transition-colors duration-300">
                       {item.icon}
                     </div>
@@ -199,7 +208,7 @@ const Index = () => {
                     <span className="font-heading text-lg tracking-wider text-accent group-hover:text-primary transition-colors inline-flex items-center gap-2">
                       {item.label} <ArrowRight size={16} />
                     </span>
-                  </div>
+                  </TiltCard>
                 </Link>
               </SectionWrapper>
             ))}
@@ -233,9 +242,11 @@ const Index = () => {
 
           <SectionWrapper delay={0.3}>
             <Link to="/testimonies" className="inline-block mt-12">
-              <Button variant="hero" size="lg" className="px-10">
-                Read More Testimonies <ArrowRight className="ml-2" size={18} />
-              </Button>
+              <MagneticButton>
+                <Button variant="hero" size="lg" className="px-10">
+                  Read More Testimonies <ArrowRight className="ml-2" size={18} />
+                </Button>
+              </MagneticButton>
             </Link>
           </SectionWrapper>
         </div>
@@ -253,16 +264,20 @@ const Index = () => {
               Join a community of fearless believers today.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link to="/about">
-                <Button variant="brand" size="lg" className="px-10">
-                  Learn More
-                </Button>
-              </Link>
-              <a href="https://chat.whatsapp.com" target="_blank" rel="noopener noreferrer">
-                <Button variant="outline" size="lg" className="px-10 border-foreground text-foreground hover:bg-foreground hover:text-background">
-                  Join Our Community
-                </Button>
-              </a>
+              <MagneticButton>
+                <Link to="/about">
+                  <Button variant="brand" size="lg" className="px-10">
+                    Learn More
+                  </Button>
+                </Link>
+              </MagneticButton>
+              <MagneticButton>
+                <a href="https://chat.whatsapp.com" target="_blank" rel="noopener noreferrer">
+                  <Button variant="outline" size="lg" className="px-10 border-foreground text-foreground hover:bg-foreground hover:text-background">
+                    Join Our Community
+                  </Button>
+                </a>
+              </MagneticButton>
             </div>
           </SectionWrapper>
         </div>

@@ -14,10 +14,10 @@ const About = () => {
   return (
     <Layout>
       {/* Hero */}
-      <section className="relative min-h-[70vh] flex items-center bg-primary pt-20">
+      <section className="relative min-h-[70vh] flex items-center bg-primary pt-20 overflow-hidden">
         <div className="absolute inset-0">
-          <div className="absolute top-20 right-10 w-72 h-72 bg-secondary/20 rounded-full blur-3xl" />
-          <div className="absolute bottom-10 left-10 w-60 h-60 bg-accent/10 rounded-full blur-3xl" />
+          <div className="absolute top-20 right-10 w-48 h-48 sm:w-72 sm:h-72 bg-secondary/20 rounded-full blur-3xl" />
+          <div className="absolute bottom-10 left-10 w-40 h-40 sm:w-60 sm:h-60 bg-accent/10 rounded-full blur-3xl" />
         </div>
         <div className="container-custom relative z-10">
           <motion.div
@@ -28,7 +28,7 @@ const About = () => {
             <p className="font-body text-accent text-sm tracking-[0.3em] uppercase mb-4">
               Our Story
             </p>
-            <h1 className="font-heading text-6xl sm:text-7xl lg:text-8xl tracking-wider text-primary-foreground mb-6">
+            <h1 className="font-heading text-4xl sm:text-6xl md:text-7xl lg:text-8xl tracking-wider text-primary-foreground mb-6">
               About TTIN
             </h1>
             <p className="font-body text-primary-foreground/70 text-xl max-w-2xl leading-relaxed">
@@ -46,7 +46,7 @@ const About = () => {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
             <SectionWrapper>
               <div className="bg-primary rounded-2xl aspect-[4/3] flex items-center justify-center">
-                <span className="font-heading text-8xl text-accent tracking-wider">TTIN</span>
+                <span className="font-heading text-4xl sm:text-6xl lg:text-8xl text-accent tracking-wider">TTIN</span>
               </div>
             </SectionWrapper>
             <SectionWrapper delay={0.2}>
@@ -75,11 +75,11 @@ const About = () => {
       <section className="section-padding bg-muted">
         <div className="container-custom">
           <SectionWrapper>
-            <div className="text-center mb-16">
+            <div className="text-center mb-8 sm:mb-16">
               <p className="font-body text-secondary text-sm tracking-[0.3em] uppercase mb-4">
                 What We Stand For
               </p>
-              <h2 className="font-heading text-5xl sm:text-6xl tracking-wider text-foreground">
+              <h2 className="font-heading text-3xl sm:text-5xl lg:text-6xl tracking-wider text-foreground">
                 Our Values
               </h2>
             </div>
@@ -110,7 +110,7 @@ const About = () => {
             <p className="font-body text-accent text-sm tracking-[0.3em] uppercase mb-4">
               The People Behind The Movement
             </p>
-            <h2 className="font-heading text-5xl sm:text-6xl tracking-wider text-primary-foreground mb-12">
+            <h2 className="font-heading text-3xl sm:text-5xl lg:text-6xl tracking-wider text-primary-foreground mb-12">
               Leadership
             </h2>
           </SectionWrapper>

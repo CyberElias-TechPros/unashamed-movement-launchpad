@@ -43,9 +43,9 @@ const Unashamed = () => {
   return (
     <Layout>
       {/* Hero */}
-      <section className="relative min-h-[60vh] flex items-center bg-primary pt-20">
+      <section className="relative min-h-[60vh] flex items-center bg-primary pt-20 overflow-hidden">
         <div className="absolute inset-0">
-          <div className="absolute top-10 left-1/4 w-96 h-96 bg-accent/10 rounded-full blur-3xl" />
+          <div className="absolute top-10 left-1/4 w-48 h-48 sm:w-80 sm:h-80 lg:w-96 lg:h-96 bg-accent/10 rounded-full blur-3xl" />
         </div>
         <div className="container-custom relative z-10 text-center">
           <motion.div
@@ -56,7 +56,7 @@ const Unashamed = () => {
             <p className="font-body text-accent text-sm tracking-[0.3em] uppercase mb-4">
               Video Series
             </p>
-            <h1 className="font-heading text-6xl sm:text-7xl lg:text-9xl tracking-wider text-primary-foreground mb-6">
+            <h1 className="font-heading text-4xl sm:text-6xl md:text-7xl lg:text-9xl tracking-wider text-primary-foreground mb-6">
               UNASHAMED
             </h1>
             <p className="font-body text-primary-foreground/70 text-xl max-w-2xl mx-auto">
@@ -71,8 +71,8 @@ const Unashamed = () => {
       <section className="section-padding bg-background">
         <div className="container-custom">
           <SectionWrapper>
-            <div className="text-center mb-16">
-              <h2 className="font-heading text-5xl tracking-wider text-foreground">
+            <div className="text-center mb-8 sm:mb-16">
+              <h2 className="font-heading text-3xl sm:text-5xl tracking-wider text-foreground">
                 All Episodes
               </h2>
             </div>

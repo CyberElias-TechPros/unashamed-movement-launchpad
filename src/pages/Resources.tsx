@@ -39,14 +39,14 @@ const Resources = () => {
   return (
     <Layout>
       {/* Hero */}
-      <section className="relative min-h-[50vh] flex items-center bg-primary pt-20">
+      <section className="relative min-h-[50vh] flex items-center bg-primary pt-20 overflow-hidden">
         <div className="absolute inset-0">
-          <div className="absolute bottom-10 left-10 w-72 h-72 bg-secondary/15 rounded-full blur-3xl" />
+          <div className="absolute bottom-10 left-10 w-48 h-48 sm:w-72 sm:h-72 bg-secondary/15 rounded-full blur-3xl" />
         </div>
         <div className="container-custom relative z-10 text-center">
           <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7 }}>
             <p className="font-body text-accent text-sm tracking-[0.3em] uppercase mb-4">Grow Your Faith</p>
-            <h1 className="font-heading text-6xl sm:text-7xl lg:text-8xl tracking-wider text-primary-foreground mb-6">Resources</h1>
+            <h1 className="font-heading text-4xl sm:text-6xl md:text-7xl lg:text-8xl tracking-wider text-primary-foreground mb-6">Resources</h1>
             <p className="font-body text-primary-foreground/70 text-xl max-w-xl mx-auto">
               Tools, guides, and content to equip you for bold, unashamed living.
             </p>

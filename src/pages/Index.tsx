@@ -25,10 +25,10 @@ const Index = () => {
       <section className="relative min-h-screen flex items-center justify-center bg-primary overflow-hidden">
         {/* Decorative elements */}
         <div className="absolute inset-0">
-          <div className="absolute top-0 right-0 w-96 h-96 bg-secondary/20 rounded-full blur-3xl" />
-          <div className="absolute bottom-0 left-0 w-80 h-80 bg-accent/10 rounded-full blur-3xl" />
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] border border-primary-foreground/5 rounded-full" />
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] border border-primary-foreground/3 rounded-full" />
+          <div className="absolute top-0 right-0 w-48 h-48 sm:w-80 sm:h-80 lg:w-96 lg:h-96 bg-secondary/20 rounded-full blur-3xl" />
+          <div className="absolute bottom-0 left-0 w-40 h-40 sm:w-64 sm:h-64 lg:w-80 lg:h-80 bg-accent/10 rounded-full blur-3xl" />
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[300px] h-[300px] sm:w-[600px] sm:h-[600px] border border-primary-foreground/5 rounded-full" />
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[400px] sm:w-[800px] sm:h-[800px] border border-primary-foreground/3 rounded-full" />
         </div>
 
         <motion.div
@@ -46,7 +46,7 @@ const Index = () => {
 
           <motion.h1
             variants={itemVariant}
-            className="font-heading text-6xl sm:text-7xl md:text-8xl lg:text-9xl tracking-wider text-primary-foreground leading-none mb-8"
+            className="font-heading text-4xl sm:text-6xl md:text-7xl lg:text-8xl xl:text-9xl tracking-wider text-primary-foreground leading-none mb-8"
           >
             UNASHAMED
           </motion.h1>
@@ -103,11 +103,11 @@ const Index = () => {
       <section className="section-padding bg-background">
         <div className="container-custom">
           <SectionWrapper>
-            <div className="text-center mb-16">
+            <div className="text-center mb-8 sm:mb-16">
               <p className="font-body text-secondary text-sm tracking-[0.3em] uppercase mb-4">
                 Our Purpose
               </p>
-              <h2 className="font-heading text-5xl sm:text-6xl lg:text-7xl tracking-wider text-foreground">
+              <h2 className="font-heading text-3xl sm:text-5xl lg:text-7xl tracking-wider text-foreground">
                 Mission & Vision
               </h2>
             </div>
@@ -153,8 +153,8 @@ const Index = () => {
       <section className="section-padding bg-muted">
         <div className="container-custom">
           <SectionWrapper>
-            <div className="text-center mb-16">
-              <h2 className="font-heading text-5xl sm:text-6xl tracking-wider text-foreground">
+            <div className="text-center mb-8 sm:mb-16">
+              <h2 className="font-heading text-3xl sm:text-5xl lg:text-6xl tracking-wider text-foreground">
                 Get Involved
               </h2>
             </div>
@@ -214,7 +214,7 @@ const Index = () => {
             <p className="font-body text-accent text-sm tracking-[0.3em] uppercase mb-4">
               Lives Changed
             </p>
-            <h2 className="font-heading text-5xl sm:text-6xl tracking-wider text-primary-foreground mb-12">
+            <h2 className="font-heading text-3xl sm:text-5xl lg:text-6xl tracking-wider text-primary-foreground mb-12">
               Testimonies
             </h2>
           </SectionWrapper>
@@ -245,7 +245,7 @@ const Index = () => {
       <section className="section-padding bg-accent">
         <div className="container-custom text-center">
           <SectionWrapper>
-            <h2 className="font-heading text-5xl sm:text-6xl lg:text-7xl tracking-wider text-accent-foreground mb-6">
+            <h2 className="font-heading text-3xl sm:text-5xl lg:text-7xl tracking-wider text-accent-foreground mb-6">
               Ready to Be Bold?
             </h2>
             <p className="font-body text-accent-foreground/70 text-xl max-w-2xl mx-auto mb-10">

@@ -58,9 +58,9 @@ const Testimonies = () => {
   return (
     <Layout>
       {/* Hero */}
-      <section className="relative min-h-[60vh] flex items-center bg-primary pt-20">
+      <section className="relative min-h-[60vh] flex items-center bg-primary pt-20 overflow-hidden">
         <div className="absolute inset-0">
-          <div className="absolute top-20 left-20 w-72 h-72 bg-accent/10 rounded-full blur-3xl" />
+          <div className="absolute top-20 left-20 w-48 h-48 sm:w-72 sm:h-72 bg-accent/10 rounded-full blur-3xl" />
         </div>
         <div className="container-custom relative z-10">
           <motion.div
@@ -72,7 +72,7 @@ const Testimonies = () => {
             <p className="font-body text-accent text-sm tracking-[0.3em] uppercase mb-4">
               Real Stories, Real Faith
             </p>
-            <h1 className="font-heading text-6xl sm:text-7xl lg:text-8xl tracking-wider text-primary-foreground mb-6">
+            <h1 className="font-heading text-4xl sm:text-6xl md:text-7xl lg:text-8xl tracking-wider text-primary-foreground mb-6">
               Testimonies
             </h1>
             <p className="font-body text-primary-foreground/70 text-xl max-w-2xl mx-auto">
@@ -152,7 +152,7 @@ const Testimonies = () => {
       <section className="section-padding bg-primary">
         <div className="container-custom text-center">
           <SectionWrapper>
-            <h2 className="font-heading text-5xl sm:text-6xl tracking-wider text-primary-foreground mb-6">
+            <h2 className="font-heading text-3xl sm:text-5xl lg:text-6xl tracking-wider text-primary-foreground mb-6">
               Have A Story To Share?
             </h2>
             <p className="font-body text-primary-foreground/70 text-xl max-w-2xl mx-auto mb-10">

@@ -34,9 +34,9 @@ const Shop = () => {
   return (
     <Layout>
       {/* Hero */}
-      <section className="relative min-h-[50vh] flex items-center bg-primary pt-20">
+      <section className="relative min-h-[50vh] flex items-center bg-primary pt-20 overflow-hidden">
         <div className="absolute inset-0">
-          <div className="absolute bottom-0 right-0 w-80 h-80 bg-accent/15 rounded-full blur-3xl" />
+          <div className="absolute bottom-0 right-0 w-48 h-48 sm:w-64 sm:h-64 lg:w-80 lg:h-80 bg-accent/15 rounded-full blur-3xl" />
         </div>
         <div className="container-custom relative z-10">
           <motion.div
@@ -48,7 +48,7 @@ const Shop = () => {
             <p className="font-body text-accent text-sm tracking-[0.3em] uppercase mb-4">
               Wear Your Faith
             </p>
-            <h1 className="font-heading text-6xl sm:text-7xl lg:text-8xl tracking-wider text-primary-foreground mb-6">
+            <h1 className="font-heading text-4xl sm:text-6xl md:text-7xl lg:text-8xl tracking-wider text-primary-foreground mb-6">
               Shop Now
             </h1>
             <p className="font-body text-primary-foreground/70 text-xl max-w-xl mx-auto">
@@ -123,7 +123,7 @@ const Shop = () => {
                       <h3 className="font-heading text-lg tracking-wider text-card-foreground mb-2">
                         {product.name}
                       </h3>
-                      <div className="flex items-center justify-between">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                         <span className="font-heading text-xl text-accent">
                           ${product.price}
                         </span>
@@ -155,7 +155,7 @@ const Shop = () => {
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
               onClick={(e) => e.stopPropagation()}
-              className="bg-card rounded-2xl max-w-lg w-full overflow-hidden shadow-2xl"
+              className="bg-card rounded-2xl max-w-lg w-full mx-4 overflow-hidden shadow-2xl"
             >
               <div className="aspect-video bg-muted flex items-center justify-center relative">
                 <span className="font-heading text-6xl text-muted-foreground/20 tracking-wider">
@@ -168,18 +168,18 @@ const Shop = () => {
                   <X size={18} />
                 </button>
               </div>
-              <div className="p-8">
+              <div className="p-5 sm:p-8">
                 <p className="text-xs font-body text-muted-foreground uppercase tracking-wider mb-2">
                   {selectedProduct.category}
                 </p>
-                <h3 className="font-heading text-2xl tracking-wider text-card-foreground mb-3">
+                <h3 className="font-heading text-xl sm:text-2xl tracking-wider text-card-foreground mb-3">
                   {selectedProduct.name}
                 </h3>
                 <p className="font-body text-muted-foreground mb-6">
                   {selectedProduct.description}
                 </p>
                 <div className="flex items-center justify-between">
-                  <span className="font-heading text-3xl text-accent">
+                  <span className="font-heading text-2xl sm:text-3xl text-accent">
                     ${selectedProduct.price}
                   </span>
                   <Button variant="hero" size="lg" className="gap-2">

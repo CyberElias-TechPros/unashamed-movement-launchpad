@@ -2,6 +2,8 @@ import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Menu, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useLayout } from "@/context/LayoutContext";
+import LayoutToggle from "./LayoutToggle";
 
 const navLinks = [
   { name: "Home", path: "/" },
@@ -11,12 +13,14 @@ const navLinks = [
   { name: "Unashamed", path: "/unashamed" },
   { name: "Resources", path: "/resources" },
   { name: "Events", path: "/events" },
+  { name: "Contact", path: "/contact" },
 ];
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const location = useLocation();
+  const { layoutMode, colorMode } = useLayout();
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 20);
@@ -39,18 +43,64 @@ const Navbar = () => {
     };
   }, [isOpen]);
 
+  // Determine if we should show dark navbar (Sympos layout or B&W purple theme)
+  const isDarkNavbar = layoutMode === "sympos" || colorMode === "bw-purple";
+  
+  // Get appropriate classes based on mode
+  const getNavbarClasses = () => {
+    const base = "fixed top-0 left-0 right-0 z-50 transition-all duration-500";
+    
+    if (scrolled) {
+      if (colorMode === "bw-purple") {
+        return `${base} bg-black/95 backdrop-blur-md shadow-xl py-3`;
+      }
+      return `${base} bg-primary/95 backdrop-blur-md shadow-xl py-3`;
+    }
+    
+    // Not scrolled - transparent
+    if (colorMode === "bw-purple") {
+      return `${base} bg-black/80 py-5`;
+    }
+    if (layoutMode === "sympos") {
+      return `${base} bg-background/80 py-5`;
+    }
+    // Default TTIN layout - use primary color
+    return `${base} bg-primary/80 py-5`;
+  };
+
+  const getTextColor = () => {
+    if (colorMode === "bw-purple") {
+      return "text-white";
+    }
+    if (layoutMode === "sympos" && !scrolled) {
+      return "text-foreground";
+    }
+    return "text-primary-foreground";
+  };
+
+  const getMobileMenuBg = () => {
+    if (colorMode === "bw-purple") {
+      return "bg-black/98";
+    }
+    if (layoutMode === "sympos") {
+      return "bg-background/98";
+    }
+    return "bg-primary/98";
+  };
+
+  const getMobileTextColor = () => {
+    if (colorMode === "bw-purple") {
+      return "text-white";
+    }
+    return "text-primary-foreground";
+  };
+
   return (
-    <nav
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
-        scrolled
-          ? "bg-primary/95 backdrop-blur-md shadow-xl py-3"
-          : "bg-transparent py-5"
-      }`}
-    >
+    <nav className={getNavbarClasses()}>
       <div className="container-custom flex items-center justify-between">
         {/* Logo */}
         <Link to="/" className="flex items-center gap-2">
-          <span className="font-heading text-3xl tracking-wider text-primary-foreground">
+          <span className={`font-heading text-3xl tracking-wider ${getTextColor()}`}>
             TTIN
           </span>
         </Link>
@@ -64,7 +114,7 @@ const Navbar = () => {
               className={`relative font-body text-sm font-medium tracking-wide uppercase transition-all duration-300 hover:text-accent group ${
                 location.pathname === link.path
                   ? "text-accent"
-                  : "text-primary-foreground"
+                  : getTextColor()
               }`}
             >
               {link.name}
@@ -77,12 +127,13 @@ const Navbar = () => {
               />
             </Link>
           ))}
+          <LayoutToggle />
         </div>
 
         {/* Mobile Toggle */}
         <button
           onClick={() => setIsOpen(!isOpen)}
-          className="lg:hidden text-primary-foreground p-2"
+          className={`lg:hidden p-2 ${getTextColor()}`}
           aria-label="Toggle menu"
         >
           {isOpen ? <X size={28} /> : <Menu size={28} />}
@@ -97,7 +148,7 @@ const Navbar = () => {
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
             transition={{ duration: 0.3 }}
-            className="lg:hidden bg-primary/98 backdrop-blur-md overflow-hidden"
+            className={`lg:hidden ${getMobileMenuBg()} backdrop-blur-md overflow-hidden`}
           >
             <div className="container-custom py-6 flex flex-col gap-4">
               {navLinks.map((link, i) => (
@@ -112,7 +163,7 @@ const Navbar = () => {
                     className={`font-heading text-2xl tracking-wider transition-colors ${
                       location.pathname === link.path
                         ? "text-accent"
-                        : "text-primary-foreground"
+                        : getMobileTextColor()
                     }`}
                   >
                     {link.name}

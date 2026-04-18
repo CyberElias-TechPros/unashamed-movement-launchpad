@@ -16,14 +16,39 @@ interface Product {
 }
 
 const products: Product[] = [
-  { id: 1, name: "Unashamed Tee — Black", price: 35, category: "merch", description: "Premium cotton tee with bold 'UNASHAMED' print. Wear your faith.", tag: "Best Seller" },
-  { id: 2, name: "Unashamed Tee — Cream", price: 35, category: "merch", description: "The classic Unashamed tee in soft cream with blackberry print." },
+  // Apparel
+  { id: 1, name: "Unashamed Tee - Black", price: 35, category: "merch", description: "Premium cotton tee with bold 'UNASHAMED' print. Wear your faith.", tag: "Best Seller" },
+  { id: 2, name: "Unashamed Tee - Cream", price: 35, category: "merch", description: "The classic Unashamed tee in soft cream with blackberry print." },
   { id: 3, name: "TTIN Hoodie", price: 60, category: "merch", description: "Heavyweight hoodie with embroidered TTIN logo. Stay warm, stay bold." },
-  { id: 4, name: "Bold Faith Cap", price: 25, category: "merch", description: "Structured snapback with 'Bold Faith' embroidery. One size fits all." },
-  { id: 5, name: "Boldness Devotional (PDF)", price: 12, category: "digital", description: "30-day devotional to build unshakeable courage in your faith walk.", tag: "New" },
-  { id: 6, name: "Evangelism Toolkit", price: 15, category: "digital", description: "Complete guide with conversation starters, scripture cards, and more." },
-  { id: 7, name: "Unashamed Wallpaper Pack", price: 5, category: "digital", description: "High-res phone and desktop wallpapers with bold faith declarations." },
-  { id: 8, name: "TTIN Sticker Pack", price: 8, category: "merch", description: "Set of 6 vinyl stickers with TTIN designs. Perfect for laptops and bottles." },
+  { id: 4, name: "Bold Faith Long Sleeve", price: 45, category: "merch", description: "Comfortable long sleeve tee with 'Bold Faith' graphic on back." },
+  { id: 5, name: "The Time Is Now Sweatshirt", price: 55, category: "merch", description: "Cozy sweatshirt with 'The Time Is Now' message on front." },
+  { id: 6, name: "Unashamed Tank Top", price: 30, category: "merch", description: "Athletic tank perfect for summer outreach and events." },
+  
+  // Headwear
+  { id: 7, name: "Bold Faith Cap", price: 25, category: "merch", description: "Structured snapback with 'Bold Faith' embroidery. One size fits all." },
+  { id: 8, name: "TTIN Beanie", price: 20, category: "merch", description: "Warm knit beanie with embroidered TTIN logo." },
+  { id: 9, name: "Unashamed Bucket Hat", price: 28, category: "merch", description: "Trendy bucket hat with subtle 'UNASHAMED' embroidery." },
+  
+  // Accessories
+  { id: 10, name: "TTIN Tote Bag", price: 22, category: "merch", description: "Canvas tote bag perfect for books and outreach materials." },
+  { id: 11, name: "Bold Faith Phone Case", price: 18, category: "merch", description: "Protective phone case with bold faith design." },
+  { id: 12, name: "TTIN Water Bottle", price: 15, category: "merch", description: "Insulated water bottle with TTIN logo." },
+  { id: 13, name: "Unashamed Wristband Set", price: 10, category: "merch", description: "Set of 3 silicone wristbands with faith messages." },
+  { id: 14, name: "TTIN Sticker Pack", price: 8, category: "merch", description: "Set of 6 vinyl stickers with TTIN designs. Perfect for laptops and bottles." },
+  { id: 15, name: "Bold Faith Keychain", price: 12, category: "merch", description: "Metal keychain with 'Bold Faith' engraving." },
+  
+  // Books & Digital
+  { id: 16, name: "The Time Is Now - Book", price: 25, category: "digital", description: "Complete guide to living an unashamed Christian life.", tag: "New" },
+  { id: 17, name: "Boldness Devotional (PDF)", price: 12, category: "digital", description: "30-day devotional to build unshakeable courage in your faith walk." },
+  { id: 18, name: "Evangelism Toolkit", price: 15, category: "digital", description: "Complete guide with conversation starters, scripture cards, and more." },
+  { id: 19, name: "Unashamed Wallpaper Pack", price: 5, category: "digital", description: "High-res phone and desktop wallpapers with bold faith declarations." },
+  { id: 20, name: "Preaching Guide (PDF)", price: 18, category: "digital", description: "Step-by-step guide to effective open air preaching." },
+  { id: 21, name: "TTIN Prayer Journal", price: 20, category: "digital", description: "Digital prayer journal with guided prompts and scripture." },
+  
+  // Outreach Materials
+  { id: 22, name: "Gospel Tract Set", price: 10, category: "merch", description: "Set of 50 gospel tracts with bold design." },
+  { id: 23, name: "Evangelism Cards", price: 8, category: "merch", description: "Pocket-sized cards with salvation message." },
+  { id: 24, name: "TTIN Outreach Kit", price: 35, category: "merch", description: "Complete kit with tracts, cards, and conversation starters." },
 ];
 
 const Shop = () => {

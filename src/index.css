@@ -140,3 +140,97 @@ html {
 ::-webkit-scrollbar-thumb:hover {
   background: hsl(289 28% 51%);
 }
+
+/* Hide scrollbar utility */
+.hide-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* Testimonial scrolling animation */
+@keyframes scroll {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(calc(-350px * 6));
+  }
+}
+
+.animate-scroll {
+  animation: scroll 30s linear infinite;
+}
+
+@media (min-width: 768px) {
+  @keyframes scroll-md {
+    0% {
+      transform: translateX(0);
+    }
+    100% {
+      transform: translateX(calc(-400px * 6));
+    }
+  }
+  
+  .animate-scroll {
+    animation: scroll-md 30s linear infinite;
+  }
+}
+
+/* B&W Purple Theme */
+.bw-purple-theme {
+  --background: 0 0% 0%;
+  --foreground: 0 0% 100%;
+  
+  --card: 0 0% 8%;
+  --card-foreground: 0 0% 100%;
+  
+  --popover: 0 0% 8%;
+  --popover-foreground: 0 0% 100%;
+  
+  --primary: 270 50% 50%;
+  --primary-foreground: 0 0% 0%;
+  
+  --secondary: 270 60% 40%;
+  --secondary-foreground: 0 0% 100%;
+  
+  --muted: 0 0% 15%;
+  --muted-foreground: 0 0% 80%;
+  
+  --accent: 45 100% 60%;
+  --accent-foreground: 0 0% 0%;
+  
+  --destructive: 0 84.2% 60.2%;
+  --destructive-foreground: 210 40% 98%;
+  
+  --border: 0 0% 30%;
+  --input: 0 0% 30%;
+  --ring: 270 50% 50%;
+  
+  --sidebar-background: 0 0% 5%;
+  --sidebar-foreground: 0 0% 100%;
+  --sidebar-primary: 270 50% 50%;
+  --sidebar-primary-foreground: 0 0% 0%;
+  --sidebar-accent: 270 60% 40%;
+  --sidebar-accent-foreground: 0 0% 100%;
+  --sidebar-border: 0 0% 20%;
+  --sidebar-ring: 270 50% 50%;
+}
+
+.bw-purple-theme .text-gradient-gold {
+  background: linear-gradient(135deg, hsl(45 100% 60%), hsl(270 50% 70%));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.bw-purple-theme .bg-gradient-brand {
+  background: linear-gradient(135deg, hsl(270 50% 50%), hsl(270 60% 40%));
+}
+
+.bw-purple-theme .bg-gradient-gold {
+  background: linear-gradient(135deg, hsl(45 100% 60%), hsl(270 50% 60%));
+}

@@ -10,41 +10,37 @@ export const SymposHero = () => (
     {/* Video Background - Uses VideoPlayer component */}
     <HeroVideo videoSrc="" posterSrc="" />
 
-    {/* "The Time is Now" overlay text */}
-    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-20 text-center">
-      <h2 className="font-heading text-4xl sm:text-6xl lg:text-8xl tracking-wider text-primary-foreground drop-shadow-lg">
-        The Time is Now
-      </h2>
-    </div>
-
-    <motion.div
-      initial={{ opacity: 0, y: 30 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.7 }}
-      className="container-custom text-center relative z-10 pt-20"
-    >
+    {/* Main Content - Properly centered and expanded */}
+    <div className="relative z-10 w-full max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
       <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.3 }}
-        className="bg-primary/80 backdrop-blur-md rounded-2xl p-8 lg:p-12 max-w-4xl mx-auto border border-primary-foreground/20"
+        initial={{ opacity: 0, y: 30 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.7 }}
+        className="text-center"
       >
-        <p className="font-body text-accent text-sm tracking-[0.3em] uppercase mb-4">
-          The Time Is Now
-        </p>
-        <h1 className="font-heading text-4xl sm:text-6xl lg:text-8xl tracking-wider text-primary-foreground mb-6">
-          UNASHAMED
-        </h1>
-        <p className="font-body text-primary-foreground/70 text-xl max-w-2xl mx-auto mb-8">
-          Step out of the shadows and into the bold, unashamed life God designed for you
-        </p>
-        <div className="flex flex-col sm:flex-row gap-4 justify-center">
-          <Button variant="hero" size="lg" className="px-8">
-            Join Our Community <ArrowRight className="ml-2" size={18} />
-          </Button>
-        </div>
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.3 }}
+          className="bg-primary/80 backdrop-blur-md rounded-2xl p-12 sm:p-16 lg:p-20 border border-primary-foreground/20"
+        >
+          <p className="font-body text-accent text-sm sm:text-base tracking-[0.3em] uppercase mb-6">
+            The Time Is Now
+          </p>
+          <h1 className="font-heading text-5xl sm:text-7xl md:text-8xl lg:text-9xl tracking-wider text-primary-foreground mb-8">
+            UNASHAMED
+          </h1>
+          <p className="font-body text-primary-foreground/70 text-lg sm:text-xl lg:text-2xl max-w-3xl mx-auto mb-10">
+            Step out of the shadows and into the bold, unashamed life God designed for you
+          </p>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Button variant="hero" size="lg" className="px-8 sm:px-10 text-base sm:text-lg">
+              Join Our Community <ArrowRight className="ml-2" size={20} />
+            </Button>
+          </div>
+        </motion.div>
       </motion.div>
-    </motion.div>
+    </div>
   </section>
 );
 

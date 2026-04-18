@@ -170,6 +170,19 @@ const Navbar = () => {
                   </Link>
                 </motion.div>
               ))}
+              
+              {/* Mobile Toggles */}
+              <motion.div
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: navLinks.length * 0.05 }}
+                className="pt-4 border-t border-border/20 mt-2"
+              >
+                <p className={`font-body text-sm tracking-wider uppercase mb-3 ${getMobileTextColor()}`}>
+                  Settings
+                </p>
+                <LayoutToggle />
+              </motion.div>
             </div>
           </motion.div>
         )}

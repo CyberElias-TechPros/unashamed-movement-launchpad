@@ -1,14 +1,15 @@
 import { useLayout } from "@/context/LayoutContext";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
+import { cn } from "@/lib/utils";
 
-const LayoutToggle = () => {
+const LayoutToggle = ({ className }: { className?: string }) => {
   const { layoutMode, setLayoutMode, colorMode, setColorMode } = useLayout();
 
   return (
-    <div className="flex items-center gap-4">
-      <div className="flex items-center gap-2">
-        <Label htmlFor="layout-mode" className="text-xs text-primary-foreground/60 cursor-pointer">
+    <div className={cn("flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-6", className)}>
+      <div className="flex items-center justify-between w-full sm:w-auto gap-3">
+        <Label htmlFor="layout-mode" className="text-base sm:text-sm cursor-pointer whitespace-nowrap">
           {layoutMode === "current" ? "Default" : "Sympos"}
         </Label>
         <Switch
@@ -18,8 +19,8 @@ const LayoutToggle = () => {
           className="data-[state=checked]:bg-accent"
         />
       </div>
-      <div className="flex items-center gap-2">
-        <Label htmlFor="color-mode" className="text-xs text-primary-foreground/60 cursor-pointer">
+      <div className="flex items-center justify-between w-full sm:w-auto gap-3">
+        <Label htmlFor="color-mode" className="text-base sm:text-sm cursor-pointer whitespace-nowrap">
           {colorMode === "original" ? "Original" : "B&W"}
         </Label>
         <Switch

@@ -23,6 +23,8 @@ import Events from "./pages/Events.tsx";
 import Contact from "./pages/Contact.tsx";
 import SymposContact from "./pages/SymposContact.tsx";
 import NotFound from "./pages/NotFound.tsx";
+import AdminLogin from "./pages/admin/AdminLogin.tsx";
+import AdminDashboard from "./pages/admin/AdminDashboard.tsx";
 
 const queryClient = new QueryClient();
 
@@ -63,6 +65,9 @@ const AnimatedRoutes = () => {
         <Route path="/resources" element={<PageTransition>{layoutMode === "sympos" ? <SymposResources /> : <Resources />}</PageTransition>} />
         <Route path="/events" element={<PageTransition><Events /></PageTransition>} />
         <Route path="/contact" element={<PageTransition>{layoutMode === "sympos" ? <SymposContact /> : <Contact />}</PageTransition>} />
+        <Route path="/admin/login" element={<AdminLogin />} />
+        <Route path="/admin/dashboard" element={<AdminDashboard />} />
+        <Route path="/admin" element={<AdminDashboard />} />
         <Route path="*" element={<PageTransition><NotFound /></PageTransition>} />
       </Routes>
     </AnimatePresence>

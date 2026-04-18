@@ -79,7 +79,7 @@ const Index = () => {
             variants={itemVariant}
             className="font-body text-accent text-sm tracking-[0.3em] uppercase mb-6"
           >
-            The Timidity Is Not
+            The Time Is Now
           </motion.p>
 
           <TextReveal

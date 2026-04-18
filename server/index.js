@@ -24,6 +24,7 @@ app.use('/api/events', require('./routes/events'));
 app.use('/api/resources', require('./routes/resources'));
 app.use('/api/videos', require('./routes/videos'));
 app.use('/api/donations', require('./routes/donations'));
+app.use('/api/newsletter', require('./routes/newsletter'));
 
 // Health check
 app.get('/api/health', (req, res) => {

@@ -16,27 +16,27 @@ interface VideoItem {
 const videos: VideoItem[] = [
   {
     id: 1, title: "The Cost of Silence", description: "What happens when believers choose comfort over conviction? This episode explores the real cost of staying quiet.",
-    duration: "24:30", episode: "EP 01", youtubeUrl: "https://youtube.com",
+    duration: "24:30", episode: "EP 01", youtubeUrl: "https://youtube.com/@TheTimeIsNow255",
   },
   {
     id: 2, title: "Fear vs. Faith", description: "Understanding the battle between fear and faith, and how to let your faith lead every time.",
-    duration: "18:45", episode: "EP 02", youtubeUrl: "https://youtube.com",
+    duration: "18:45", episode: "EP 02", youtubeUrl: "https://youtube.com/@TheTimeIsNow255",
   },
   {
     id: 3, title: "Bold in the Workplace", description: "Practical ways to live out your faith in professional settings without compromise.",
-    duration: "22:10", episode: "EP 03", youtubeUrl: "https://youtube.com",
+    duration: "22:10", episode: "EP 03", youtubeUrl: "https://youtube.com/@TheTimeIsNow255",
   },
   {
     id: 4, title: "The Unashamed Identity", description: "Discovering who you are in Christ and why that identity demands boldness.",
-    duration: "20:00", episode: "EP 04", youtubeUrl: "https://youtube.com",
+    duration: "20:00", episode: "EP 04", youtubeUrl: "https://youtube.com/@TheTimeIsNow255",
   },
   {
     id: 5, title: "Evangelism Redefined", description: "Moving beyond traditional approaches to sharing the Gospel in the modern world.",
-    duration: "26:15", episode: "EP 05", youtubeUrl: "https://youtube.com",
+    duration: "26:15", episode: "EP 05", youtubeUrl: "https://youtube.com/@TheTimeIsNow255",
   },
   {
     id: 6, title: "When They Persecute You", description: "How to stand firm when your faith is challenged, mocked, or attacked.",
-    duration: "21:50", episode: "EP 06", youtubeUrl: "https://youtube.com",
+    duration: "21:50", episode: "EP 06", youtubeUrl: "https://youtube.com/@TheTimeIsNow255",
   },
 ];
 
@@ -47,6 +47,7 @@ const igShorts = [
     description: "Quick encouragement to be bold in your faith today",
     views: "12.5K",
     thumbnail: "Short thumbnail placeholder",
+    url: "https://instagram.com/_thetimeisnow",
   },
   {
     id: 2,
@@ -54,6 +55,7 @@ const igShorts = [
     description: "Live footage of open air preaching on public transport",
     views: "8.3K",
     thumbnail: "Short thumbnail placeholder",
+    url: "https://instagram.com/_thetimeisnow",
   },
   {
     id: 3,
@@ -61,6 +63,7 @@ const igShorts = [
     description: "Quick comparison between timid and bold faith",
     views: "15.7K",
     thumbnail: "Short thumbnail placeholder",
+    url: "https://instagram.com/_thetimeisnow",
   },
   {
     id: 4,
@@ -68,6 +71,7 @@ const igShorts = [
     description: "Why today is the day to be unashamed of the Gospel",
     views: "9.2K",
     thumbnail: "Short thumbnail placeholder",
+    url: "https://instagram.com/_thetimeisnow",
   },
   {
     id: 5,
@@ -75,6 +79,7 @@ const igShorts = [
     description: "3 tips for effective street evangelism",
     views: "6.8K",
     thumbnail: "Short thumbnail placeholder",
+    url: "https://instagram.com/_thetimeisnow",
   },
   {
     id: 6,
@@ -82,6 +87,7 @@ const igShorts = [
     description: "Biblical encouragement to overcome fear",
     views: "11.1K",
     thumbnail: "Short thumbnail placeholder",
+    url: "https://instagram.com/_thetimeisnow",
   },
 ];
 
@@ -201,24 +207,26 @@ const Unashamed = () => {
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
             {igShorts.map((short, index) => (
               <SectionWrapper key={short.id} delay={index * 0.05}>
-                <div className="bg-card rounded-xl overflow-hidden border border-border hover:border-accent transition-all duration-500 hover:shadow-xl hover:-translate-y-1 group">
-                  <div className="relative aspect-[9/16] bg-primary flex items-center justify-center">
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-                    <div className="absolute bottom-0 left-0 right-0 p-3">
-                      <p className="text-white font-heading text-sm font-semibold mb-1 line-clamp-2">
-                        {short.title}
-                      </p>
-                      <div className="flex items-center gap-2 text-white/80 text-xs">
-                        <span>{short.views} views</span>
+                <a href={short.url} target="_blank" rel="noopener noreferrer" className="block">
+                  <div className="bg-card rounded-xl overflow-hidden border border-border hover:border-accent transition-all duration-500 hover:shadow-xl hover:-translate-y-1 group">
+                    <div className="relative aspect-[9/16] bg-primary flex items-center justify-center">
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                      <div className="absolute bottom-0 left-0 right-0 p-3">
+                        <p className="text-white font-heading text-sm font-semibold mb-1 line-clamp-2">
+                          {short.title}
+                        </p>
+                        <div className="flex items-center gap-2 text-white/80 text-xs">
+                          <span>{short.views} views</span>
+                        </div>
                       </div>
-                    </div>
-                    <div className="absolute inset-0 bg-primary/0 group-hover:bg-primary/40 transition-all duration-300 flex items-center justify-center">
-                      <div className="w-12 h-12 rounded-full bg-white/90 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 scale-75 group-hover:scale-100">
-                        <Play size={16} className="text-black ml-0.5" fill="currentColor" />
+                      <div className="absolute inset-0 bg-primary/0 group-hover:bg-primary/40 transition-all duration-300 flex items-center justify-center">
+                        <div className="w-12 h-12 rounded-full bg-white/90 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 scale-75 group-hover:scale-100">
+                          <Play size={16} className="text-black ml-0.5" fill="currentColor" />
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
+                </a>
               </SectionWrapper>
             ))}
           </div>

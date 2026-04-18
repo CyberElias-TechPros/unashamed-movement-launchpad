@@ -2,30 +2,13 @@ import { motion } from "framer-motion";
 import { ArrowRight, Calendar, Music, Users, MapPin, Play } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import SectionWrapper from "@/components/SectionWrapper";
+import { HeroVideo } from "./VideoPlayer";
 
 // TTIN Hero Section with Video Background
 export const SymposHero = () => (
   <section className="relative min-h-screen flex items-center justify-center bg-primary overflow-hidden">
-    {/* Video Background - Placeholder for actual video */}
-    <div className="absolute inset-0">
-      <video
-        className="w-full h-full object-cover"
-        autoPlay
-        muted
-        loop
-        playsInline
-        poster=""
-      >
-        <source src="" type="video/mp4" />
-      </video>
-      {/* Fallback/Overlay */}
-      <div className="absolute inset-0 bg-primary/70" />
-      <div className="absolute inset-0 flex items-center justify-center">
-        <span className="font-heading text-6xl sm:text-8xl lg:text-9xl text-primary-foreground/10 tracking-wider">
-          TTIN
-        </span>
-      </div>
-    </div>
+    {/* Video Background - Uses VideoPlayer component */}
+    <HeroVideo videoSrc="" posterSrc="" />
 
     {/* "The Time is Now" overlay text */}
     <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-20 text-center">
@@ -47,7 +30,7 @@ export const SymposHero = () => (
         className="bg-primary/80 backdrop-blur-md rounded-2xl p-8 lg:p-12 max-w-4xl mx-auto border border-primary-foreground/20"
       >
         <p className="font-body text-accent text-sm tracking-[0.3em] uppercase mb-4">
-          The Timidity Is Not
+          The Time Is Now
         </p>
         <h1 className="font-heading text-4xl sm:text-6xl lg:text-8xl tracking-wider text-primary-foreground mb-6">
           UNASHAMED

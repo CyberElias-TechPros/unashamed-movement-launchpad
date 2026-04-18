@@ -93,7 +93,7 @@ const Footer = () => {
         {/* Bottom Bar */}
         <div className="border-t border-primary-foreground/10 mt-12 pt-8 flex flex-col sm:flex-row items-center justify-between gap-4">
           <p className="text-primary-foreground/50 text-sm font-body">
-            © {new Date().getFullYear()} TTIN — The Timidity Is Not. All rights reserved.
+            © {new Date().getFullYear()} TTIN — The Time Is Now. All rights reserved.
           </p>
           <button
             onClick={scrollToTop}

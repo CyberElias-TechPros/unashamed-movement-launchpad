@@ -19,20 +19,20 @@ interface Resource {
 
 const resources: Resource[] = [
   // Church History & Martyrs for Christ
-  { id: 1, title: "Foxe's Book Of Martyrs", author: "John Foxe", description: "Classic collection of Christian martyrdom stories that inspire courage and faith.", type: "book", downloadUrl: "#", free: true, category: "Church History & Martyrs for Christ" },
-  { id: 2, title: "God's Generals - The Revivalists", author: "Roberts Liardon", description: "Biographies of men and women who used their God-given gifts to impact nations.", type: "book", downloadUrl: "#", free: true, category: "Church History & Martyrs for Christ" },
-  { id: 3, title: "God's Generals - Why They Succeeded And Why Some Failed", author: "Roberts Liardon", description: "Insights into what made revivalists successful and lessons from their failures.", type: "book", downloadUrl: "#", free: true, category: "Church History & Martyrs for Christ" },
-  { id: 4, title: "Revival In The Hebrides", author: "Duncan Campbell", description: "Firsthand account of the powerful revival that swept through the Scottish islands.", type: "book", downloadUrl: "#", free: true, category: "Church History & Martyrs for Christ" },
-  { id: 5, title: "Tortured For Christ", author: "Richard Wurmbrand", description: "Powerful testimony of faith under persecution in communist Romania.", type: "book", downloadUrl: "#", free: true, category: "Church History & Martyrs for Christ" },
+  { id: 1, title: "Foxe's Book Of Martyrs", author: "John Foxe", description: "Classic collection of Christian martyrdom stories that inspire courage and faith.", type: "book", downloadUrl: "https://drive.google.com/file/d/1QgAb5cUQBnIDocUYupX-YyLDRAusNZma/view?usp=drive_link", free: true, category: "Church History & Martyrs for Christ" },
+  { id: 2, title: "God's Generals - The Revivalists", author: "Roberts Liardon", description: "Biographies of men and women who used their God-given gifts to impact nations.", type: "book", downloadUrl: "https://drive.google.com/file/d/1IMt9z8NS5-djBKdniAlLjAUIE2vLRFaR/view?usp=drive_link", free: true, category: "Church History & Martyrs for Christ" },
+  { id: 3, title: "God's Generals - Why They Succeeded And Why Some Failed", author: "Roberts Liardon", description: "Insights into what made revivalists successful and lessons from their failures.", type: "book", downloadUrl: "https://drive.google.com/file/d/1mmh4uckujOEE8WAK6vTbGBoQuu0xAxUt/view?usp=drive_link", free: true, category: "Church History & Martyrs for Christ" },
+  { id: 4, title: "Revival In The Hebrides", author: "Duncan Campbell", description: "Firsthand account of the powerful revival that swept through the Scottish islands.", type: "book", downloadUrl: "https://drive.google.com/file/d/1D9Ij-nDbMqUyc5taJfvKTemMgliNyqkG/view?usp=drive_link", free: true, category: "Church History & Martyrs for Christ" },
+  { id: 5, title: "Tortured For Christ", author: "Richard Wurmbrand", description: "Powerful testimony of faith under persecution in communist Romania.", type: "book", downloadUrl: "https://drive.google.com/file/d/1d2ny_kuCgAINBMT-UURTCizzjzqh5Gbt/view?usp=drive_link", free: true, category: "Church History & Martyrs for Christ" },
   
   // Other Inspiration
-  { id: 6, title: "I went To Hell", author: "Kenneth Hagin", description: "A personal testimony of divine encounter and spiritual revelation.", type: "book", downloadUrl: "#", free: true, category: "Other Inspiration" },
-  { id: 7, title: "Kathryn Kuhlman - Her Spiritual Legacy and its Impact on my Life", author: "Benny Hinn", description: "Insights into the life and ministry of one of history's great evangelists.", type: "book", downloadUrl: "#", free: true, category: "Other Inspiration" },
-  { id: 8, title: "Now That You Are Born Again", author: "Pastor Chris Oyakhilome", description: "Essential guide for new believers on understanding their new life in Christ.", type: "book", downloadUrl: "#", free: true, category: "Other Inspiration" },
-  { id: 9, title: "Recreating Your World", author: "Pastor Chris Oyakhilome", description: "Learn how to transform your circumstances through the power of God's Word.", type: "book", downloadUrl: "#", free: true, category: "Other Inspiration" },
-  { id: 10, title: "The Power Of Tongues", author: "Pastor Chris Oyakhilome", description: "Comprehensive teaching on the power and purpose of speaking in tongues.", type: "book", downloadUrl: "#", free: true, category: "Other Inspiration" },
-  { id: 11, title: "The Seven Spirits Of God", author: "Pastor Chris Oyakhilome", description: "Deep dive into understanding the seven spirits mentioned in scripture.", type: "book", downloadUrl: "#", free: true, category: "Other Inspiration" },
-  { id: 12, title: "When God Visits You", author: "Pastor Chris Oyakhilome", description: "Understanding divine visitations and how to position yourself for God's presence.", type: "book", downloadUrl: "#", free: true, category: "Other Inspiration" },
+  { id: 6, title: "I went To Hell", author: "Kenneth Hagin", description: "A personal testimony of divine encounter and spiritual revelation.", type: "book", downloadUrl: "https://drive.google.com/file/d/1SyxVJOh3DvVOXSediYuTKyZ_pxV6D9rO/view?usp=drive_link", free: true, category: "Other Inspiration" },
+  { id: 7, title: "Kathryn Kuhlman - Her Spiritual Legacy and its Impact on my Life", author: "Benny Hinn", description: "Insights into the life and ministry of one of history's great evangelists.", type: "book", downloadUrl: "https://drive.google.com/file/d/1QrdudmFqLQbuEZ-WhKCBIVRBYFJrLO9t/view?usp=drive_link", free: true, category: "Other Inspiration" },
+  { id: 8, title: "Now That You Are Born Again", author: "Pastor Chris Oyakhilome", description: "Essential guide for new believers on understanding their new life in Christ.", type: "book", downloadUrl: "https://drive.google.com/file/d/1DmS4fFMrLXHU5DQ-Ib8RptZftwwFv6iq/view?usp=drive_link", free: true, category: "Other Inspiration" },
+  { id: 9, title: "Recreating Your World", author: "Pastor Chris Oyakhilome", description: "Learn how to transform your circumstances through the power of God's Word.", type: "book", downloadUrl: "https://drive.google.com/file/d/1Zej1g3M0KwKqIIGfDyheY1cv8txAvAko/view?usp=drive_link", free: true, category: "Other Inspiration" },
+  { id: 10, title: "The Power Of Tongues", author: "Pastor Chris Oyakhilome", description: "Comprehensive teaching on the power and purpose of speaking in tongues.", type: "book", downloadUrl: "https://drive.google.com/file/d/1x1yTVu10QGLhsBsecY0C-AXj_oxwSGei/view?usp=drive_link", free: true, category: "Other Inspiration" },
+  { id: 11, title: "The Seven Spirits Of God", author: "Pastor Chris Oyakhilome", description: "Deep dive into understanding the seven spirits mentioned in scripture.", type: "book", downloadUrl: "https://drive.google.com/file/d/1f48cQfjKPsiLvnUlZKcSdOgYMvt1ioSy/view?usp=drive_link", free: true, category: "Other Inspiration" },
+  { id: 12, title: "When God Visits You", author: "Pastor Chris Oyakhilome", description: "Understanding divine visitations and how to position yourself for God's presence.", type: "book", downloadUrl: "https://drive.google.com/file/d/1GIfK3x0fsSP_u_l1xHiHUuU-lt-V5GeL/view?usp=drive_link", free: true, category: "Other Inspiration" },
   
   // TTIN Original Resources
   { id: 13, title: "The Time Is Now - Complete Guide", author: "TTIN Team", description: "Comprehensive guide to living an unashamed Christian life in today's world.", type: "guide", downloadUrl: "#", free: true, category: "TTIN Resources" },
@@ -161,13 +161,20 @@ const Resources = () => {
                   <p className="font-body text-muted-foreground text-sm mb-6 flex-1">
                     {resource.description}
                   </p>
-                  <Button variant="default" size="sm" className="w-full gap-2">
-                    {resource.type === "podcast" ? (
-                      <>Listen <ExternalLink size={14} /></>
-                    ) : (
-                      <>Download <Download size={14} /></>
-                    )}
-                  </Button>
+                  <a
+                      href={resource.downloadUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="w-full"
+                    >
+                      <Button variant="default" size="sm" className="w-full gap-2">
+                        {resource.type === "podcast" ? (
+                          <>Listen <ExternalLink size={14} /></>
+                        ) : (
+                          <>Download <Download size={14} /></>
+                        )}
+                      </Button>
+                    </a>
                 </motion.div>
               ))}
             </motion.div>

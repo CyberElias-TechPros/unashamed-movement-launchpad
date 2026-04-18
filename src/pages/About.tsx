@@ -35,7 +35,7 @@ const About = () => {
               About TTIN
             </h1>
             <p className="font-body text-primary-foreground/70 text-xl max-w-2xl leading-relaxed">
-              The Timidity Is Not (TTIN) is a faith-based movement born out of a 
+              The Time Is Now (TTIN) is a faith-based movement born out of a 
               burning desire to see Christians live boldly and unapologetically for Christ. 
               We exist to challenge the culture of silence and inspire believers to speak up.
             </p>

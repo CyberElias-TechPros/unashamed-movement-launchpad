@@ -99,7 +99,7 @@ const SymposTestimonies = () => {
                 key={country.name}
                 className="bg-card rounded-lg p-4 text-center hover:bg-primary-foreground/20 transition-colors"
               >
-                <div className="font-heading text-card-foreground font-semibold">
+                <div className="font-heading text-accent ">
                   {country.name}
                 </div>
                 <div className="font-body text-card-foreground/60 text-sm mt-1">
@@ -135,7 +135,7 @@ const SymposTestimonies = () => {
       <section className="section-padding bg-muted">
         <div className="container-custom">
           <div className="text-center mb-12">
-            <p className="font-body text-accent text-sm tracking-[0.3em] uppercase mb-4">
+            <p className="font-body text-black text-sm tracking-[0.3em] uppercase mb-4">
               Testimonials
             </p>
           </div>

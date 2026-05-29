@@ -236,10 +236,10 @@ const Testimonies = () => {
                     key={country.name}
                     className="bg-primary-foreground/10 rounded-lg p-4 text-center hover:bg-primary-foreground/20 transition-colors"
                   >
-                    <div className="font-heading text-primary-foreground font-semibold">
+                    <div className="font-heading text-accent ">
                       {country.name}
                     </div>
-                    <div className="font-body text-primary-foreground/60 text-sm mt-1">
+                    <div className="font-body text-black/60 text-sm mt-1">
                       {country.preachers} preachers
                     </div>
                   </div>

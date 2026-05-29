@@ -3,7 +3,8 @@ import Layout from "@/components/Layout";
 import SectionWrapper from "@/components/SectionWrapper";
 import FloatingParticles from "@/components/FloatingParticles";
 import TiltCard from "@/components/TiltCard";
-import { Heart, Users, Globe, Target, Play } from "lucide-react";
+import { Heart, Users, Globe, Target } from "lucide-react";
+import { teamMembers } from "@/data/team";
 
 const values = [
   { icon: <Heart size={28} />, title: "Bold Love", desc: "We lead with love that's courageous, not comfortable." },
@@ -106,11 +107,20 @@ const About = () => {
 
           <SectionWrapper delay={0.2}>
             <div className="relative rounded-2xl overflow-hidden bg-black/20 aspect-video max-w-5xl mx-auto">
-              <div className="absolute inset-0 flex items-center justify-center">
-                <div className="text-center">
-                  <div className="w-24 h-24 bg-accent rounded-full flex items-center justify-center mb-6 mx-auto hover:bg-accent/90 transition-colors cursor-pointer">
-                    <Play className="w-10 h-10 text-white ml-1" />
-                  </div>
+              <video
+                src="/videos/plane-preaching.mp4"
+                controls
+                className="absolute inset-0 w-full h-full object-cover"
+                onError={(e) => {
+                  const target = e.target as HTMLVideoElement;
+                  target.style.display = 'none';
+                }}
+              >
+                <source src="/videos/plane-preaching.mp4" type="video/mp4" />
+                Your browser does not support the video tag.
+              </video>
+              <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                <div className="text-center px-4">
                   <p className="text-primary-foreground text-xl font-heading">
                     Initial video of me preaching on the plane
                   </p>
@@ -169,7 +179,32 @@ const About = () => {
         </div>
       </section>
 
-      {/* Team / Leadership placeholder */}
+      {/* Timeline */}
+      <section className="section-padding bg-background border-t border-border">
+        <div className="container-custom max-w-3xl">
+          <SectionWrapper>
+            <h2 className="font-heading text-3xl sm:text-5xl tracking-wider text-foreground text-center mb-12">
+              Our Journey
+            </h2>
+            <ol className="relative border-l border-accent/40 pl-8 space-y-10">
+              {[
+                { year: "2024", title: "The spark", desc: "Believers began sharing bold faith stories online and in small groups." },
+                { year: "Feb 2025", title: "Plane preaching", desc: "Open-air preaching on a flight ignited a global movement across 16 countries." },
+                { year: "2025", title: "TTIN launches", desc: "Resources, merch, events, and testimonies unite under The Time Is Now." },
+              ].map((item) => (
+                <li key={item.year} className="relative">
+                  <span className="absolute -left-[2.35rem] w-4 h-4 rounded-full bg-accent" />
+                  <p className="font-heading text-accent text-sm tracking-wider">{item.year}</p>
+                  <h3 className="font-heading text-xl text-foreground mt-1">{item.title}</h3>
+                  <p className="font-body text-muted-foreground mt-2">{item.desc}</p>
+                </li>
+              ))}
+            </ol>
+          </SectionWrapper>
+        </div>
+      </section>
+
+      {/* Team */}
       <section className="section-padding bg-primary">
         <div className="container-custom text-center">
           <SectionWrapper>
@@ -181,16 +216,15 @@ const About = () => {
             </h2>
           </SectionWrapper>
           <SectionWrapper delay={0.2}>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 max-w-4xl mx-auto">
-              {[1, 2, 3].map((i) => (
-                <div key={i} className="text-center">
-                  <div className="w-32 h-32 rounded-full bg-secondary mx-auto mb-4" />
-                  <h4 className="font-heading text-xl tracking-wider text-primary-foreground">
-                    Team Member
-                  </h4>
-                  <p className="font-body text-primary-foreground/60 text-sm">
-                    Role / Title
-                  </p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 max-w-5xl mx-auto">
+              {teamMembers.map((member) => (
+                <div key={member.name} className="text-center bg-primary-foreground/5 rounded-2xl p-8 border border-primary-foreground/10">
+                  <div className="w-32 h-32 rounded-full bg-secondary mx-auto mb-4 flex items-center justify-center font-heading text-3xl text-primary-foreground">
+                    {member.name.charAt(0)}
+                  </div>
+                  <h4 className="font-heading text-xl tracking-wider text-primary-foreground">{member.name}</h4>
+                  <p className="font-body text-accent text-sm mb-3">{member.role}</p>
+                  <p className="font-body text-primary-foreground/70 text-sm">{member.bio}</p>
                 </div>
               ))}
             </div>

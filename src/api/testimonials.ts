@@ -2,20 +2,25 @@ import { api } from './client';
 
 export interface Testimonial {
   id?: string;
+  _id?: string;
   name: string;
   location: string;
-  content: string;
-  videoUrl?: string;
-  approved?: boolean;
+  text: string;
+  category: string;
+  image?: string;
+  isApproved?: boolean;
+  isFeatured?: boolean;
   createdAt?: string;
 }
 
 export const testimonialsApi = {
   getAll: () => api.get<Testimonial[]>('/testimonies'),
+
+  getAllForAdmin: () => api.get<Testimonial[]>('/testimonies/manage/all'),
   
   getById: (id: string) => api.get<Testimonial>(`/testimonies/${id}`),
   
-  submit: (data: Omit<Testimonial, 'id' | 'approved' | 'createdAt'>) => 
+  submit: (data: Omit<Testimonial, 'id' | 'isApproved' | 'isFeatured' | 'createdAt'>) => 
     api.post<Testimonial>('/testimonies', data),
   
   update: (id: string, data: Partial<Testimonial>) => 

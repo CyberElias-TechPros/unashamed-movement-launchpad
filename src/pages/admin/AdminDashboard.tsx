@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/context/AuthContext";
+import { api } from "@/lib/api-client";
 import { motion } from "framer-motion";
 import {
   LayoutDashboard,
@@ -29,6 +31,7 @@ interface DashboardStats {
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
+  const { logout } = useAuth();
   const [stats, setStats] = useState<DashboardStats>({
     totalSubscribers: 0,
     totalDownloads: 0,
@@ -38,26 +41,36 @@ const AdminDashboard = () => {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const adminAuth = localStorage.getItem("ttin_admin_auth");
-    if (!adminAuth) {
-      navigate("/admin/login");
-      return;
-    }
-
-    const subscribers = JSON.parse(localStorage.getItem("ttin_subscribers") || "[]");
-    const testimonials = JSON.parse(localStorage.getItem("ttin_testimonials") || "[]");
-
-    setStats({
-      totalSubscribers: subscribers.length,
-      totalDownloads: 158,
-      totalViews: 12500,
-      totalTestimonials: testimonials.length,
-    });
-    setIsLoading(false);
-  }, [navigate]);
+    const loadStats = async () => {
+      try {
+        const data = await api.get<{
+          totalViews: number;
+          totalSubscribers: number;
+          totalTestimonials: number;
+          totalDownloads: number;
+        }>("/analytics/dashboard");
+        setStats({
+          totalSubscribers: data.totalSubscribers,
+          totalDownloads: data.totalDownloads,
+          totalViews: data.totalViews,
+          totalTestimonials: data.totalTestimonials,
+        });
+      } catch {
+        setStats({
+          totalSubscribers: 0,
+          totalDownloads: 0,
+          totalViews: 0,
+          totalTestimonials: 0,
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    loadStats();
+  }, []);
 
   const handleLogout = () => {
-    localStorage.removeItem("ttin_admin_auth");
+    logout();
     navigate("/admin/login");
   };
 
@@ -74,7 +87,7 @@ const AdminDashboard = () => {
       icon: FileText,
       description: "Manage page content",
       path: "/admin/content",
-      badge: "2 new",
+      badge: null,
     },
     {
       title: "Videos",
@@ -89,6 +102,13 @@ const AdminDashboard = () => {
       description: "Manage testimonials",
       path: "/admin/testimonials",
       badge: stats.totalTestimonials > 0 ? `${stats.totalTestimonials} new` : null,
+    },
+    {
+      title: "Products",
+      icon: ShoppingBag,
+      description: "Manage shop catalog",
+      path: "/admin/products",
+      badge: null,
     },
     {
       title: "Resources",

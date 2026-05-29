@@ -1,28 +1,9 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import SymposLayout from "@/components/SymposLayout";
 import { Download, BookOpen, FileText, Headphones } from "lucide-react";
 import { Button } from "@/components/ui/button";
-
-interface Resource {
-  id: number;
-  title: string;
-  author: string;
-  description: string;
-  type: "book" | "devotional" | "guide" | "podcast";
-  free: boolean;
-}
-
-const resources: Resource[] = [
-  { id: 1, title: "Foxe's Book Of Martyrs", author: "John Foxe", description: "Classic collection of Christian martyrdom stories", type: "book", free: true },
-  { id: 2, title: "God's Generals - The Revivalists", author: "Roberts Liardon", description: "Biographies of revivalists who changed nations", type: "book", free: true },
-  { id: 3, title: "Revival In The Hebrides", author: "Duncan Campbell", description: "Powerful revival in the Scottish islands", type: "book", free: true },
-  { id: 4, title: "Tortured For Christ", author: "Richard Wurmbrand", description: "Faith under persecution", type: "book", free: true },
-  { id: 5, title: "I Went To Hell", author: "Kenneth Hagin", description: "Personal testimony of divine encounter", type: "book", free: true },
-  { id: 6, title: "Now That You Are Born Again", author: "Pastor Chris Oyakhilome", description: "Guide for new believers", type: "book", free: true },
-  { id: 7, title: "The Power Of Tongues", author: "Pastor Chris Oyakhilome", description: "Teaching on speaking in tongues", type: "book", free: true },
-  { id: 8, title: "30 Days of Boldness Devotional", author: "TTIN Team", description: "Transformative devotional", type: "devotional", free: true },
-];
+import { resourcesApi, Resource } from "@/api/resources";
 
 const categories = ["All", "Church History", "Inspiration", "TTIN Resources"];
 
@@ -35,6 +16,21 @@ const typeIcons: Record<string, JSX.Element> = {
 
 const SymposResources = () => {
   const [filter, setFilter] = useState("All");
+  const [resources, setResources] = useState<Resource[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchResources = async () => {
+      setLoading(true);
+      try {
+        const data = await resourcesApi.getAll(filter !== "All" ? filter : undefined);
+        setResources(data);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchResources();
+  }, [filter]);
 
   return (
     <SymposLayout>
@@ -96,46 +92,50 @@ const SymposResources = () => {
 
       <section className="section-padding bg-background">
         <div className="container-custom">
-          <h2 className="font-heading text-3xl sm:text-5xl tracking-wider text-foreground mb-12 text-center">
-            Browse Resources
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {resources.map((resource, i) => (
-              <motion.div
-                key={resource.id}
-                initial={{ opacity: 0, y: 30 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: i * 0.08 }}
-                className="bg-card rounded-2xl p-6 border border-border hover:border-accent transition-all duration-500 hover:shadow-xl hover:-translate-y-1 flex flex-col"
-              >
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="w-10 h-10 rounded-lg bg-primary text-primary-foreground flex items-center justify-center">
-                    {typeIcons[resource.type]}
-                  </div>
-                  <span className="text-xs font-body text-muted-foreground uppercase tracking-wider">
-                    {resource.type}
-                  </span>
-                  {resource.free && (
-                    <span className="ml-auto text-xs bg-accent text-accent-foreground px-2 py-0.5 rounded-full font-heading tracking-wider">
-                      Free
+          {loading ? (
+            <div className="text-center py-12">
+              <div className="animate-spin w-8 h-8 border-4 border-primary-foreground border-t-transparent rounded-full mx-auto mb-4" />
+              <p className="text-muted-foreground">Loading resources...</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              {resources.map((resource, i) => (
+                <motion.div
+                  key={resource.id || resource._id}
+                  initial={{ opacity: 0, y: 30 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: i * 0.08 }}
+                  className="bg-card rounded-2xl p-6 border border-border hover:border-accent transition-all duration-500 hover:shadow-xl hover:-translate-y-1 flex flex-col"
+                >
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="w-10 h-10 rounded-lg bg-primary text-primary-foreground flex items-center justify-center">
+                      {typeIcons[resource.type]}
+                    </div>
+                    <span className="text-xs font-body text-muted-foreground uppercase tracking-wider">
+                      {resource.type}
                     </span>
-                  )}
-                </div>
-                <h3 className="font-heading text-lg tracking-wider text-card-foreground mb-2">
-                  {resource.title}
-                </h3>
-                <p className="font-body text-muted-foreground text-sm mb-1">
-                  by {resource.author}
-                </p>
-                <p className="font-body text-muted-foreground text-sm mb-4 flex-1">
-                  {resource.description}
-                </p>
-                <Button variant="default" size="sm" className="w-full gap-2">
-                  <Download size={14} /> Download
-                </Button>
-              </motion.div>
-            ))}
-          </div>
+                    {resource.free && (
+                      <span className="ml-auto text-xs bg-accent text-accent-foreground px-2 py-0.5 rounded-full font-heading tracking-wider">
+                        Free
+                      </span>
+                    )}
+                  </div>
+                  <h3 className="font-heading text-lg tracking-wider text-card-foreground mb-2">
+                    {resource.title}
+                  </h3>
+                  <p className="font-body text-muted-foreground text-sm mb-1">
+                    by {resource.author}
+                  </p>
+                  <p className="font-body text-muted-foreground text-sm mb-4 flex-1">
+                    {resource.description}
+                  </p>
+                  <Button variant="default" size="sm" className="w-full gap-2">
+                    <Download size={14} /> Download
+                  </Button>
+                </motion.div>
+              ))}
+            </div>
+          )}
         </div>
       </section>
     </SymposLayout>

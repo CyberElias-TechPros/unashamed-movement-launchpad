@@ -1,8 +1,11 @@
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import Layout from "@/components/Layout";
 import SectionWrapper from "@/components/SectionWrapper";
 import FloatingParticles from "@/components/FloatingParticles";
+import { PodcastPlayer } from "@/components/PodcastPlayer";
 import { Play, ExternalLink, Youtube, Instagram } from "lucide-react";
+import { videosApi, Video } from "@/api/videos";
 
 interface VideoItem {
   id: number;
@@ -11,12 +14,13 @@ interface VideoItem {
   duration: string;
   episode: string;
   youtubeUrl: string;
+  youtubeEmbedId?: string;
 }
 
 const videos: VideoItem[] = [
   {
     id: 1, title: "The Cost of Silence", description: "What happens when believers choose comfort over conviction? This episode explores the real cost of staying quiet.",
-    duration: "24:30", episode: "EP 01", youtubeUrl: "https://youtube.com/@TheTimeIsNow255",
+    duration: "24:30", episode: "EP 01", youtubeUrl: "https://youtube.com/@TheTimeIsNow255", youtubeEmbedId: "jNQXAC9IVRw",
   },
   {
     id: 2, title: "Fear vs. Faith", description: "Understanding the battle between fear and faith, and how to let your faith lead every time.",
@@ -47,7 +51,7 @@ const igShorts = [
     description: "Quick encouragement to be bold in your faith today",
     views: "12.5K",
     thumbnail: "Short thumbnail placeholder",
-    url: "https://instagram.com/_thetimeisnow",
+    url: "https://www.instagram.com/reel/C8placeholder1/",
   },
   {
     id: 2,
@@ -55,7 +59,7 @@ const igShorts = [
     description: "Live footage of open air preaching on public transport",
     views: "8.3K",
     thumbnail: "Short thumbnail placeholder",
-    url: "https://instagram.com/_thetimeisnow",
+    url: "https://www.instagram.com/reel/C8placeholder2/",
   },
   {
     id: 3,
@@ -92,6 +96,32 @@ const igShorts = [
 ];
 
 const Unashamed = () => {
+  const [apiVideos, setApiVideos] = useState<Video[]>([]);
+
+  useEffect(() => {
+    videosApi.getAll().then(setApiVideos).catch(() => setApiVideos([]));
+  }, []);
+
+  const podcastEpisodes = videos.map((v) => ({
+    id: String(v.id),
+    title: v.title,
+    description: v.description,
+    duration: v.duration,
+    audioUrl: v.youtubeUrl,
+  }));
+
+  const displayVideos = apiVideos.length
+    ? apiVideos.map((v, i) => ({
+        id: i + 1,
+        title: v.title,
+        description: v.description,
+        duration: v.duration ? `${v.duration} min` : "—",
+        episode: `EP ${String(i + 1).padStart(2, "0")}`,
+        youtubeUrl: v.url,
+        youtubeEmbedId: v.url.includes("embed") ? v.url.split("/").pop() : undefined,
+      }))
+    : videos;
+
   return (
     <Layout>
       {/* Hero */}
@@ -120,6 +150,15 @@ const Unashamed = () => {
         </div>
       </section>
 
+      <section className="section-padding bg-muted border-y border-border">
+        <div className="container-custom max-w-3xl">
+          <SectionWrapper>
+            <h2 className="font-heading text-2xl tracking-wider text-center mb-6">Podcast Player</h2>
+            <PodcastPlayer episodes={podcastEpisodes} />
+          </SectionWrapper>
+        </div>
+      </section>
+
       {/* YouTube Podcast Episodes */}
       <section className="section-padding bg-background">
         <div className="container-custom">
@@ -141,17 +180,20 @@ const Unashamed = () => {
           </SectionWrapper>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {videos.map((video, i) => (
+            {displayVideos.map((video, i) => (
               <SectionWrapper key={video.id} delay={i * 0.1}>
-                <a
-                  href={video.youtubeUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="group block"
-                >
+                <div className="group block">
                   <div className="bg-card rounded-2xl overflow-hidden border border-border hover:border-accent transition-all duration-500 hover:shadow-xl hover:-translate-y-1">
-                    {/* Video Thumbnail */}
                     <div className="relative aspect-video bg-primary flex items-center justify-center overflow-hidden">
+                      {video.youtubeEmbedId ? (
+                        <iframe
+                          title={video.title}
+                          src={`https://www.youtube.com/embed/${video.youtubeEmbedId}`}
+                          className="absolute inset-0 w-full h-full"
+                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                          allowFullScreen
+                        />
+                      ) : null}
                       <span className="font-heading text-6xl text-primary-foreground/10 tracking-wider">
                         {video.episode}
                       </span>
@@ -170,14 +212,16 @@ const Unashamed = () => {
                     <div className="p-6">
                       <h3 className="font-heading text-xl tracking-wider text-card-foreground mb-2 flex items-center gap-2">
                         {video.title}
-                        <ExternalLink size={14} className="text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+                        <a href={video.youtubeUrl} target="_blank" rel="noopener noreferrer" aria-label="Open on YouTube">
+                          <ExternalLink size={14} className="text-muted-foreground" />
+                        </a>
                       </h3>
                       <p className="font-body text-muted-foreground text-sm leading-relaxed">
                         {video.description}
                       </p>
                     </div>
                   </div>
-                </a>
+                </div>
               </SectionWrapper>
             ))}
           </div>
@@ -265,19 +309,13 @@ const Unashamed = () => {
             <div className="max-w-4xl mx-auto">
               <div className="bg-card rounded-2xl overflow-hidden shadow-2xl border border-primary-foreground/20">
                 <div className="relative aspect-video bg-black">
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <div className="text-center">
-                      <div className="w-24 h-24 bg-accent rounded-full flex items-center justify-center mb-6 mx-auto hover:bg-accent/90 transition-colors cursor-pointer">
-                        <Play className="w-10 h-10 text-white ml-1" fill="currentColor" />
-                      </div>
-                      <p className="text-white text-xl font-heading mb-2">
-                        The Cost of Silence
-                      </p>
-                      <p className="text-white/80">
-                        EP 01 • 24:30
-                      </p>
-                    </div>
-                  </div>
+                  <iframe
+                    title="Featured: The Cost of Silence"
+                    src="https://www.youtube.com/embed/jNQXAC9IVRw"
+                    className="absolute inset-0 w-full h-full"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                  />
                 </div>
                 <div className="p-8">
                   <h3 className="font-heading text-2xl tracking-wider text-card-foreground mb-4">

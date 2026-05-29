@@ -1,0 +1,23 @@
+{
+  "name": "The Time Is Now - Unashamed Christian Movement",
+  "short_name": "TTIN",
+  "description": "A faith-based movement inspiring Christians to live boldly and unapologetically",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0f172a",
+  "theme_color": "#f59e0b",
+  "icons": [
+    {
+      "src": "/techpros.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/techpros.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

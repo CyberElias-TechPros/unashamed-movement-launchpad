@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { Instagram, Twitter, Mail, ArrowUp } from "lucide-react";
+import { trackEvent } from "@/lib/analytics";
 
 const Footer = () => {
   const scrollToTop = () => {
@@ -18,12 +19,13 @@ const Footer = () => {
             Join us in spreading boldness across the world. Your support helps us 
             reach more people and create more resources for the kingdom.
           </p>
-          <a
-            href="#donate"
+          <Link
+            to="/contact"
+            onClick={() => trackEvent({ category: "navigation", action: "click", label: "donate_footer" })}
             className="inline-block bg-accent text-accent-foreground font-heading text-lg tracking-wider px-10 py-4 rounded-md hover:bg-accent/90 transition-all duration-300 hover:scale-105 shadow-lg"
           >
             Give Now
-          </a>
+          </Link>
         </div>
       </div>
 
@@ -65,10 +67,12 @@ const Footer = () => {
             </h4>
             <div className="flex gap-4 mb-6">
               <a
-                href="https://instagram.com"
+                href="https://instagram.com/_thetimeisnow"
                 target="_blank"
                 rel="noopener noreferrer"
+                onClick={() => trackEvent({ category: "social", action: "click", label: "instagram" })}
                 className="w-12 h-12 rounded-full bg-primary-foreground/10 flex items-center justify-center hover:bg-accent hover:text-accent-foreground transition-all duration-300"
+                aria-label="Instagram"
               >
                 <Instagram size={20} />
               </a>
@@ -96,7 +100,9 @@ const Footer = () => {
             © {new Date().getFullYear()} TTIN — The Time Is Now. All rights reserved.
           </p>
           <button
+            type="button"
             onClick={scrollToTop}
+            aria-label="Scroll to top"
             className="w-10 h-10 rounded-full bg-accent text-accent-foreground flex items-center justify-center hover:scale-110 transition-transform"
           >
             <ArrowUp size={18} />

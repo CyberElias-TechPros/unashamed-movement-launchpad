@@ -9,7 +9,9 @@ const productSchema = new mongoose.Schema({
   tag: { type: String, default: '' },
   stock: { type: Number, default: 0 },
   isActive: { type: Boolean, default: true },
-  downloadUrl: { type: String, default: '' }, // For digital products
+  downloadUrl: { type: String, default: '' },
+  sizes: [{ type: String }],
+  colors: [{ type: String }],
 }, { timestamps: true });
 
 module.exports = mongoose.model('Product', productSchema);

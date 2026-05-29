@@ -1,65 +1,112 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import Layout from "@/components/Layout";
 import SectionWrapper from "@/components/SectionWrapper";
 import FloatingParticles from "@/components/FloatingParticles";
 import { Button } from "@/components/ui/button";
-import { ShoppingCart, Eye, X } from "lucide-react";
+import { ShoppingCart, Eye, X, Heart } from "lucide-react";
+import { useCart } from "@/context/CartContext";
+import { trackAddToCart } from "@/lib/analytics";
+import { productsApi, Product } from "@/api/products";
+import { useWishlist } from "@/context/WishlistContext";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
-interface Product {
-  id: number;
-  name: string;
-  price: number;
-  category: "merch" | "digital";
-  description: string;
-  tag?: string;
-}
-
-const products: Product[] = [
-  // Apparel
-  { id: 1, name: "Unashamed Tee - Black", price: 35, category: "merch", description: "Premium cotton tee with bold 'UNASHAMED' print. Wear your faith.", tag: "Best Seller" },
-  { id: 2, name: "Unashamed Tee - Cream", price: 35, category: "merch", description: "The classic Unashamed tee in soft cream with blackberry print." },
-  { id: 3, name: "TTIN Hoodie", price: 60, category: "merch", description: "Heavyweight hoodie with embroidered TTIN logo. Stay warm, stay bold." },
-  { id: 4, name: "Bold Faith Long Sleeve", price: 45, category: "merch", description: "Comfortable long sleeve tee with 'Bold Faith' graphic on back." },
-  { id: 5, name: "The Time Is Now Sweatshirt", price: 55, category: "merch", description: "Cozy sweatshirt with 'The Time Is Now' message on front." },
-  { id: 6, name: "Unashamed Tank Top", price: 30, category: "merch", description: "Athletic tank perfect for summer outreach and events." },
-  
-  // Headwear
-  { id: 7, name: "Bold Faith Cap", price: 25, category: "merch", description: "Structured snapback with 'Bold Faith' embroidery. One size fits all." },
-  { id: 8, name: "TTIN Beanie", price: 20, category: "merch", description: "Warm knit beanie with embroidered TTIN logo." },
-  { id: 9, name: "Unashamed Bucket Hat", price: 28, category: "merch", description: "Trendy bucket hat with subtle 'UNASHAMED' embroidery." },
-  
-  // Accessories
-  { id: 10, name: "TTIN Tote Bag", price: 22, category: "merch", description: "Canvas tote bag perfect for books and outreach materials." },
-  { id: 11, name: "Bold Faith Phone Case", price: 18, category: "merch", description: "Protective phone case with bold faith design." },
-  { id: 12, name: "TTIN Water Bottle", price: 15, category: "merch", description: "Insulated water bottle with TTIN logo." },
-  { id: 13, name: "Unashamed Wristband Set", price: 10, category: "merch", description: "Set of 3 silicone wristbands with faith messages." },
-  { id: 14, name: "TTIN Sticker Pack", price: 8, category: "merch", description: "Set of 6 vinyl stickers with TTIN designs. Perfect for laptops and bottles." },
-  { id: 15, name: "Bold Faith Keychain", price: 12, category: "merch", description: "Metal keychain with 'Bold Faith' engraving." },
-  
-  // Books & Digital
-  { id: 16, name: "The Time Is Now - Book", price: 25, category: "digital", description: "Complete guide to living an unashamed Christian life.", tag: "New" },
-  { id: 17, name: "Boldness Devotional (PDF)", price: 12, category: "digital", description: "30-day devotional to build unshakeable courage in your faith walk." },
-  { id: 18, name: "Evangelism Toolkit", price: 15, category: "digital", description: "Complete guide with conversation starters, scripture cards, and more." },
-  { id: 19, name: "Unashamed Wallpaper Pack", price: 5, category: "digital", description: "High-res phone and desktop wallpapers with bold faith declarations." },
-  { id: 20, name: "Preaching Guide (PDF)", price: 18, category: "digital", description: "Step-by-step guide to effective open air preaching." },
-  { id: 21, name: "TTIN Prayer Journal", price: 20, category: "digital", description: "Digital prayer journal with guided prompts and scripture." },
-  
-  // Outreach Materials
-  { id: 22, name: "Gospel Tract Set", price: 10, category: "merch", description: "Set of 50 gospel tracts with bold design." },
-  { id: 23, name: "Evangelism Cards", price: 8, category: "merch", description: "Pocket-sized cards with salvation message." },
-  { id: 24, name: "TTIN Outreach Kit", price: 35, category: "merch", description: "Complete kit with tracts, cards, and conversation starters." },
-];
+const APPAREL_SIZES = ["S", "M", "L", "XL", "XXL"];
 
 const Shop = () => {
+  const location = useLocation();
+  const navigate = useNavigate();
   const [filter, setFilter] = useState<"all" | "merch" | "digital">("all");
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [quantity, setQuantity] = useState(1);
+  const [selectedSize, setSelectedSize] = useState("M");
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const { addItem } = useCart();
+  const { addItem: addWishlist, removeItem: removeWishlist, isInWishlist } = useWishlist();
 
-  const filtered = filter === "all" ? products : products.filter((p) => p.category === filter);
+  useEffect(() => {
+    const cat = new URLSearchParams(location.search).get("category");
+    if (cat === "merch" || cat === "digital" || cat === "all") {
+      setFilter(cat);
+    }
+  }, [location.search]);
+
+  const setFilterWithUrl = (cat: "all" | "merch" | "digital") => {
+    setFilter(cat);
+    navigate(cat === "all" ? "/shop" : `/shop?category=${cat}`, { replace: true });
+  };
+
+  useEffect(() => {
+    const fetchProducts = async () => {
+      setLoading(true);
+      try {
+        const data = await productsApi.getAll(filter === "all" ? undefined : filter);
+        setProducts(data);
+      } catch (err) {
+        setError("Failed to load products");
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProducts();
+  }, [filter]);
+
+  const handleAddToCart = () => {
+    if (!selectedProduct) return;
+    const pid = selectedProduct._id || selectedProduct.id || "";
+    if (selectedProduct.stock != null && selectedProduct.stock < quantity) {
+      alert(`Only ${selectedProduct.stock} left in stock.`);
+      return;
+    }
+    addItem(
+      selectedProduct,
+      quantity,
+      selectedProduct.category === "merch" ? { size: selectedSize } : undefined
+    );
+    trackAddToCart(pid, selectedProduct.name);
+    setSelectedProduct(null);
+    setQuantity(1);
+  };
+
+  const toggleWishlist = (product: Product, e: React.MouseEvent) => {
+    e.stopPropagation();
+    const pid = product._id || product.id || "";
+    if (isInWishlist(pid)) removeWishlist(pid);
+    else addWishlist(product);
+  };
+
+  if (loading) {
+    return (
+      <Layout>
+        <section className="section-padding bg-primary pt-20">
+          <div className="container-custom text-center">
+            <div className="animate-spin w-8 h-8 border-4 border-primary-foreground border-t-transparent rounded-full mx-auto mb-4" />
+            <p className="text-primary-foreground/70">Loading products...</p>
+          </div>
+        </section>
+      </Layout>
+    );
+  }
+
+  if (error) {
+    return (
+      <Layout>
+        <section className="section-padding bg-primary pt-20">
+          <div className="container-custom text-center">
+            <p className="text-primary-foreground/70">{error}</p>
+          </div>
+        </section>
+      </Layout>
+    );
+  }
 
   return (
     <Layout>
-      {/* Hero */}
       <section className="relative min-h-[50vh] flex items-center bg-primary pt-20 overflow-hidden">
         <div className="absolute inset-0">
           <div className="absolute bottom-0 right-0 w-48 h-48 sm:w-64 sm:h-64 lg:w-80 lg:h-80 bg-accent/15 rounded-full blur-3xl" />
@@ -85,13 +132,12 @@ const Shop = () => {
         </div>
       </section>
 
-      {/* Filter */}
       <section className="py-8 bg-background border-b border-border">
         <div className="container-custom flex flex-wrap gap-3 justify-center">
           {(["all", "merch", "digital"] as const).map((cat) => (
             <button
               key={cat}
-              onClick={() => setFilter(cat)}
+              onClick={() => setFilterWithUrl(cat)}
               className={`font-heading text-sm tracking-wider px-6 py-2 rounded-full transition-all duration-300 capitalize ${
                 filter === cat
                   ? "bg-primary text-primary-foreground"
@@ -104,7 +150,6 @@ const Shop = () => {
         </div>
       </section>
 
-      {/* Products Grid */}
       <section className="section-padding bg-background">
         <div className="container-custom">
           <AnimatePresence mode="wait">
@@ -115,25 +160,44 @@ const Shop = () => {
               exit={{ opacity: 0 }}
               className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8"
             >
-              {filtered.map((product, i) => (
+              {products.map((product, i) => (
                 <motion.div
-                  key={product.id}
+                  key={product.id || product._id}
                   initial={{ opacity: 0, y: 30 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: i * 0.08 }}
                   className="group"
                 >
                   <div className="bg-card rounded-2xl overflow-hidden border border-border hover:border-accent transition-all duration-500 hover:shadow-xl hover:-translate-y-1">
-                    {/* Image placeholder */}
                     <div className="relative aspect-square bg-muted flex items-center justify-center overflow-hidden">
-                      <span className="font-heading text-4xl text-muted-foreground/30 tracking-wider">
-                        TTIN
-                      </span>
+                      {product.images?.[0] ? (
+                        <img 
+                          src={product.images[0]} 
+                          alt={product.name}
+                          className="w-full h-full object-cover"
+                          loading="lazy"
+                        />
+                      ) : (
+                        <span className="font-heading text-4xl text-muted-foreground/30 tracking-wider">
+                          {product.name.substring(0, 2).toUpperCase()}
+                        </span>
+                      )}
                       {product.tag && (
                         <span className="absolute top-3 left-3 bg-accent text-accent-foreground text-xs font-heading tracking-wider px-3 py-1 rounded-full">
                           {product.tag}
                         </span>
                       )}
+                      <button
+                        type="button"
+                        onClick={(e) => toggleWishlist(product, e)}
+                        className="absolute top-3 right-3 p-2 rounded-full bg-card/90 hover:bg-accent hover:text-accent-foreground transition-colors"
+                        aria-label="Toggle wishlist"
+                      >
+                        <Heart
+                          size={18}
+                          className={isInWishlist(product._id || product.id || "") ? "fill-accent text-accent" : ""}
+                        />
+                      </button>
                       <div className="absolute inset-0 bg-primary/0 group-hover:bg-primary/60 transition-all duration-300 flex items-center justify-center opacity-0 group-hover:opacity-100">
                         <button
                           onClick={() => setSelectedProduct(product)}
@@ -150,12 +214,12 @@ const Shop = () => {
                       <h3 className="font-heading text-lg tracking-wider text-card-foreground mb-2">
                         {product.name}
                       </h3>
-                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                         <span className="font-heading text-xl text-accent">
                           ${product.price}
                         </span>
-                        <Button size="sm" variant="default" className="gap-2">
-                          <ShoppingCart size={14} /> Add
+                        <Button size="sm" variant="default" className="gap-2" onClick={() => setSelectedProduct(product)}>
+                          <Eye size={14} /> Quick View
                         </Button>
                       </div>
                     </div>
@@ -167,7 +231,6 @@ const Shop = () => {
         </div>
       </section>
 
-      {/* Product Modal */}
       <AnimatePresence>
         {selectedProduct && (
           <motion.div
@@ -185,9 +248,13 @@ const Shop = () => {
               className="bg-card rounded-2xl max-w-lg w-full mx-4 overflow-hidden shadow-2xl"
             >
               <div className="aspect-video bg-muted flex items-center justify-center relative">
-                <span className="font-heading text-6xl text-muted-foreground/20 tracking-wider">
-                  TTIN
-                </span>
+                {selectedProduct.images?.[0] ? (
+                  <img src={selectedProduct.images[0]} alt={selectedProduct.name} className="w-full h-full object-cover" />
+                ) : (
+                  <span className="font-heading text-6xl text-muted-foreground/20 tracking-wider">
+                    {selectedProduct.name.substring(0, 2).toUpperCase()}
+                  </span>
+                )}
                 <button
                   onClick={() => setSelectedProduct(null)}
                   className="absolute top-4 right-4 bg-card text-card-foreground p-2 rounded-full hover:bg-accent transition-colors"
@@ -205,14 +272,41 @@ const Shop = () => {
                 <p className="font-body text-muted-foreground mb-6">
                   {selectedProduct.description}
                 </p>
-                <div className="flex items-center justify-between">
+                {selectedProduct.category === "merch" && (
+                  <div className="mb-4">
+                    <label className="text-sm font-body text-muted-foreground block mb-2">Size</label>
+                    <Select value={selectedSize} onValueChange={setSelectedSize}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        {(selectedProduct.sizes?.length ? selectedProduct.sizes : APPAREL_SIZES).map((s) => (
+                          <SelectItem key={s} value={s}>{s}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+                <div className="flex items-center justify-between mb-4">
                   <span className="font-heading text-2xl sm:text-3xl text-accent">
                     ${selectedProduct.price}
                   </span>
-                  <Button variant="hero" size="lg" className="gap-2">
-                    <ShoppingCart size={18} /> Add to Cart
-                  </Button>
+                  <div className="flex items-center gap-2">
+                    <label className="text-sm font-body text-muted-foreground">Qty:</label>
+                    <input
+                      type="number"
+                      min="1"
+                      max={selectedProduct.stock || 99}
+                      value={quantity}
+                      onChange={(e) => setQuantity(parseInt(e.target.value) || 1)}
+                      className="w-16 px-2 py-1 border border-border rounded bg-background text-foreground"
+                    />
+                  </div>
                 </div>
+                {selectedProduct.stock != null && selectedProduct.stock <= 5 && (
+                  <p className="text-sm text-amber-600 mb-2">Only {selectedProduct.stock} left in stock</p>
+                )}
+                <Button variant="hero" size="lg" className="gap-2 w-full" onClick={handleAddToCart}>
+                  <ShoppingCart size={18} /> Add to Cart
+                </Button>
               </div>
             </motion.div>
           </motion.div>

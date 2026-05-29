@@ -3,6 +3,8 @@ const c = require('../controllers/eventController');
 const { protect, admin } = require('../middleware/auth');
 
 router.get('/', c.getAll);
+router.post('/register', c.register);
+router.get('/:id/registrations', c.getRegistrationCount);
 router.get('/:id', c.getById);
 router.post('/', protect, admin, c.create);
 router.put('/:id', protect, admin, c.update);

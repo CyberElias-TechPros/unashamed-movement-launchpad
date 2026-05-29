@@ -1,126 +1,115 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import Layout from "@/components/Layout";
 import SectionWrapper from "@/components/SectionWrapper";
 import FloatingParticles from "@/components/FloatingParticles";
 import { Button } from "@/components/ui/button";
-import { Quote, ArrowRight, Users, Globe, Download, Play, MapPin, Book } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Quote, ArrowRight, Users, Globe, Download, Play, Book, Share2, MapPin } from "lucide-react";
+import { TestimonySubmissionForm } from "@/components/TestimonySubmissionForm";
+import WorldMap from "@/components/WorldMap";
+import { testimonialsApi, Testimonial } from "@/api/testimonials";
+import { trackEvent } from "@/lib/analytics";
 
-interface Testimony {
-  id: number;
-  name: string;
-  location: string;
-  text: string;
-  category: string;
-}
-
-const testimonies: Testimony[] = [
-  {
-    id: 1, name: "Sarah M.", location: "Lagos, Nigeria",
-    text: "TTIN changed everything for me. I was a closet Christian — afraid to speak up at work, afraid to share my faith with friends. After joining the community, I found the courage to start a Bible study group in my office. 12 people have given their lives to Christ since then.",
-    category: "Evangelism",
-  },
-  {
-    id: 2, name: "David K.", location: "London, UK",
-    text: "I grew up in church but never truly lived out my faith publicly. TTIN challenged me to stop being comfortable and start being courageous. I now share the Gospel on university campuses every week.",
-    category: "Youth",
-  },
-  {
-    id: 3, name: "Grace O.", location: "Houston, TX",
-    text: "The resources and community from TTIN gave me the tools I needed to defend my faith with confidence. I no longer shy away from tough conversations about God.",
-    category: "Apologetics",
-  },
-  {
-    id: 4, name: "James A.", location: "Accra, Ghana",
-    text: "Being part of TTIN showed me that boldness isn't about being loud — it's about being consistent. I've learned to live my faith in every area of my life, from my business to my relationships.",
-    category: "Lifestyle",
-  },
-  {
-    id: 5, name: "Priscilla N.", location: "Toronto, Canada",
-    text: "I was struggling with fear of persecution as a Christian in my workplace. TTIN taught me that the fear of God should outweigh the fear of man. I am now unapologetic about my faith.",
-    category: "Workplace",
-  },
-  {
-    id: 6, name: "Emmanuel R.", location: "Nairobi, Kenya",
-    text: "The Unashamed series was a game-changer for me. Every episode pushed me closer to living the bold life God called me to. I've since led 3 outreach programs in my community.",
-    category: "Evangelism",
-  },
-];
+const preachingLocations = ["Buses", "Ferries", "Malls", "Airplanes", "Trains", "Streets", "Airports"];
+const categories = ["All", "Evangelism", "Youth", "Apologetics", "Lifestyle", "Workplace"];
 
 const videoTestimonials = [
-  {
-    id: 1,
-    title: "From Fear to Freedom",
-    speaker: "Maria Rodriguez",
-    location: "Spain",
-    thumbnail: "Video thumbnail placeholder",
-  },
-  {
-    id: 2,
-    title: "Preaching on the London Underground",
-    speaker: "James Thompson",
-    location: "United Kingdom",
-    thumbnail: "Video thumbnail placeholder",
-  },
-  {
-    id: 3,
-    title: "Campus Revival in Nairobi",
-    speaker: "Samuel K",
-    location: "Kenya",
-    thumbnail: "Video thumbnail placeholder",
-  },
+  { id: 1, title: "From Fear to Freedom", speaker: "Maria Rodriguez", location: "Spain" },
+  { id: 2, title: "Preaching on the London Underground", speaker: "James Thompson", location: "United Kingdom" },
+  { id: 3, title: "Campus Revival in Nairobi", speaker: "Samuel K", location: "Kenya" },
 ];
 
 const bookTestimonials = [
-  {
-    id: 1,
-    quote: "This book completely transformed my understanding of what it means to be a bold witness for Christ.",
-    reader: "Michael P.",
-    location: "Australia",
-  },
-  {
-    id: 2,
-    quote: "I couldn't put it down! Every chapter challenged me to step out in faith.",
-    reader: "Rachel S.",
-    location: "Canada",
-  },
-  {
-    id: 3,
-    quote: "The most practical guide to evangelism I've ever read. Highly recommend!",
-    reader: "David L.",
-    location: "United States",
-  },
+  { id: 1, quote: "This book completely transformed my understanding of what it means to be a bold witness for Christ.", reader: "Michael P.", location: "Australia" },
+  { id: 2, quote: "I couldn't put it down! Every chapter challenged me to step out in faith.", reader: "Rachel S.", location: "Canada" },
+  { id: 3, quote: "The most practical guide to evangelism I've ever read. Highly recommend!", reader: "David L.", location: "United States" },
 ];
-
-const countries = [
-  { name: "Canada", preachers: 8 },
-  { name: "United States", preachers: 15 },
-  { name: "United Kingdom", preachers: 12 },
-  { name: "Australia", preachers: 6 },
-  { name: "Nigeria", preachers: 18 },
-  { name: "Hungary", preachers: 4 },
-  { name: "Ghana", preachers: 10 },
-  { name: "Kenya", preachers: 9 },
-  { name: "Eswatini", preachers: 3 },
-  { name: "Indonesia", preachers: 7 },
-  { name: "Israel", preachers: 5 },
-  { name: "India", preachers: 11 },
-  { name: "Burundi", preachers: 2 },
-  { name: "Cameroon", preachers: 4 },
-  { name: "Poland", preachers: 3 },
-  { name: "Spain", preachers: 5 },
-];
-
-const preachingLocations = ["Buses", "Ferries", "Malls", "Airplanes", "Trains", "Streets", "Airports"];
-
-const categories = ["All", "Evangelism", "Youth", "Apologetics", "Lifestyle", "Workplace"];
 
 const Testimonies = () => {
+  const location = useLocation();
+  const navigate = useNavigate();
   const [activeCategory, setActiveCategory] = useState("All");
+  const [testimonials, setTestimonials] = useState<Testimonial[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [countryFilter, setCountryFilter] = useState<string | null>(null);
+  const [page, setPage] = useState(1);
+  const [activeVideo, setActiveVideo] = useState<typeof videoTestimonials[0] | null>(null);
+  const PAGE_SIZE = 6;
 
-  const filtered = activeCategory === "All"
-    ? testimonies
-    : testimonies.filter((t) => t.category === activeCategory);
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const category = params.get('category');
+    const country = params.get('country');
+    if (category) setActiveCategory(category);
+    setCountryFilter(country);
+    setPage(1);
+  }, [location.search]);
+
+  useEffect(() => {
+    const fetchTestimonials = async () => {
+      setLoading(true);
+      try {
+        const data = await testimonialsApi.getAll();
+        const approved = data.filter(t => t.isApproved !== false);
+        setTestimonials(approved);
+      } catch (err) {
+        setError("Failed to load testimonials");
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchTestimonials();
+  }, []);
+
+  const handleCategoryChange = (category: string) => {
+    setActiveCategory(category);
+    const newUrl = category === 'All' ? '/testimonies' : `/testimonies?category=${category}`;
+    navigate(newUrl, { replace: true });
+    trackEvent({
+      category: 'engagement',
+      action: 'filter',
+      label: `testimony_${category}`,
+    });
+  };
+
+  const filtered = testimonials.filter((t) => {
+    if (activeCategory !== "All" && t.category !== activeCategory) return false;
+    if (countryFilter && !t.location?.toLowerCase().includes(countryFilter.toLowerCase())) return false;
+    return true;
+  });
+
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  const paginated = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+
+  if (loading) {
+    return (
+      <Layout>
+        <section className="section-padding bg-primary pt-20">
+          <div className="container-custom text-center">
+            <div className="animate-spin w-8 h-8 border-4 border-primary-foreground border-t-transparent rounded-full mx-auto mb-4" />
+            <p className="text-primary-foreground/70">Loading testimonials...</p>
+          </div>
+        </section>
+      </Layout>
+    );
+  }
+
+  if (error) {
+    return (
+      <Layout>
+        <section className="section-padding bg-primary pt-20">
+          <div className="container-custom text-center">
+            <p className="text-primary-foreground/70">{error}</p>
+          </div>
+        </section>
+      </Layout>
+    );
+  }
 
   return (
     <Layout>
@@ -158,7 +147,7 @@ const Testimonies = () => {
             {categories.map((cat) => (
               <button
                 key={cat}
-                onClick={() => setActiveCategory(cat)}
+                onClick={() => handleCategoryChange(cat)}
                 className={`font-heading text-sm tracking-wider px-5 py-2 rounded-full transition-all duration-300 ${
                   activeCategory === cat
                     ? "bg-primary text-primary-foreground"
@@ -230,21 +219,19 @@ const Testimonies = () => {
 
           <SectionWrapper delay={0.2}>
             <div className="bg-card rounded-2xl p-8 lg:p-12 shadow-lg border border-primary-foreground/20">
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                {countries.map((country) => (
-                  <div
-                    key={country.name}
-                    className="bg-primary-foreground/10 rounded-lg p-4 text-center hover:bg-primary-foreground/20 transition-colors"
-                  >
-                    <div className="font-heading text-accent ">
-                      {country.name}
-                    </div>
-                    <div className="font-body text-black/60 text-sm mt-1">
-                      {country.preachers} preachers
-                    </div>
-                  </div>
-                ))}
-              </div>
+              <WorldMap
+                onCountrySelect={(_code, name) => {
+                  navigate(`/testimonies?country=${encodeURIComponent(name)}`);
+                }}
+              />
+              {countryFilter && (
+                <p className="text-center mt-4 text-primary-foreground/80">
+                  Filtering by: <strong>{countryFilter}</strong>
+                  <Button variant="link" className="ml-2 text-accent" onClick={() => navigate("/testimonies")}>
+                    Clear
+                  </Button>
+                </p>
+              )}
             </div>
           </SectionWrapper>
         </div>
@@ -300,9 +287,14 @@ const Testimonies = () => {
                 <div className="bg-card rounded-2xl overflow-hidden border border-border hover:border-accent transition-all duration-500 hover:shadow-xl hover:-translate-y-1 group">
                   <div className="relative aspect-video bg-black/20">
                     <div className="absolute inset-0 flex items-center justify-center">
-                      <div className="w-16 h-16 bg-accent rounded-full flex items-center justify-center group-hover:bg-accent/90 transition-colors cursor-pointer">
+                      <button
+                        type="button"
+                        aria-label={`Play ${video.title}`}
+                        onClick={() => setActiveVideo(video)}
+                        className="w-16 h-16 bg-accent rounded-full flex items-center justify-center group-hover:bg-accent/90 transition-colors cursor-pointer"
+                      >
                         <Play className="w-6 h-6 text-white ml-1" />
-                      </div>
+                      </button>
                     </div>
                     <div className="absolute bottom-4 left-4 right-4">
                       <p className="text-white font-heading text-lg">{video.title}</p>
@@ -342,9 +334,9 @@ const Testimonies = () => {
               transition={{ duration: 0.3 }}
               className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
             >
-              {filtered.map((t, i) => (
+              {paginated.map((t, i) => (
                 <motion.div
-                  key={t.id}
+                  key={t.id || t._id}
                   initial={{ opacity: 0, y: 30 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: i * 0.1 }}
@@ -363,16 +355,66 @@ const Testimonies = () => {
                         {t.location}
                       </p>
                     </div>
-                    <span className="text-xs font-body bg-muted text-muted-foreground px-3 py-1 rounded-full">
-                      {t.category}
-                    </span>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-body bg-muted text-muted-foreground px-3 py-1 rounded-full">
+                        {t.category}
+                      </span>
+                      <button
+                        onClick={() => {
+                          navigator.clipboard.writeText(window.location.href);
+                          trackEvent({
+                            category: 'engagement',
+                            action: 'share',
+                            label: 'testimony_copy_link',
+                          });
+                        }}
+                        className="text-xs font-body text-accent hover:text-accent/80 px-2 py-1 rounded"
+                        aria-label="Share this testimony"
+                      >
+                        <Share2 size={14} />
+                      </button>
+                    </div>
                   </div>
                 </motion.div>
               ))}
             </motion.div>
           </AnimatePresence>
+
+          {totalPages > 1 && (
+            <div className="flex justify-center gap-2 mt-10">
+              <Button variant="outline" disabled={page <= 1} onClick={() => setPage((p) => p - 1)}>
+                Previous
+              </Button>
+              <span className="font-body text-muted-foreground self-center px-4">
+                Page {page} of {totalPages}
+              </span>
+              <Button variant="outline" disabled={page >= totalPages} onClick={() => setPage((p) => p + 1)}>
+                Next
+              </Button>
+            </div>
+          )}
         </div>
       </section>
+
+      <Dialog open={!!activeVideo} onOpenChange={() => setActiveVideo(null)}>
+        <DialogContent className="max-w-3xl">
+          <DialogHeader>
+            <DialogTitle>{activeVideo?.title}</DialogTitle>
+          </DialogHeader>
+          {activeVideo && (
+            <div className="space-y-4">
+              <div className="aspect-video bg-muted rounded-lg flex items-center justify-center">
+                <p className="text-muted-foreground text-center px-4">
+                  Video: {activeVideo.speaker} — {activeVideo.location}. Full recording available on request.
+                </p>
+              </div>
+              <p className="font-body text-sm text-muted-foreground">
+                Contact us to request the full professionally recorded testimony.
+              </p>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
 
       {/* Book Testimonials */}
       <section className="section-padding bg-muted">
@@ -422,15 +464,7 @@ const Testimonies = () => {
               Your testimony could inspire someone else to be bold. Join our community 
               and share how God has moved in your life.
             </p>
-            <a
-              href="https://chat.whatsapp.com/DhzT4HxSnzFHftlnLIyJna"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              <Button variant="hero" size="lg" className="px-10">
-                Join Our Community <ArrowRight className="ml-2" size={18} />
-              </Button>
-            </a>
+            <TestimonySubmissionForm />
           </SectionWrapper>
         </div>
       </section>

@@ -20,8 +20,18 @@ exports.getById = async (req, res) => {
 
 exports.create = async (req, res) => {
   try {
-    const testimony = await Testimony.create(req.body);
+    const { content, text, ...rest } = req.body;
+    const testimony = await Testimony.create({
+      ...rest,
+      text: text || content,
+    });
     res.status(201).json(testimony);
+  } catch (error) { res.status(500).json({ message: error.message }); }
+};
+
+exports.getAllForAdmin = async (req, res) => {
+  try {
+    res.json(await Testimony.find().sort({ createdAt: -1 }));
   } catch (error) { res.status(500).json({ message: error.message }); }
 };
 

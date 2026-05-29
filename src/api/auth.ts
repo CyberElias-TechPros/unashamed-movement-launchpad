@@ -25,7 +25,7 @@ export interface User {
 export const authApi = {
   login: async (data: LoginData): Promise<AuthResponse> => {
     const response = await api.post<AuthResponse>('/auth/login', data);
-    if (response.token) {
+    if (response.token && response.user) {
       localStorage.setItem('ttin_auth_token', response.token);
       localStorage.setItem('ttin_admin_user', JSON.stringify(response.user));
     }

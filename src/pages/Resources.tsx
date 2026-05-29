@@ -1,48 +1,15 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import Layout from "@/components/Layout";
 import SectionWrapper from "@/components/SectionWrapper";
 import FloatingParticles from "@/components/FloatingParticles";
 import { Button } from "@/components/ui/button";
-import { Download, BookOpen, FileText, Headphones, ExternalLink } from "lucide-react";
-
-interface Resource {
-  id: number;
-  title: string;
-  author: string;
-  description: string;
-  type: "book" | "devotional" | "guide" | "article" | "podcast";
-  downloadUrl: string;
-  free: boolean;
-  category: string;
-}
-
-const resources: Resource[] = [
-  // Church History & Martyrs for Christ
-  { id: 1, title: "Foxe's Book Of Martyrs", author: "John Foxe", description: "Classic collection of Christian martyrdom stories that inspire courage and faith.", type: "book", downloadUrl: "https://drive.google.com/file/d/1QgAb5cUQBnIDocUYupX-YyLDRAusNZma/view?usp=drive_link", free: true, category: "Church History & Martyrs for Christ" },
-  { id: 2, title: "God's Generals - The Revivalists", author: "Roberts Liardon", description: "Biographies of men and women who used their God-given gifts to impact nations.", type: "book", downloadUrl: "https://drive.google.com/file/d/1IMt9z8NS5-djBKdniAlLjAUIE2vLRFaR/view?usp=drive_link", free: true, category: "Church History & Martyrs for Christ" },
-  { id: 3, title: "God's Generals - Why They Succeeded And Why Some Failed", author: "Roberts Liardon", description: "Insights into what made revivalists successful and lessons from their failures.", type: "book", downloadUrl: "https://drive.google.com/file/d/1mmh4uckujOEE8WAK6vTbGBoQuu0xAxUt/view?usp=drive_link", free: true, category: "Church History & Martyrs for Christ" },
-  { id: 4, title: "Revival In The Hebrides", author: "Duncan Campbell", description: "Firsthand account of the powerful revival that swept through the Scottish islands.", type: "book", downloadUrl: "https://drive.google.com/file/d/1D9Ij-nDbMqUyc5taJfvKTemMgliNyqkG/view?usp=drive_link", free: true, category: "Church History & Martyrs for Christ" },
-  { id: 5, title: "Tortured For Christ", author: "Richard Wurmbrand", description: "Powerful testimony of faith under persecution in communist Romania.", type: "book", downloadUrl: "https://drive.google.com/file/d/1d2ny_kuCgAINBMT-UURTCizzjzqh5Gbt/view?usp=drive_link", free: true, category: "Church History & Martyrs for Christ" },
-  
-  // Other Inspiration
-  { id: 6, title: "I went To Hell", author: "Kenneth Hagin", description: "A personal testimony of divine encounter and spiritual revelation.", type: "book", downloadUrl: "https://drive.google.com/file/d/1SyxVJOh3DvVOXSediYuTKyZ_pxV6D9rO/view?usp=drive_link", free: true, category: "Other Inspiration" },
-  { id: 7, title: "Kathryn Kuhlman - Her Spiritual Legacy and its Impact on my Life", author: "Benny Hinn", description: "Insights into the life and ministry of one of history's great evangelists.", type: "book", downloadUrl: "https://drive.google.com/file/d/1QrdudmFqLQbuEZ-WhKCBIVRBYFJrLO9t/view?usp=drive_link", free: true, category: "Other Inspiration" },
-  { id: 8, title: "Now That You Are Born Again", author: "Pastor Chris Oyakhilome", description: "Essential guide for new believers on understanding their new life in Christ.", type: "book", downloadUrl: "https://drive.google.com/file/d/1DmS4fFMrLXHU5DQ-Ib8RptZftwwFv6iq/view?usp=drive_link", free: true, category: "Other Inspiration" },
-  { id: 9, title: "Recreating Your World", author: "Pastor Chris Oyakhilome", description: "Learn how to transform your circumstances through the power of God's Word.", type: "book", downloadUrl: "https://drive.google.com/file/d/1Zej1g3M0KwKqIIGfDyheY1cv8txAvAko/view?usp=drive_link", free: true, category: "Other Inspiration" },
-  { id: 10, title: "The Power Of Tongues", author: "Pastor Chris Oyakhilome", description: "Comprehensive teaching on the power and purpose of speaking in tongues.", type: "book", downloadUrl: "https://drive.google.com/file/d/1x1yTVu10QGLhsBsecY0C-AXj_oxwSGei/view?usp=drive_link", free: true, category: "Other Inspiration" },
-  { id: 11, title: "The Seven Spirits Of God", author: "Pastor Chris Oyakhilome", description: "Deep dive into understanding the seven spirits mentioned in scripture.", type: "book", downloadUrl: "https://drive.google.com/file/d/1f48cQfjKPsiLvnUlZKcSdOgYMvt1ioSy/view?usp=drive_link", free: true, category: "Other Inspiration" },
-  { id: 12, title: "When God Visits You", author: "Pastor Chris Oyakhilome", description: "Understanding divine visitations and how to position yourself for God's presence.", type: "book", downloadUrl: "https://drive.google.com/file/d/1GIfK3x0fsSP_u_l1xHiHUuU-lt-V5GeL/view?usp=drive_link", free: true, category: "Other Inspiration" },
-  
-  // TTIN Original Resources
-  { id: 13, title: "The Time Is Now - Complete Guide", author: "TTIN Team", description: "Comprehensive guide to living an unashamed Christian life in today's world.", type: "guide", downloadUrl: "#", free: true, category: "TTIN Resources" },
-  { id: 14, title: "30 Days of Boldness Devotional", author: "TTIN Team", description: "A transformative devotional that walks you through 30 days of building courage in your faith.", type: "devotional", downloadUrl: "#", free: true, category: "TTIN Resources" },
-  { id: 15, title: "How to Share Your Faith", author: "TTIN Team", description: "A practical, no-fluff guide to starting gospel conversations naturally.", type: "guide", downloadUrl: "#", free: true, category: "TTIN Resources" },
-  { id: 16, title: "The Unashamed Manifesto", author: "TTIN Team", description: "Our foundational document outlining what it means to live a life unashamed of the Gospel.", type: "article", downloadUrl: "#", free: true, category: "TTIN Resources" },
-  { id: 17, title: "Bold Faith Podcast — Season 1", author: "TTIN Team", description: "Listen to conversations with believers who are changing the world through unashamed faith.", type: "podcast", downloadUrl: "#", free: true, category: "TTIN Resources" },
-  { id: 18, title: "Scripture Memory Cards", author: "TTIN Team", description: "Printable cards with key scriptures on boldness, courage, and faith for daily meditation.", type: "guide", downloadUrl: "#", free: true, category: "TTIN Resources" },
-  { id: 19, title: "Evangelism Conversation Starters", author: "TTIN Team", description: "50+ natural conversation starters to help you transition into gospel conversations.", type: "guide", downloadUrl: "#", free: true, category: "TTIN Resources" },
-];
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Download, BookOpen, FileText, Headphones, ExternalLink, Eye } from "lucide-react";
+import LazyImage from "@/components/LazyImage";
+import { resourcesApi, Resource } from "@/api/resources";
+import { trackDownload } from "@/lib/analytics";
 
 const categories = ["All", "Church History & Martyrs for Christ", "Other Inspiration", "TTIN Resources"];
 
@@ -55,8 +22,63 @@ const typeIcons = {
 };
 
 const Resources = () => {
-  const [filter, setFilter] = useState("All");
-  const filtered = filter === "All" ? resources : resources.filter((r) => r.category === filter);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [filter, setFilter] = useState(searchParams.get("category") || "All");
+  const [resources, setResources] = useState<Resource[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [preview, setPreview] = useState<Resource | null>(null);
+
+  const setCategory = (cat: string) => {
+    setFilter(cat);
+    if (cat === "All") searchParams.delete("category");
+    else searchParams.set("category", cat);
+    setSearchParams(searchParams, { replace: true });
+  };
+
+  useEffect(() => {
+    const fetchResources = async () => {
+      setLoading(true);
+      try {
+        const data = await resourcesApi.getAll(filter !== "All" ? filter : undefined);
+        setResources(data);
+      } catch (err) {
+        setError("Failed to load resources");
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchResources();
+  }, [filter]);
+
+  const filtered = resources;
+
+  if (loading) {
+    return (
+      <Layout>
+        <section className="section-padding bg-primary pt-20">
+          <div className="container-custom text-center">
+            <div className="animate-spin w-8 h-8 border-4 border-primary-foreground border-t-transparent rounded-full mx-auto mb-4" />
+            <p className="text-primary-foreground/70">Loading resources...</p>
+          </div>
+        </section>
+      </Layout>
+    );
+  }
+
+  if (error) {
+    return (
+      <Layout>
+        <section className="section-padding bg-primary pt-20">
+          <div className="container-custom text-center">
+            <p className="text-primary-foreground/70">{error}</p>
+          </div>
+        </section>
+      </Layout>
+    );
+  }
 
   return (
     <Layout>
@@ -83,7 +105,7 @@ const Resources = () => {
           {categories.map((t) => (
             <button
               key={t}
-              onClick={() => setFilter(t)}
+              onClick={() => setCategory(t)}
               className={`font-heading text-sm tracking-wider px-5 py-2 rounded-full transition-all duration-300 ${
                 filter === t ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground hover:bg-primary/10"
               }`}
@@ -131,12 +153,17 @@ const Resources = () => {
             >
               {filtered.map((resource, i) => (
                 <motion.div
-                  key={resource.id}
+                  key={resource.id || resource._id}
                   initial={{ opacity: 0, y: 30 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: i * 0.08 }}
-                  className="bg-card rounded-2xl p-8 border border-border hover:border-accent transition-all duration-500 hover:shadow-xl hover:-translate-y-1 flex flex-col"
+                  className="bg-card rounded-2xl p-8 border border-border hover:border-accent transition-all duration-500 hover:shadow-xl hover:-translate-y-1 flex flex-col overflow-hidden"
                 >
+                  <LazyImage
+                    src="/techpros.png"
+                    alt=""
+                    className="w-full h-32 object-cover rounded-lg mb-4 opacity-80"
+                  />
                   <div className="flex items-center gap-3 mb-4">
                     <div className="w-10 h-10 rounded-lg bg-primary text-primary-foreground flex items-center justify-center">
                       {typeIcons[resource.type]}
@@ -158,14 +185,31 @@ const Resources = () => {
                   <p className="font-body text-muted-foreground text-sm mb-1">
                     by {resource.author}
                   </p>
-                  <p className="font-body text-muted-foreground text-sm mb-6 flex-1">
+                  <p className="font-body text-muted-foreground text-sm mb-2 flex-1">
                     {resource.description}
                   </p>
+                  {resource.downloadCount != null && resource.downloadCount > 0 && (
+                    <p className="text-xs text-muted-foreground mb-4">{resource.downloadCount} downloads</p>
+                  )}
+                  <Button variant="outline" size="sm" className="w-full gap-2 mb-2" onClick={() => setPreview(resource)}>
+                    <Eye size={14} /> Preview
+                  </Button>
                   <a
                       href={resource.downloadUrl}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="w-full"
+                      onClick={async (e) => {
+                        const resourceId = resource._id || resource.id;
+                        trackDownload(resourceId?.toString() || '', resource.title);
+                        if (resourceId) {
+                          try {
+                            await resourcesApi.download(resourceId.toString());
+                          } catch {
+                            /* still open link */
+                          }
+                        }
+                      }}
                     >
                       <Button variant="default" size="sm" className="w-full gap-2">
                         {resource.type === "podcast" ? (
@@ -181,6 +225,23 @@ const Resources = () => {
           </AnimatePresence>
         </div>
       </section>
+
+      <Dialog open={!!preview} onOpenChange={() => setPreview(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{preview?.title}</DialogTitle>
+          </DialogHeader>
+          {preview && (
+            <div className="space-y-4">
+              <p className="text-sm text-muted-foreground">by {preview.author}</p>
+              <p className="font-body">{preview.description}</p>
+              {preview.downloadCount != null && (
+                <p className="text-sm text-muted-foreground">{preview.downloadCount} downloads</p>
+              )}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </Layout>
   );
 };

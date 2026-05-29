@@ -1,9 +1,11 @@
 import { api } from './client';
 
 export interface NewsletterSubscriber {
-  id: string;
+  id?: string;
+  _id?: string;
   email: string;
-  subscribedAt: string;
+  subscribedAt?: string;
+  createdAt?: string;
   active: boolean;
 }
 

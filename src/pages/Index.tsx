@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
+import { useState, useEffect } from "react";
 import { ArrowRight, Calendar, ShoppingBag, BookOpen, Play, MapPin, Users, Globe, MessageSquare } from "lucide-react";
 import Layout from "@/components/Layout";
 import SectionWrapper from "@/components/SectionWrapper";
@@ -9,9 +10,15 @@ import TextReveal from "@/components/TextReveal";
 import TiltCard from "@/components/TiltCard";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { useLayout } from "@/context/LayoutContext";
+import { newsletterApi } from "@/api/newsletter";
+import { SEO } from "@/components/SEO";
+import AnimatedCounter from "@/components/AnimatedCounter";
+import { trackEvent } from "@/lib/analytics";
+import { eventsApi } from "@/api/events";
+import { productsApi } from "@/api/products";
+import { resourcesApi } from "@/api/resources";
 import SymposIndex from "./SymposIndex";
 
 const heroVariants = {
@@ -30,18 +37,70 @@ const itemVariant = {
 const Index = () => {
   const { layoutMode } = useLayout();
   const { toast } = useToast();
+  const [email, setEmail] = useState("");
+  const [isSubscribing, setIsSubscribing] = useState(false);
+  const [sliderPaused, setSliderPaused] = useState(false);
+  const [activeSlide, setActiveSlide] = useState(0);
+  const [featured, setFeatured] = useState<{ events?: string; shop?: string; resources?: string }>({});
+
+  useEffect(() => {
+    Promise.all([
+      eventsApi.getAll().catch(() => []),
+      productsApi.getAll().catch(() => []),
+      resourcesApi.getAll().catch(() => []),
+    ]).then(([events, products, resources]) => {
+      setFeatured({
+        events: events[0]?.title,
+        shop: products[0]?.name,
+        resources: resources[0]?.title,
+      });
+    });
+  }, []);
   
   // Render Sympos layout if active
   if (layoutMode === "sympos") {
     return <SymposIndex />;
   }
   
-  const handleSubscribe = (e: React.FormEvent) => {
+  const handleSubscribe = async (e: React.FormEvent) => {
     e.preventDefault();
-    toast({
-      title: "Successfully subscribed!",
-      description: "You'll receive our latest updates.",
-    });
+    
+    if (!email) {
+      toast({
+        title: "Email required",
+        description: "Please enter your email address.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      toast({
+        title: "Invalid email",
+        description: "Please enter a valid email address.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    setIsSubscribing(true);
+    try {
+      await newsletterApi.subscribe({ email });
+      toast({
+        title: "Successfully subscribed!",
+        description: "You'll receive our latest updates.",
+      });
+      setEmail("");
+    } catch (error) {
+      toast({
+        title: "Subscription failed",
+        description: "Please try again later.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubscribing(false);
+    }
   };
   
   const testimonials = [
@@ -56,7 +115,14 @@ const Index = () => {
   const preachingLocations = ["Buses", "Ferries", "Malls", "Airplanes", "Trains", "Streets", "Airports"];
   
   return (
-    <Layout>
+    <>
+      <SEO 
+        title="The Time Is Now - Unashamed Christian Movement"
+        description="A faith-based movement inspiring Christians to live boldly and unapologetically. Join the global movement of fearless believers."
+        image="/favicon.ico"
+        url="https://thetimeisnow.org/"
+      />
+      <Layout>
       {/* Hero Section */}
       <section className="relative min-h-screen flex items-center justify-center bg-primary overflow-hidden">
         {/* Decorative elements */}
@@ -107,14 +173,20 @@ const Index = () => {
             className="flex flex-col sm:flex-row gap-4 justify-center"
           >
             <MagneticButton>
-              <Link to="/about">
+              <Link
+                to="/about"
+                onClick={() => trackEvent({ category: "cta", action: "click", label: "hero_join_movement" })}
+              >
                 <Button variant="hero" size="lg" className="px-10">
                   Join The Movement <ArrowRight className="ml-2" size={18} />
                 </Button>
               </Link>
             </MagneticButton>
             <MagneticButton>
-              <Link to="/unashamed">
+              <Link
+                to="/unashamed"
+                onClick={() => trackEvent({ category: "cta", action: "click", label: "hero_watch_unashamed" })}
+              >
                 <Button variant="brand" size="lg" className="px-10">
                   Watch Unashamed
                 </Button>
@@ -209,12 +281,22 @@ const Index = () => {
 
           <SectionWrapper delay={0.2}>
             <div className="relative rounded-2xl overflow-hidden bg-black/20 aspect-video max-w-5xl mx-auto">
-              <div className="absolute inset-0 flex items-center justify-center">
-                <div className="text-center">
-                  <div className="w-20 h-20 bg-accent rounded-full flex items-center justify-center mb-6 mx-auto hover:bg-accent/90 transition-colors cursor-pointer">
-                    <Play className="w-8 h-8 text-white ml-1" />
-                  </div>
-                  <p className="text-primary-foreground/80 text-lg">
+              <video
+                src="/videos/hero-preaching.mp4"
+                poster="/videos/hero-poster.jpg"
+                controls
+                className="absolute inset-0 w-full h-full object-cover"
+                onError={(e) => {
+                  const target = e.target as HTMLVideoElement;
+                  target.style.display = 'none';
+                }}
+              >
+                <source src="/videos/hero-preaching.mp4" type="video/mp4" />
+                Your browser does not support the video tag.
+              </video>
+              <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                <div className="text-center px-4">
+                  <p className="text-primary-foreground/80 text-lg sm:text-xl">
                     Video of people preaching open air with "The Time is Now"
                   </p>
                 </div>
@@ -242,9 +324,9 @@ const Index = () => {
           </SectionWrapper>
 
           <SectionWrapper delay={0.2}>
-            <div className="relative">
+            <div className="relative" onMouseEnter={() => setSliderPaused(true)} onMouseLeave={() => setSliderPaused(false)}>
               <div className="overflow-x-auto pb-8 hide-scrollbar">
-                <div className="flex gap-6 animate-scroll">
+                <div className={`flex gap-6 animate-scroll ${sliderPaused ? "paused" : ""}`}>
                   {[...testimonials, ...testimonials].map((testimonial, index) => (
                     <motion.div
                       key={index}
@@ -273,7 +355,13 @@ const Index = () => {
               </div>
               <div className="flex justify-center gap-2 mt-6">
                 {[0, 1, 2, 3, 4].map((i) => (
-                  <div key={i} className="w-2 h-2 rounded-full bg-accent/30" />
+                  <button
+                    key={i}
+                    type="button"
+                    aria-label={`Slide ${i + 1}`}
+                    onClick={() => setActiveSlide(i)}
+                    className={`w-2 h-2 rounded-full transition-colors ${activeSlide === i ? "bg-accent" : "bg-accent/30"}`}
+                  />
                 ))}
               </div>
             </div>
@@ -297,10 +385,10 @@ const Index = () => {
 
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
             {[
-              { number: "100+", label: "People Preached", icon: <Users className="w-6 h-6" /> },
-              { number: "16", label: "Countries Reached", icon: <Globe className="w-6 h-6" /> },
-              { number: "7", label: "Types of Locations", icon: <MapPin className="w-6 h-6" /> },
-              { number: "158", label: "Books Downloaded", icon: <BookOpen className="w-6 h-6" /> },
+              { end: 100, suffix: "+", label: "People Preached", icon: <Users className="w-6 h-6" /> },
+              { end: 16, suffix: "", label: "Countries Reached", icon: <Globe className="w-6 h-6" /> },
+              { end: 7, suffix: "", label: "Types of Locations", icon: <MapPin className="w-6 h-6" /> },
+              { end: 158, suffix: "", label: "Books Downloaded", icon: <BookOpen className="w-6 h-6" /> },
             ].map((stat, index) => (
               <SectionWrapper key={stat.label} delay={index * 0.1}>
                 <div className="text-center">
@@ -308,7 +396,7 @@ const Index = () => {
                     {stat.icon}
                   </div>
                   <div className="font-heading text-4xl lg:text-5xl text-accent mb-2">
-                    {stat.number}
+                    <AnimatedCounter end={stat.end} suffix={stat.suffix} className="font-heading text-4xl lg:text-5xl text-accent" />
                   </div>
                   <div className="font-body text-muted-foreground">
                     {stat.label}
@@ -397,11 +485,14 @@ const Index = () => {
                     type="email"
                     placeholder="Enter your email"
                     className="bg-white/10 border-accent-foreground/20 text-accent-foreground placeholder:text-accent-foreground/50 h-12"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    disabled={isSubscribing}
                     required
                   />
                 </div>
-                <Button type="submit" className="bg-accent-foreground hover:bg-accent-foreground/90 text-accent px-8 h-12">
-                  Subscribe
+                <Button type="submit" className="bg-accent-foreground hover:bg-accent-foreground/90 text-accent px-8 h-12" disabled={isSubscribing}>
+                  {isSubscribing ? "Subscribing..." : "Subscribe"}
                 </Button>
               </form>
             </SectionWrapper>
@@ -424,21 +515,21 @@ const Index = () => {
             {[
               {
                 icon: <Calendar size={32} />,
-                title: "Upcoming Events",
+                title: featured.events ? `Next: ${featured.events}` : "Upcoming Events",
                 desc: "Join us for life-changing events and gatherings designed to strengthen your faith.",
                 link: "/events",
                 label: "View Events",
               },
               {
                 icon: <ShoppingBag size={32} />,
-                title: "Shop Merch",
+                title: featured.shop ? `Featured: ${featured.shop}` : "Shop Merch",
                 desc: "Wear your faith boldly. Browse our collection of apparel and digital resources.",
                 link: "/shop",
                 label: "Shop Now",
               },
               {
                 icon: <BookOpen size={32} />,
-                title: "Resources",
+                title: featured.resources ? `New: ${featured.resources}` : "Resources",
                 desc: "Access devotionals, guides, and tools to deepen your walk and sharpen your witness.",
                 link: "/resources",
                 label: "Explore",
@@ -534,6 +625,7 @@ const Index = () => {
         </div>
       </section>
     </Layout>
+    </>
   );
 };
 

@@ -1,6 +1,8 @@
-import { useState, useEffect } from "react";
-import { Link, useLocation } from "react-router-dom";
-import { Menu, X } from "lucide-react";
+import { useState, useEffect, FormEvent } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Menu, X, ShoppingCart, Search } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { useCart } from "@/context/CartContext";
 import { motion, AnimatePresence } from "framer-motion";
 import { useLayout } from "@/context/LayoutContext";
 import LayoutToggle from "./LayoutToggle";
@@ -21,6 +23,17 @@ const Navbar = () => {
   const [scrolled, setScrolled] = useState(false);
   const location = useLocation();
   const { layoutMode, colorMode } = useLayout();
+  const { totalItems } = useCart();
+  const navigate = useNavigate();
+  const [searchQ, setSearchQ] = useState("");
+
+  const submitSearch = (e: FormEvent) => {
+    e.preventDefault();
+    if (searchQ.trim().length >= 2) {
+      navigate(`/search?q=${encodeURIComponent(searchQ.trim())}`);
+      setIsOpen(false);
+    }
+  };
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 20);
@@ -111,6 +124,7 @@ const Navbar = () => {
             <Link
               key={link.path}
               to={link.path}
+              aria-current={location.pathname === link.path ? "page" : undefined}
               className={`relative font-body text-sm font-medium tracking-wide uppercase transition-all duration-300 hover:text-accent group ${
                 location.pathname === link.path
                   ? "text-accent"
@@ -127,7 +141,29 @@ const Navbar = () => {
               />
             </Link>
           ))}
+          <form onSubmit={submitSearch} className="hidden xl:flex items-center">
+            <Input
+              type="search"
+              placeholder="Search..."
+              value={searchQ}
+              onChange={(e) => setSearchQ(e.target.value)}
+              className="h-9 w-40 bg-primary-foreground/10 border-primary-foreground/20 text-primary-foreground placeholder:text-primary-foreground/50"
+              aria-label="Search site"
+            />
+          </form>
           <LayoutToggle />
+          <Link
+            to="/cart"
+            className={`relative p-2 rounded-full transition-colors hover:text-accent ${getTextColor()}`}
+            aria-label={`Cart, ${totalItems} items`}
+          >
+            <ShoppingCart size={22} />
+            {totalItems > 0 && (
+              <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] flex items-center justify-center rounded-full bg-accent text-accent-foreground text-[10px] font-bold px-1">
+                {totalItems > 99 ? "99+" : totalItems}
+              </span>
+            )}
+          </Link>
         </div>
 
         {/* Mobile Toggle */}

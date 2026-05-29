@@ -14,8 +14,50 @@ exports.getById = async (req, res) => {
 };
 
 exports.create = async (req, res) => {
-  try { res.status(201).json(await Order.create(req.body)); }
-  catch (error) { res.status(500).json({ message: error.message }); }
+  try {
+    const {
+      customerName,
+      customerEmail,
+      items,
+      totalAmount,
+      shippingAddress,
+      paymentMethod,
+    } = req.body;
+
+    if (!customerName || !customerEmail || !items?.length || totalAmount == null) {
+      return res.status(400).json({ message: 'Missing required order fields' });
+    }
+
+    const order = await Order.create({
+      customerName,
+      customerEmail,
+      items,
+      totalAmount,
+      shippingAddress,
+      paymentMethod: paymentMethod || '',
+      status: 'pending',
+    });
+
+    res.status(201).json(order);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+exports.checkout = async (req, res) => {
+  try {
+    const order = await Order.create({
+      ...req.body,
+      status: 'pending',
+    });
+    res.status(201).json({
+      orderId: order._id,
+      sessionId: `order_${order._id}`,
+      url: `${process.env.CLIENT_URL || 'http://localhost:8080'}/order-success?order=${order._id}`,
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
 };
 
 exports.updateStatus = async (req, res) => {

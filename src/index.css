@@ -165,6 +165,10 @@ html {
   animation: scroll 30s linear infinite;
 }
 
+.animate-scroll.paused {
+  animation-play-state: paused;
+}
+
 @media (min-width: 768px) {
   @keyframes scroll-md {
     0% {

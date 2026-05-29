@@ -1,3 +1,4 @@
+import animations from "tailwindcss-animate";
 import type { Config } from "tailwindcss";
 
 export default {
@@ -52,7 +53,6 @@ export default {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
-        // Extended brand colors
         "dark-spruce": "hsl(var(--dark-spruce))",
         "palm-leaf": "hsl(var(--palm-leaf))",
         "sunflower-gold": "hsl(var(--sunflower-gold))",
@@ -117,5 +117,5 @@ export default {
       },
     },
   },
-  plugins: [require("tailwindcss-animate")],
+  plugins: [animations],
 } satisfies Config;

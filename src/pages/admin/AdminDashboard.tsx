@@ -111,6 +111,13 @@ const AdminDashboard = () => {
       badge: null,
     },
     {
+      title: "Orders",
+      icon: ShoppingBag,
+      description: "Manage customer orders",
+      path: "/admin/orders",
+      badge: null,
+    },
+    {
       title: "Resources",
       icon: FileDown,
       description: "Manage downloads",

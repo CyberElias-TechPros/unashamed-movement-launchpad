@@ -1,6 +1,7 @@
 import { api } from './client';
 
 export interface Order {
+  _id?: string;
   id?: string;
   userId?: string;
   items: Array<{
@@ -32,7 +33,7 @@ export interface Order {
     zipCode: string;
     country: string;
   };
-  status: 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
+  status: 'pending' | 'processing' | 'shipped' | 'delivered' | 'completed' | 'cancelled';
   paymentIntentId?: string;
   createdAt?: string;
   updatedAt?: string;
@@ -71,6 +72,8 @@ export const ordersApi = {
   create: (orderData: CreateOrderPayload) => api.post<{ _id: string }>('/orders', orderData),
 
   getById: (id: string) => api.get<Order>(`/orders/${id}`),
+
+  getAll: () => api.get<Order[]>('/orders'),
 
   getUserOrders: () => api.get<Order[]>('/orders/my-orders'),
 

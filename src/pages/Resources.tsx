@@ -6,6 +6,7 @@ import SectionWrapper from "@/components/SectionWrapper";
 import FloatingParticles from "@/components/FloatingParticles";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Download, BookOpen, FileText, Headphones, ExternalLink, Eye } from "lucide-react";
 import LazyImage from "@/components/LazyImage";
 import { resourcesApi, Resource } from "@/api/resources";
@@ -58,10 +59,21 @@ const Resources = () => {
   if (loading) {
     return (
       <Layout>
-        <section className="section-padding bg-primary pt-20">
-          <div className="container-custom text-center">
-            <div className="animate-spin w-8 h-8 border-4 border-primary-foreground border-t-transparent rounded-full mx-auto mb-4" />
-            <p className="text-primary-foreground/70">Loading resources...</p>
+        <section className="section-padding bg-background pt-20">
+          <div className="container-custom">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {[1, 2, 3, 4, 5, 6].map((i) => (
+                <div key={i} className="bg-card rounded-2xl p-8 border border-border flex flex-col">
+                  <Skeleton className="w-full h-32 rounded-lg mb-4" />
+                  <Skeleton className="w-10 h-10 mb-4" />
+                  <Skeleton className="h-3 w-16 mb-4" />
+                  <Skeleton className="h-5 w-3/4 mb-2" />
+                  <Skeleton className="h-3 w-1/2 mb-2" />
+                  <Skeleton className="h-10 flex-1 mb-4" />
+                  <Skeleton className="h-8 w-full" />
+                </div>
+              ))}
+            </div>
           </div>
         </section>
       </Layout>

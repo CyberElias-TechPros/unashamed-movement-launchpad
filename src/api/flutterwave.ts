@@ -6,6 +6,7 @@ export interface FlutterwavePaymentData {
   name?: string;
   tx_ref?: string;
   redirect_url?: string;
+  orderId?: string;
 }
 
 export interface FlutterwaveResult {
@@ -20,7 +21,7 @@ export interface FlutterwaveResult {
 
 export const flutterwaveApi = {
   initialize: (data: FlutterwavePaymentData) => 
-    api.post<FlutterwaveResult>('/payments/flutterwave/initialize', data),
+    api.post<FlutterwaveResult>('/payments/flutterwave/initialize', data, { maxRetries: 5 }),
   
   verify: (transactionId: number) => 
     api.get<FlutterwaveResult>(`/payments/flutterwave/verify/${transactionId}`),

@@ -9,8 +9,11 @@ import { ShoppingCart, Eye, X, Heart } from "lucide-react";
 import { useCart } from "@/context/CartContext";
 import { trackAddToCart } from "@/lib/analytics";
 import { productsApi, Product } from "@/api/products";
+import { reviewsApi, Review } from "@/api/reviews";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useWishlist } from "@/context/WishlistContext";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const APPAREL_SIZES = ["S", "M", "L", "XL", "XXL"];
 
@@ -73,6 +76,41 @@ const Shop = () => {
     setQuantity(1);
   };
 
+  // Reviews + subscribe logic
+  const queryClient = useQueryClient();
+  const productKey = selectedProduct?._id || selectedProduct?.id || '';
+  const { data: reviews } = useQuery<Review[] | undefined>({
+    queryKey: ['reviews', productKey],
+    queryFn: () => (productKey ? reviewsApi.getByProduct(productKey) : Promise.resolve([])),
+    enabled: !!productKey,
+  });
+
+  const submitReview = useMutation({
+    mutationFn: (payload: { productId: string; data: Partial<Review> }) =>
+      reviewsApi.create(payload.productId, payload.data),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['reviews', productKey] }),
+  });
+
+  const subscribeStock = useMutation({
+    mutationFn: (email: string) => productsApi.subscribeStock(productKey, email),
+  });
+
+  const SubscribeForm = ({ onSubscribe }: { onSubscribe: (email: string) => void }) => {
+    return (
+      <form className="flex gap-2" onSubmit={(e) => {
+        e.preventDefault();
+        const f = e.target as HTMLFormElement;
+        const email = (f.elements.namedItem('notifyEmail') as HTMLInputElement).value;
+        if (!email) return;
+        onSubscribe(email);
+        f.reset();
+      }}>
+        <input name="notifyEmail" placeholder="Email" className="p-2 border border-border rounded w-full" />
+        <button className="btn btn-primary" type="submit">Notify me</button>
+      </form>
+    );
+  };
+
   const toggleWishlist = (product: Product, e: React.MouseEvent) => {
     e.stopPropagation();
     const pid = product._id || product.id || "";
@@ -83,10 +121,20 @@ const Shop = () => {
   if (loading) {
     return (
       <Layout>
-        <section className="section-padding bg-primary pt-20">
-          <div className="container-custom text-center">
-            <div className="animate-spin w-8 h-8 border-4 border-primary-foreground border-t-transparent rounded-full mx-auto mb-4" />
-            <p className="text-primary-foreground/70">Loading products...</p>
+        <section className="section-padding bg-background pt-20">
+          <div className="container-custom">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+              {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
+                <div key={i} className="bg-card rounded-2xl overflow-hidden border border-border">
+                  <Skeleton className="aspect-square" />
+                  <div className="p-5 space-y-2">
+                    <Skeleton className="h-3 w-16" />
+                    <Skeleton className="h-5 w-3/4" />
+                    <Skeleton className="h-4 w-1/4" />
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         </section>
       </Layout>
@@ -262,7 +310,7 @@ const Shop = () => {
                   <X size={18} />
                 </button>
               </div>
-              <div className="p-5 sm:p-8">
+                <div className="p-5 sm:p-8">
                 <p className="text-xs font-body text-muted-foreground uppercase tracking-wider mb-2">
                   {selectedProduct.category}
                 </p>
@@ -289,17 +337,79 @@ const Shop = () => {
                   <span className="font-heading text-2xl sm:text-3xl text-accent">
                     ${selectedProduct.price}
                   </span>
-                  <div className="flex items-center gap-2">
-                    <label className="text-sm font-body text-muted-foreground">Qty:</label>
-                    <input
-                      type="number"
-                      min="1"
-                      max={selectedProduct.stock || 99}
-                      value={quantity}
-                      onChange={(e) => setQuantity(parseInt(e.target.value) || 1)}
-                      className="w-16 px-2 py-1 border border-border rounded bg-background text-foreground"
-                    />
+                  <div className="text-right">
+                    {selectedProduct.reviewCount ? (
+                      <p className="text-sm font-medium text-foreground">
+                        {selectedProduct.averageRating?.toFixed(1)} / 5 • {selectedProduct.reviewCount} review{selectedProduct.reviewCount === 1 ? '' : 's'}
+                      </p>
+                    ) : (
+                      <p className="text-sm text-muted-foreground">No reviews yet</p>
+                    )}
+                    <div className="flex items-center gap-2 mt-2">
+                      <label className="text-sm font-body text-muted-foreground">Qty:</label>
+                      <input
+                        type="number"
+                        min="1"
+                        max={selectedProduct.stock || 99}
+                        value={quantity}
+                        onChange={(e) => setQuantity(parseInt(e.target.value) || 1)}
+                        className="w-16 px-2 py-1 border border-border rounded bg-background text-foreground"
+                      />
+                    </div>
                   </div>
+                </div>
+                <div className="p-5 sm:p-8 border-t border-border">
+                  <h4 className="font-heading text-lg mb-2">Reviews</h4>
+                  {reviews && reviews.length > 0 ? (
+                    <div className="space-y-3">
+                      {reviews.map((r) => (
+                        <div key={r._id} className="border border-border rounded p-3">
+                          <div className="font-semibold">{r.name || 'Anonymous'} <span className="text-sm text-muted-foreground">· {r.rating}/5</span></div>
+                          {r.title && <div className="text-sm font-medium">{r.title}</div>}
+                          {r.body && <div className="text-sm text-muted-foreground">{r.body}</div>}
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-sm text-muted-foreground">No reviews yet. Be the first to leave a review.</div>
+                  )}
+
+                  <div className="mt-4">
+                    <h5 className="font-medium mb-2">Leave a review</h5>
+                    <form onSubmit={(e) => {
+                      e.preventDefault();
+                      const form = e.target as HTMLFormElement;
+                      const formData = new FormData(form);
+                      const payload: Partial<Review> = {
+                        name: String(formData.get('name') || ''),
+                        email: String(formData.get('email') || ''),
+                        rating: Number(formData.get('rating') || 5),
+                        title: String(formData.get('title') || ''),
+                        body: String(formData.get('body') || ''),
+                      };
+                      const pid = selectedProduct?._id || selectedProduct?.id || '';
+                      submitReview.mutate({ productId: pid, data: payload });
+                      form.reset();
+                    }}>
+                      <input name="name" placeholder="Your name" className="w-full mb-2 p-2 border border-border rounded" />
+                      <input name="email" placeholder="Email (optional)" className="w-full mb-2 p-2 border border-border rounded" />
+                      <select name="rating" defaultValue={5} className="w-full mb-2 p-2 border border-border rounded">
+                        {[5,4,3,2,1].map((n) => (<option key={n} value={n}>{n} stars</option>))}
+                      </select>
+                      <input name="title" placeholder="Review title" className="w-full mb-2 p-2 border border-border rounded" />
+                      <textarea name="body" placeholder="Write your review" className="w-full mb-2 p-2 border border-border rounded" />
+                      <div className="flex gap-2">
+                        <button className="btn btn-primary" type="submit">Submit review</button>
+                      </div>
+                    </form>
+                  </div>
+
+                  {selectedProduct?.stock != null && selectedProduct.stock <= 0 && (
+                    <div className="mt-4">
+                      <p className="text-sm text-muted-foreground mb-2">Out of stock — get notified when available</p>
+                      <SubscribeForm onSubscribe={(email) => subscribeStock.mutate(email)} />
+                    </div>
+                  )}
                 </div>
                 {selectedProduct.stock != null && selectedProduct.stock <= 5 && (
                   <p className="text-sm text-amber-600 mb-2">Only {selectedProduct.stock} left in stock</p>

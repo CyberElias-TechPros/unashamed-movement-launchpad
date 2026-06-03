@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Plus, Edit, Trash2 } from "lucide-react";
+import { Plus, Edit, Trash2, Image as ImageIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { productsApi, Product } from "@/api/products";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import MediaPicker from "@/components/MediaPicker";
 
 const emptyProduct: Partial<Product> = {
   name: "",
@@ -24,6 +25,7 @@ const AdminProductManager = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [editing, setEditing] = useState<Partial<Product> | null>(null);
   const [open, setOpen] = useState(false);
+  const [mediaPickerOpen, setMediaPickerOpen] = useState(false);
 
   const load = async () => {
     const data = await productsApi.getAll();
@@ -73,12 +75,14 @@ const AdminProductManager = () => {
             <CardHeader className="flex flex-row items-center justify-between py-4">
               <CardTitle className="text-lg">{p.name} — ${p.price}</CardTitle>
               <div className="flex gap-2">
-                <Button variant="ghost" size="sm" onClick={() => { setEditing(p); setOpen(true); }}>
-                  <Edit className="w-4 h-4" />
-                </Button>
-                <Button variant="ghost" size="sm" onClick={() => remove(p._id || p.id || "")}>
-                  <Trash2 className="w-4 h-4 text-destructive" />
-                </Button>
+<Button variant="ghost" size="sm" onClick={() => { setEditing(p); setOpen(true); }}>
+                   <Edit className="w-4 h-4" />
+                   <span className="sr-only">Edit product</span>
+                 </Button>
+                 <Button variant="ghost" size="sm" onClick={() => remove(p._id || p.id || "")}>
+                   <Trash2 className="w-4 h-4 text-destructive" />
+                   <span className="sr-only">Delete product</span>
+                 </Button>
               </div>
             </CardHeader>
             <CardContent>
@@ -124,11 +128,39 @@ const AdminProductManager = () => {
                   </SelectContent>
                 </Select>
               </div>
+              <div>
+                <Label>Images</Label>
+                <div className="flex gap-2">
+                  <Input
+                    value={editing.images?.[0] || ""}
+                    onChange={(e) => setEditing({ ...editing, images: [e.target.value] })}
+                    placeholder="Image URL"
+                    className="flex-1"
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setMediaPickerOpen(true)}
+                    aria-label="Select from media library"
+                  >
+                    <ImageIcon className="w-4 h-4" />
+                  </Button>
+                </div>
+                {editing.images?.[0] && (
+                  <img src={editing.images[0]} alt="Preview" className="mt-2 h-20 object-cover rounded" />
+                )}
+              </div>
               <Button className="w-full" onClick={save}>Save</Button>
             </div>
           )}
         </DialogContent>
       </Dialog>
+
+      <MediaPicker
+        open={mediaPickerOpen}
+        onOpenChange={setMediaPickerOpen}
+        onSelect={(url) => setEditing({ ...editing, images: [url] })}
+      />
     </div>
   );
 };

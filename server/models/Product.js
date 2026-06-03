@@ -14,4 +14,8 @@ const productSchema = new mongoose.Schema({
   colors: [{ type: String }],
 }, { timestamps: true });
 
+productSchema.index({ category: 1, isActive: 1 });
+productSchema.index({ createdAt: -1 });
+productSchema.index({ name: 'text', description: 'text' });
+
 module.exports = mongoose.model('Product', productSchema);

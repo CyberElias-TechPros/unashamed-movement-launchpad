@@ -1,6 +1,8 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import type { Product } from "@/api/products";
 
+const TAX_RATE = 0.08;
+
 interface CartItem {
   productId: string;
   quantity: number;
@@ -50,7 +52,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
 
   const totalItems = items.reduce((sum, item) => sum + item.quantity, 0);
   const subtotal = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-  const tax = subtotal * 0.08; // 8% tax rate
+  const tax = subtotal * TAX_RATE;
   const total = subtotal + tax;
 
   const addItem = (product: Product, quantity: number = 1, variant: CartItem['variant'] = null) => {

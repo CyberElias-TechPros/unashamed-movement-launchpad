@@ -23,8 +23,10 @@ export const stripeApi = {
     items: { productId: string; quantity: number }[];
     successUrl?: string;
     cancelUrl?: string;
+    currency?: string;
+    orderId?: string;
   }) => 
-    api.post<{ sessionId: string; url: string; message?: string }>('/payments/stripe/create-session', data),
+    api.post<{ sessionId: string; url: string; message?: string }>('/payments/stripe/create-session', data, { maxRetries: 5 }),
   
   webhook: (payload: { id: string; type: string; data: unknown }) => {
     return api.post('/payments/stripe/webhook', payload);

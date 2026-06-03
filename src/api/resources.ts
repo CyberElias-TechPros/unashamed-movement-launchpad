@@ -11,6 +11,7 @@ export interface Resource {
   free: boolean;
   category: string;
   downloadCount?: number;
+  imageUrl?: string;
 }
 
 export const resourcesApi = {

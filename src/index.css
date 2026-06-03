@@ -151,6 +151,19 @@ html {
   display: none;
 }
 
+/* Screen reader only */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
 /* Testimonial scrolling animation */
 @keyframes scroll {
   0% {
@@ -237,4 +250,12 @@ html {
 
 .bw-purple-theme .bg-gradient-gold {
   background: linear-gradient(135deg, hsl(45 100% 60%), hsl(270 50% 60%));
+}
+
+/* Landscape video support for mobile */
+@media (orientation: landscape) and (max-height: 500px) {
+  .video-container {
+    max-height: 60vh;
+    max-width: 90vw;
+  }
 }

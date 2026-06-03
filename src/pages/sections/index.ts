@@ -1,0 +1,10 @@
+export { default as HeroSection } from "./HeroSection";
+export { default as MissionSection } from "./MissionSection";
+export { default as VideoSection } from "./VideoSection";
+export { default as TestimonialsSection } from "./TestimonialsSection";
+export { default as ImpactSection } from "./ImpactSection";
+export { default as LocationsSection } from "./LocationsSection";
+export { default as CountriesSection } from "./CountriesSection";
+export { default as NewsletterSection } from "./NewsletterSection";
+export { default as FeaturedSection } from "./FeaturedSection";
+export { default as CTASection } from "./CTASection";

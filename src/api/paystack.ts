@@ -16,11 +16,12 @@ export interface PaystackInitialize {
   name?: string;
   ref?: string;
   callback_url?: string;
+  orderId?: string;
 }
 
 export const paystackApi = {
   initialize: (data: PaystackInitialize) => 
-    api.post<PaymentResult>('/payments/paystack/initialize', data),
+    api.post<PaymentResult>('/payments/paystack/initialize', data, { maxRetries: 5 }),
   
   verify: (reference: string) => 
     api.get<PaymentResult>(`/payments/paystack/verify/${reference}`),

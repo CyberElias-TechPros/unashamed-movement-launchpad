@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Calendar as CalendarIcon, MapPin, Clock, ArrowRight, ExternalLink } from "lucide-react";
 import { trackEvent } from "@/lib/analytics";
 import { eventsApi, Event } from "@/api/events";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 import EventRegistrationModal from "@/components/EventRegistrationModal";
 import { googleCalendarUrl } from "@/lib/calendar";
@@ -96,10 +97,33 @@ const Events = () => {
   if (loading) {
     return (
       <Layout>
-        <section className="section-padding bg-primary pt-20">
-          <div className="container-custom text-center">
-            <div className="animate-spin w-8 h-8 border-4 border-primary-foreground border-t-transparent rounded-full mx-auto mb-4" />
-            <p className="text-primary-foreground/70">Loading events...</p>
+        <section className="section-padding bg-background pt-20">
+          <div className="container-custom max-w-4xl">
+            <div className="space-y-6">
+              {[1, 2, 3, 4, 5, 6].map((i) => (
+                <div key={i} className="bg-card rounded-2xl p-6 lg:p-8 border border-border">
+                  <div className="flex flex-col lg:flex-row gap-6">
+                    <div className="flex-shrink-0">
+                      <Skeleton className="w-20 h-20 rounded-xl" />
+                    </div>
+                    <div className="flex-1 space-y-3">
+                      <Skeleton className="h-6 w-24" />
+                      <Skeleton className="h-8 w-3/4" />
+                      <Skeleton className="h-4 w-full" />
+                      <Skeleton className="h-4 w-2/3" />
+                      <div className="flex gap-4">
+                        <Skeleton className="h-4 w-20" />
+                        <Skeleton className="h-4 w-24" />
+                      </div>
+                      <div className="flex gap-2">
+                        <Skeleton className="h-8 w-24" />
+                        <Skeleton className="h-8 w-28" />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         </section>
       </Layout>

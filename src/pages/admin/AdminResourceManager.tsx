@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { FileDown, Plus, Edit, Trash2, Save } from "lucide-react";
+import { FileDown, Plus, Edit, Trash2, Save, Image as ImageIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -9,6 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { resourcesApi, Resource as ApiResource } from "@/api/resources";
+import MediaPicker from "@/components/MediaPicker";
 
 interface Resource {
   id: string;
@@ -26,6 +27,7 @@ const AdminResourceManager = () => {
   const [resources, setResources] = useState<Resource[]>([]);
   const [isEditing, setIsEditing] = useState<string | null>(null);
   const [editingResource, setEditingResource] = useState<Resource | null>(null);
+  const [mediaPickerOpen, setMediaPickerOpen] = useState(false);
 
   useEffect(() => {
     const load = async () => {
@@ -77,6 +79,7 @@ const AdminResourceManager = () => {
         downloadUrl: editingResource.downloadUrl,
         free: editingResource.free,
         category: editingResource.category,
+        imageUrl: editingResource.imageUrl,
       };
       if (isEditing) await resourcesApi.update(isEditing, payload);
       else await resourcesApi.create(payload);
@@ -195,6 +198,29 @@ const AdminResourceManager = () => {
                     </Button>
                   </div>
                 </div>
+
+                <div className="mt-4">
+                  <Label>Image (optional)</Label>
+                  <div className="flex gap-2">
+                    <Input
+                      value={editingResource?.imageUrl || ""}
+                      onChange={(e) => setEditingResource({ ...editingResource, imageUrl: e.target.value } as Resource)}
+                      placeholder="Image URL or select from library"
+                      className="flex-1"
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => setMediaPickerOpen(true)}
+                      aria-label="Select from media library"
+                    >
+                      <ImageIcon className="w-4 h-4" />
+                    </Button>
+                  </div>
+                  {editingResource?.imageUrl && (
+                    <img src={editingResource.imageUrl} alt="Preview" className="mt-2 h-20 object-cover rounded" />
+                  )}
+                </div>
               </CardContent>
             </Card>
 
@@ -220,12 +246,14 @@ const AdminResourceManager = () => {
                           <p className="text-sm text-muted-foreground">{resource.type} • {resource.category}</p>
                         </div>
                         <div className="flex gap-2">
-                          <Button variant="ghost" size="sm">
-                            <Edit className="w-4 h-4" />
-                          </Button>
-                          <Button variant="ghost" size="sm" onClick={() => handleDelete(resource.id)}>
-                            <Trash2 className="w-4 h-4 text-red-500" />
-                          </Button>
+<Button variant="ghost" size="sm">
+                             <Edit className="w-4 h-4" />
+                             <span className="sr-only">Edit resource</span>
+                           </Button>
+                           <Button variant="ghost" size="sm" onClick={() => handleDelete(resource.id)}>
+                             <Trash2 className="w-4 h-4 text-red-500" />
+                             <span className="sr-only">Delete resource</span>
+                           </Button>
                         </div>
                       </div>
                     ))
@@ -236,6 +264,12 @@ const AdminResourceManager = () => {
           </div>
         </main>
       </div>
+
+      <MediaPicker
+        open={mediaPickerOpen}
+        onOpenChange={setMediaPickerOpen}
+        onSelect={(url) => setEditingResource({ ...editingResource, imageUrl: url } as Resource)}
+      />
     </div>
   );
 };

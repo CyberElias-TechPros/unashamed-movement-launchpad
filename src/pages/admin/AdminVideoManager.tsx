@@ -97,9 +97,10 @@ const AdminVideoManager = () => {
                   <p className="font-heading">{v.title}</p>
                   <p className="text-sm text-muted-foreground truncate max-w-md">{v.url}</p>
                 </div>
-                <Button variant="ghost" size="sm" onClick={() => handleDelete((v._id || v.id)!)}>
-                  <Trash2 className="w-4 h-4 text-red-500" />
-                </Button>
+<Button variant="ghost" size="sm" onClick={() => handleDelete((v._id || v.id)!)}>
+                   <Trash2 className="w-4 h-4 text-red-500" />
+                   <span className="sr-only">Delete video</span>
+                 </Button>
               </div>
             ))}
             {videos.length === 0 && <p className="text-muted-foreground text-sm">No videos yet.</p>}

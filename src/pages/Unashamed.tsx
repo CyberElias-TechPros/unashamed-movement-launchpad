@@ -19,28 +19,20 @@ interface VideoItem {
 
 const videos: VideoItem[] = [
   {
-    id: 1, title: "The Cost of Silence", description: "What happens when believers choose comfort over conviction? This episode explores the real cost of staying quiet.",
-    duration: "24:30", episode: "EP 01", youtubeUrl: "https://youtube.com/@TheTimeIsNow255", youtubeEmbedId: "jNQXAC9IVRw",
+    id: 1, title: "Being Ambitious for Christ", description: "What does it mean to be ambitious for Christ? This episode explores how to pursue boldness in your faith.",
+    duration: "21:07", episode: "EP 01", youtubeUrl: "https://youtube.com/@tthetimeisnow", youtubeEmbedId: "pFyf6yPBr9A",
   },
   {
-    id: 2, title: "Fear vs. Faith", description: "Understanding the battle between fear and faith, and how to let your faith lead every time.",
-    duration: "18:45", episode: "EP 02", youtubeUrl: "https://youtube.com/@TheTimeIsNow255",
+    id: 2, title: "The Gospel Simplified", description: "Understanding the simple, powerful message of the Gospel and how to share it boldly.",
+    duration: "28:48", episode: "EP 02", youtubeUrl: "https://youtube.com/@tthetimeisnow", youtubeEmbedId: "ndP307bxp4k",
   },
   {
-    id: 3, title: "Bold in the Workplace", description: "Practical ways to live out your faith in professional settings without compromise.",
-    duration: "22:10", episode: "EP 03", youtubeUrl: "https://youtube.com/@TheTimeIsNow255",
+    id: 3, title: "The Ministry of the Holy Spirit in Evangelism", description: "Discover how the Holy Spirit empowers and guides us in proclaiming the Gospel.",
+    duration: "1:25:44", episode: "EP 03", youtubeUrl: "https://youtube.com/@tthetimeisnow", youtubeEmbedId: "ahIbBSvVoQs",
   },
   {
-    id: 4, title: "The Unashamed Identity", description: "Discovering who you are in Christ and why that identity demands boldness.",
-    duration: "20:00", episode: "EP 04", youtubeUrl: "https://youtube.com/@TheTimeIsNow255",
-  },
-  {
-    id: 5, title: "Evangelism Redefined", description: "Moving beyond traditional approaches to sharing the Gospel in the modern world.",
-    duration: "26:15", episode: "EP 05", youtubeUrl: "https://youtube.com/@TheTimeIsNow255",
-  },
-  {
-    id: 6, title: "When They Persecute You", description: "How to stand firm when your faith is challenged, mocked, or attacked.",
-    duration: "21:50", episode: "EP 06", youtubeUrl: "https://youtube.com/@TheTimeIsNow255",
+    id: 4, title: "Unashamed Webinar 3.0", description: "Join us for another powerful webinar on living an unashamed life for Christ.",
+    duration: "2:00:11", episode: "EP 04", youtubeUrl: "https://youtube.com/@tthetimeisnow", youtubeEmbedId: "oxGmlhJDUq0",
   },
 ];
 
@@ -188,11 +180,13 @@ const Unashamed = () => {
                       {video.youtubeEmbedId ? (
                         <iframe
                           title={video.title}
-                          src={`https://www.youtube.com/embed/${video.youtubeEmbedId}`}
+                          src={`https://www.youtube.com/embed/${video.youtubeEmbedId}?modestbranding=1&rel=0&showinfo=0`}
                           className="absolute inset-0 w-full h-full"
-                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                          allow="accelerometer; encrypted-media; gyroscope; picture-in-picture"
                           allowFullScreen
-                        />
+                        >
+                          <title>{video.title}</title>
+                        </iframe>
                       ) : null}
                       <span className="font-heading text-6xl text-primary-foreground/10 tracking-wider">
                         {video.episode}
@@ -310,8 +304,8 @@ const Unashamed = () => {
               <div className="bg-card rounded-2xl overflow-hidden shadow-2xl border border-primary-foreground/20">
                 <div className="relative aspect-video bg-black">
                   <iframe
-                    title="Featured: The Cost of Silence"
-                    src="https://www.youtube.com/embed/jNQXAC9IVRw"
+                    title="Featured: Being Ambitious for Christ"
+                    src="https://www.youtube.com/embed/pFyf6yPBr9A?autoplay=1&modestbranding=1&rel=0&showinfo=0"
                     className="absolute inset-0 w-full h-full"
                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                     allowFullScreen
@@ -319,19 +313,18 @@ const Unashamed = () => {
                 </div>
                 <div className="p-8">
                   <h3 className="font-heading text-2xl tracking-wider text-card-foreground mb-4">
-                    The Cost of Silence
+                    Being Ambitious for Christ
                   </h3>
                   <p className="font-body text-muted-foreground text-lg leading-relaxed mb-6">
-                    What happens when believers choose comfort over conviction? This episode explores the real cost of staying quiet and challenges viewers to step into their calling as bold witnesses for Christ.
+                    What does it mean to be ambitious for Christ? This episode explores how to pursue boldness in your faith and live with purpose for His kingdom.
                   </p>
                   <a
-                    href="https://youtube.com"
+                    href="https://youtube.com/@tthetimeisnow"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="inline-flex items-center gap-2 bg-accent text-accent-foreground px-6 py-3 rounded-full font-heading tracking-wider hover:bg-accent/90 transition-colors"
                   >
-                    <Youtube className="w-5 h-5" />
-                    Watch on YouTube
+                    Watch More Videos
                   </a>
                 </div>
               </div>

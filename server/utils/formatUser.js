@@ -4,6 +4,7 @@ const formatUser = (user) => ({
   name: user.name,
   role: user.role,
   avatar: user.avatar || '',
+  emailVerified: user.emailVerified || false,
 });
 
 module.exports = { formatUser };

@@ -2,6 +2,15 @@ const router = require('express').Router();
 const NewsletterSubscriber = require('../models/NewsletterSubscriber');
 const { protect, admin } = require('../middleware/auth');
 const { newsletterLimiter } = require('../middleware/rateLimit');
+const { body, validationResult, param } = require('express-validator');
+
+const validate = (req, res, next) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({ message: 'Validation failed', errors: errors.array() });
+  }
+  next();
+};
 
 router.get('/', protect, admin, async (req, res) => {
   try {
@@ -12,13 +21,11 @@ router.get('/', protect, admin, async (req, res) => {
   }
 });
 
-router.post('/subscribe', newsletterLimiter, async (req, res) => {
+router.post('/subscribe', newsletterLimiter, [
+  body('email').isEmail().normalizeEmail(),
+], validate, async (req, res) => {
   try {
     const { email } = req.body;
-
-    if (!email) {
-      return res.status(400).json({ message: 'Email is required' });
-    }
 
     const existing = await NewsletterSubscriber.findOne({ email: email.toLowerCase() });
     if (existing) {
@@ -37,7 +44,9 @@ router.post('/subscribe', newsletterLimiter, async (req, res) => {
   }
 });
 
-router.delete('/unsubscribe/:email', async (req, res) => {
+router.delete('/unsubscribe/:email', [
+  param('email').isEmail().normalizeEmail(),
+], validate, async (req, res) => {
   try {
     const subscriber = await NewsletterSubscriber.findOne({ email: req.params.email.toLowerCase() });
     if (subscriber) {

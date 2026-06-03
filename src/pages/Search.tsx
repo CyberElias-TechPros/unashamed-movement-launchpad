@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useSearchParams, Link } from "react-router-dom";
 import Layout from "@/components/Layout";
 import { searchApi } from "@/api/search";
-import { Loader2 } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const Search = () => {
   const [params] = useSearchParams();
@@ -39,7 +39,15 @@ const Search = () => {
 
           {loading && (
             <div className="flex justify-center py-12">
-              <Loader2 className="w-8 h-8 animate-spin text-accent" />
+              <div className="space-y-4 w-full max-w-2xl">
+                {[1, 2, 3].map((i) => (
+                  <div key={i} className="p-4 border border-border rounded-lg">
+                    <Skeleton className="h-5 w-3/4 mb-2" />
+                    <Skeleton className="h-4 w-full mb-1" />
+                    <Skeleton className="h-4 w-2/3" />
+                  </div>
+                ))}
+              </div>
             </div>
           )}
 

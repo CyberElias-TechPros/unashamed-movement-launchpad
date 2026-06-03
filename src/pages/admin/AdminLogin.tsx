@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Loader2, Lock, Eye, EyeOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -96,6 +96,12 @@ const AdminLogin = () => {
               {error && (
                 <p className="text-sm text-red-500 text-center">{error}</p>
               )}
+
+              <div className="flex items-center justify-between text-sm text-muted-foreground">
+                <Link to="/forgot-password" className="underline hover:text-primary-foreground">
+                  Forgot password?
+                </Link>
+              </div>
 
               <Button type="submit" className="w-full" disabled={isLoading}>
                 {isLoading ? (

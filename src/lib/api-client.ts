@@ -1,11 +1,13 @@
-import { authApi } from './auth';
-
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
 interface RequestOptions {
   method?: 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH';
   body?: unknown;
   headers?: Record<string, string>;
+  maxRetries?: number;
+  timeoutMs?: number;
+  signal?: AbortSignal;
+  csrfToken?: string;
 }
 
 class ApiError extends Error {
@@ -15,30 +17,18 @@ class ApiError extends Error {
   }
 }
 
-const getAuthToken = () => localStorage.getItem('ttin_auth_token');
-
-const requestInterceptor = async (url: string, config: RequestInit) => {
-  const token = getAuthToken();
-  if (token) {
-    config.headers = {
-      ...config.headers,
-      'Authorization': `Bearer ${token}`,
-    };
-  }
-  return { url, config };
-};
-
-const responseInterceptor = async (response: Response) => {
-  if (response.status === 401 && window.location.pathname.startsWith('/admin')) {
-    localStorage.removeItem('ttin_auth_token');
-    localStorage.removeItem('ttin_admin_user');
-    window.location.href = '/admin/login';
-  }
-  return response;
-};
+const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
 const apiClient = async <T>(endpoint: string, options: RequestOptions = {}): Promise<T> => {
-  const { method = 'GET', body, headers = {} } = options;
+  const {
+    method = 'GET',
+    body,
+    headers = {},
+    maxRetries = 3,
+    timeoutMs = 15000,
+    signal,
+    csrfToken,
+  } = options;
 
   const config: RequestInit = {
     method,
@@ -46,32 +36,93 @@ const apiClient = async <T>(endpoint: string, options: RequestOptions = {}): Pro
       'Content-Type': 'application/json',
       ...headers,
     },
+    credentials: 'include',
   };
+
+  if (csrfToken) {
+    config.headers = {
+      ...config.headers,
+      'X-CSRF-Token': csrfToken,
+    };
+  }
 
   if (body) {
     config.body = JSON.stringify(body);
   }
 
-  const { url, config: finalConfig } = await requestInterceptor(`${API_BASE_URL}${endpoint}`, config);
-
-  const response = await fetch(url, finalConfig);
-
-  await responseInterceptor(response);
-
-  if (!response.ok) {
-    const errorData = await response.json().catch(() => ({ message: 'Request failed' }));
-    throw new ApiError(response.status, errorData.message || 'Request failed', errorData.code);
+  if (signal) {
+    config.signal = signal;
   }
 
-  return response.json();
+  const { url } = { url: `${API_BASE_URL}${endpoint}` };
+
+  let lastError: Error | null = null;
+  const controller = signal ? undefined : new AbortController();
+  const timeoutId = setTimeout(() => controller?.abort(), timeoutMs);
+
+  try {
+    for (let attempt = 0; attempt < maxRetries; attempt++) {
+      try {
+        const response = await fetch(url, { ...config, signal: controller?.signal });
+
+        if (controller?.signal.aborted) {
+          throw new Error('Request timed out');
+        }
+
+        if (response.status === 401 && window.location.pathname.startsWith('/admin')) {
+          window.location.href = '/admin/login';
+          throw new Error('Unauthorized');
+        }
+
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({ message: 'Request failed' }));
+          if (response.status >= 500 || response.status === 429) {
+            throw new ApiError(response.status, errorData.message || 'Server error', errorData.code);
+          }
+          throw new ApiError(response.status, errorData.message || 'Request failed', errorData.code);
+        }
+
+        return response.json();
+      } catch (error) {
+        lastError = error as Error;
+        const isTimeout = error instanceof Error && error.message === 'Request timed out';
+        const isRateLimit = lastError instanceof ApiError && lastError.status === 429;
+        const isServerError = lastError instanceof ApiError && lastError.status >= 500;
+        const isUnauthorized = error instanceof Error && error.message === 'Unauthorized';
+        const isTransient = isTimeout || isRateLimit || isServerError;
+
+        if (isUnauthorized || (!isTransient || attempt >= maxRetries - 1 || signal?.aborted)) {
+          break;
+        }
+
+        const backoff = Math.min(1000 * Math.pow(2, attempt), 10000);
+        await sleep(backoff);
+      }
+    }
+
+    if (lastError instanceof ApiError) {
+      throw lastError;
+    } else if (lastError) {
+      throw new ApiError(0, lastError.message, 'NETWORK_ERROR');
+    } else {
+      throw new ApiError(0, 'Request failed', 'UNKNOWN_ERROR');
+    }
+  } finally {
+    clearTimeout(timeoutId);
+  }
 };
 
 export const api = {
-  get: <T>(endpoint: string) => apiClient<T>(endpoint),
-  post: <T>(endpoint: string, body: unknown) => apiClient<T>(endpoint, { method: 'POST', body }),
-  put: <T>(endpoint: string, body: unknown) => apiClient<T>(endpoint, { method: 'PUT', body }),
-  patch: <T>(endpoint: string, body: unknown) => apiClient<T>(endpoint, { method: 'PATCH', body }),
-  delete: <T>(endpoint: string) => apiClient<T>(endpoint, { method: 'DELETE' }),
+  get: <T>(endpoint: string, options?: Omit<RequestOptions, 'method' | 'body'>) =>
+    apiClient<T>(endpoint, { ...options, method: 'GET' }),
+  post: <T>(endpoint: string, body: unknown, options?: Omit<RequestOptions, 'method' | 'body'>) =>
+    apiClient<T>(endpoint, { ...options, method: 'POST', body }),
+  put: <T>(endpoint: string, body: unknown, options?: Omit<RequestOptions, 'method' | 'body'>) =>
+    apiClient<T>(endpoint, { ...options, method: 'PUT', body }),
+  patch: <T>(endpoint: string, body: unknown, options?: Omit<RequestOptions, 'method' | 'body'>) =>
+    apiClient<T>(endpoint, { ...options, method: 'PATCH', body }),
+  delete: <T>(endpoint: string, options?: Omit<RequestOptions, 'method' | 'body'>) =>
+    apiClient<T>(endpoint, { ...options, method: 'DELETE' }),
 };
 
 export default api;

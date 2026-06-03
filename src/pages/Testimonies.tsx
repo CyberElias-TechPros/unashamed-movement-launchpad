@@ -6,6 +6,7 @@ import SectionWrapper from "@/components/SectionWrapper";
 import FloatingParticles from "@/components/FloatingParticles";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Quote, ArrowRight, Users, Globe, Download, Play, Book, Share2, MapPin } from "lucide-react";
 import { TestimonySubmissionForm } from "@/components/TestimonySubmissionForm";
 import WorldMap from "@/components/WorldMap";
@@ -15,10 +16,18 @@ import { trackEvent } from "@/lib/analytics";
 const preachingLocations = ["Buses", "Ferries", "Malls", "Airplanes", "Trains", "Streets", "Airports"];
 const categories = ["All", "Evangelism", "Youth", "Apologetics", "Lifestyle", "Workplace"];
 
-const videoTestimonials = [
-  { id: 1, title: "From Fear to Freedom", speaker: "Maria Rodriguez", location: "Spain" },
-  { id: 2, title: "Preaching on the London Underground", speaker: "James Thompson", location: "United Kingdom" },
-  { id: 3, title: "Campus Revival in Nairobi", speaker: "Samuel K", location: "Kenya" },
+type VideoTestimonial = {
+  id: number;
+  title: string;
+  speaker: string;
+  location: string;
+  videoId: string;
+};
+
+const videoTestimonials: VideoTestimonial[] = [
+  { id: 1, title: "Being Ambitious for Christ", speaker: "TTIN", location: "Global", videoId: "pFyf6yPBr9A" },
+  { id: 2, title: "The Gospel Simplified", speaker: "TTIN", location: "Global", videoId: "ndP307bxp4k" },
+  { id: 3, title: "The Ministry of the Holy Spirit in Evangelism", speaker: "TTIN", location: "Global", videoId: "ahIbBSvVoQs" },
 ];
 
 const bookTestimonials = [
@@ -36,7 +45,7 @@ const Testimonies = () => {
   const [error, setError] = useState<string | null>(null);
   const [countryFilter, setCountryFilter] = useState<string | null>(null);
   const [page, setPage] = useState(1);
-  const [activeVideo, setActiveVideo] = useState<typeof videoTestimonials[0] | null>(null);
+  const [activeVideo, setActiveVideo] = useState<VideoTestimonial | null>(null);
   const PAGE_SIZE = 6;
 
   useEffect(() => {
@@ -89,10 +98,19 @@ const Testimonies = () => {
   if (loading) {
     return (
       <Layout>
-        <section className="section-padding bg-primary pt-20">
-          <div className="container-custom text-center">
-            <div className="animate-spin w-8 h-8 border-4 border-primary-foreground border-t-transparent rounded-full mx-auto mb-4" />
-            <p className="text-primary-foreground/70">Loading testimonials...</p>
+        <section className="section-padding bg-background pt-20">
+          <div className="container-custom">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {[1, 2, 3, 4, 5, 6].map((i) => (
+                <div key={i} className="bg-card rounded-2xl p-8 border border-border">
+                  <Skeleton className="w-10 h-10 mb-4" />
+                  <Skeleton className="h-5 w-3/4 mb-2" />
+                  <Skeleton className="h-4 w-1/2 mb-4" />
+                  <Skeleton className="h-20 w-full mb-4" />
+                  <Skeleton className="h-4 w-1/4" />
+                </div>
+              ))}
+            </div>
           </div>
         </section>
       </Layout>
@@ -397,20 +415,19 @@ const Testimonies = () => {
       </section>
 
       <Dialog open={!!activeVideo} onOpenChange={() => setActiveVideo(null)}>
-        <DialogContent className="max-w-3xl">
-          <DialogHeader>
+        <DialogContent className="max-w-4xl p-0">
+          <DialogHeader className="p-4 pb-0">
             <DialogTitle>{activeVideo?.title}</DialogTitle>
           </DialogHeader>
           {activeVideo && (
-            <div className="space-y-4">
-              <div className="aspect-video bg-muted rounded-lg flex items-center justify-center">
-                <p className="text-muted-foreground text-center px-4">
-                  Video: {activeVideo.speaker} — {activeVideo.location}. Full recording available on request.
-                </p>
-              </div>
-              <p className="font-body text-sm text-muted-foreground">
-                Contact us to request the full professionally recorded testimony.
-              </p>
+            <div className="aspect-video bg-black">
+              <iframe
+                src={`https://www.youtube.com/embed/${activeVideo.videoId}?autoplay=1&modestbranding=1&rel=0&showinfo=0`}
+                className="w-full h-full"
+                allowFullScreen
+                allow="autoplay; encrypted-media"
+                title={activeVideo.title}
+              />
             </div>
           )}
         </DialogContent>

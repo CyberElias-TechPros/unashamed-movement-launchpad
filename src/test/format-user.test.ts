@@ -18,6 +18,7 @@ describe("formatUser", () => {
       name: "Admin",
       role: "admin",
       avatar: "",
+      emailVerified: false,
     });
   });
 });

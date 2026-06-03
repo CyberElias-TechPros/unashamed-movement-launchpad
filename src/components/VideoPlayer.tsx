@@ -133,8 +133,12 @@ export const VideoPlayer = ({
       className={cn(
         "relative bg-black rounded-lg overflow-hidden group",
         hasVideo ? "aspect-video" : "aspect-video",
+        "video-container",
         className
       )}
+      style={{
+        aspectRatio: '16/9',
+      }}
       onMouseMove={handleMouseMove}
       onMouseLeave={() => isPlaying && setShowControls(false)}
     >
@@ -191,45 +195,48 @@ export const VideoPlayer = ({
 
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={togglePlay}
-                    className="text-white hover:text-white hover:bg-white/20"
-                  >
-                    {isPlaying ? (
-                      <Pause className="w-5 h-5" />
-                    ) : (
-                      <Play className="w-5 h-5 ml-0.5" />
-                    )}
-                  </Button>
+<Button
+                     variant="ghost"
+                     size="icon"
+                     onClick={togglePlay}
+                     className="text-white hover:text-white hover:bg-white/20"
+                     aria-label={isPlaying ? "Pause video" : "Play video"}
+                   >
+                     {isPlaying ? (
+                       <Pause className="w-5 h-5" />
+                     ) : (
+                       <Play className="w-5 h-5 ml-0.5" />
+                     )}
+                   </Button>
 
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={toggleMute}
-                    className="text-white hover:text-white hover:bg-white/20"
-                  >
-                    {isMuted ? (
-                      <VolumeX className="w-5 h-5" />
-                    ) : (
-                      <Volume2 className="w-5 h-5" />
-                    )}
-                  </Button>
+                   <Button
+                     variant="ghost"
+                     size="icon"
+                     onClick={toggleMute}
+                     className="text-white hover:text-white hover:bg-white/20"
+                     aria-label={isMuted ? "Unmute" : "Mute"}
+                   >
+                     {isMuted ? (
+                       <VolumeX className="w-5 h-5" />
+                     ) : (
+                       <Volume2 className="w-5 h-5" />
+                     )}
+                   </Button>
                 </div>
 
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={toggleFullscreen}
-                  className="text-white hover:text-white hover:bg-white/20"
-                >
-                  {isFullscreen ? (
-                    <Minimize className="w-5 h-5" />
-                  ) : (
-                    <Maximize className="w-5 h-5" />
-                  )}
-                </Button>
+<Button
+                   variant="ghost"
+                   size="icon"
+                   onClick={toggleFullscreen}
+                   className="text-white hover:text-white hover:bg-white/20"
+                   aria-label={isFullscreen ? "Exit fullscreen" : "Enter fullscreen"}
+                 >
+                   {isFullscreen ? (
+                     <Minimize className="w-5 h-5" />
+                   ) : (
+                     <Maximize className="w-5 h-5" />
+                   )}
+                 </Button>
               </div>
             </div>
           </div>

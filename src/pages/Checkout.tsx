@@ -12,14 +12,28 @@ import { flutterwaveApi } from "@/api/flutterwave";
 import { stripeApi } from "@/api/stripe";
 import { ordersApi } from "@/api/orders";
 import { productsApi } from "@/api/products";
+import { useToast } from "@/hooks/use-toast";
+import { z } from "zod";
 
+const checkoutSchema = z.object({
+  name: z.string().min(2, "Name must be at least 2 characters"),
+  email: z.string().email("Invalid email address"),
+  address: z.string().min(5, "Address must be at least 5 characters"),
+  city: z.string().min(2, "City is required"),
+  state: z.string().min(2, "State is required"),
+  zipCode: z.string().min(3, "ZIP code is required"),
+  country: z.string().min(2, "Country is required"),
+});
+
+type CheckoutForm = z.infer<typeof checkoutSchema>;
 type PaymentMethod = "paystack" | "flutterwave" | "stripe";
 
 const Checkout = () => {
   const { items, total, clearCart } = useCart();
   const [isProcessing, setIsProcessing] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("paystack");
-  const [formData, setFormData] = useState({
+  const [currency, setCurrency] = useState("USD");
+  const [formData, setFormData] = useState<CheckoutForm>({
     name: "",
     email: "",
     address: "",
@@ -28,23 +42,50 @@ const Checkout = () => {
     zipCode: "",
     country: "",
   });
+  const [errors, setErrors] = useState<Partial<Record<keyof CheckoutForm, string>>>({});
+  const [paymentError, setPaymentError] = useState<string | null>(null);
+  const { toast } = useToast();
+
+  const validateForm = () => {
+    try {
+      checkoutSchema.parse(formData);
+      setErrors({});
+      return true;
+    } catch (e) {
+      if (e instanceof z.ZodError) {
+        const fieldErrors: Partial<Record<keyof CheckoutForm, string>> = {};
+        e.errors.forEach(err => {
+          if (err.path[0]) fieldErrors[err.path[0] as keyof CheckoutForm] = err.message;
+        });
+        setErrors(fieldErrors);
+      }
+      return false;
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!validateForm()) return;
+    
     setIsProcessing(true);
     
     try {
-      for (const item of items) {
-        try {
+      const stockResults = await Promise.all(
+        items.map(async (item) => {
           const product = await productsApi.getById(item.productId);
           if (product.stock != null && product.stock < item.quantity) {
-            alert(`${item.name} only has ${product.stock} in stock.`);
-            setIsProcessing(false);
-            return;
+            return { error: `${item.name} only has ${product.stock} in stock.` } as const;
           }
-        } catch {
-          /* continue if stock check fails */
-        }
+          return null;
+        })
+      );
+
+      const stockError = stockResults.find(r => r?.error);
+      if (stockError) {
+        alert(stockError.error);
+        setIsProcessing(false);
+        return;
       }
 
       const orderPayload = {
@@ -67,49 +108,77 @@ const Checkout = () => {
         },
       };
 
-      const order = await ordersApi.create(orderPayload);
-      const successUrl = `${window.location.origin}/order-success?order=${order._id}`;
+      const response = await ordersApi.checkout(orderPayload);
+      const orderId = response.orderId;
+      const successUrl = `${window.location.origin}/order-success?order=${orderId}`;
+      const cancelUrl = `${window.location.origin}/payment-cancelled?order=${orderId}`;
 
       const customerInfo = {
         email: formData.email,
         name: formData.name,
         amount: total * 100,
-        ref: `TTIN-${Date.now()}`,
+        ref: orderId,
+        currency,
       };
 
       if (paymentMethod === "paystack") {
-        const response = await paystackApi.initialize({ ...customerInfo, callback_url: successUrl });
-        if (response.data?.authorization_url) {
-          window.location.href = response.data.authorization_url;
+        const response = await paystackApi.initialize({
+          ...customerInfo,
+          orderId,
+          callback_url: successUrl,
+        });
+
+        if (!response.status || !response.data?.authorization_url) {
+          throw new Error(response.message || 'Paystack initialization failed');
         }
+
+        window.location.href = response.data.authorization_url;
+        return;
       } else if (paymentMethod === "flutterwave") {
         const response = await flutterwaveApi.initialize({
           email: customerInfo.email,
           amount: customerInfo.amount / 100,
           name: customerInfo.name,
           tx_ref: customerInfo.ref,
-          redirect_url: successUrl,
+          redirect_url: cancelUrl,
+          currency,
+          orderId,
         });
-        if (response.data?.authorization_url) {
-          window.location.href = response.data.authorization_url;
+
+        if (!response.status || !response.data?.authorization_url) {
+          throw new Error(response.message || 'Flutterwave initialization failed');
         }
+
+        window.location.href = response.data.authorization_url;
+        return;
       } else if (paymentMethod === "stripe") {
         const cartItems = items.map((item) => ({ productId: item.productId, quantity: item.quantity }));
         const response = await stripeApi.createSession({
           email: customerInfo.email,
           items: cartItems,
           successUrl,
-          cancelUrl: window.location.href,
+          cancelUrl,
+          currency,
+          orderId,
         });
-        if (response.url) {
-          window.location.href = response.url;
-          return;
+
+        if (!response.url) {
+          throw new Error(response.message || 'Stripe session creation failed');
         }
+
+        window.location.href = response.url;
+        return;
       }
 
       window.location.href = successUrl;
     } catch (error) {
-      alert("Payment initialization failed. Please try again.");
+      const message = error instanceof Error ? error.message : "Payment initialization failed. Please try again.";
+      setPaymentError(message);
+      toast({
+        title: "Payment failed",
+        description: message,
+        variant: "destructive",
+      });
     } finally {
       setIsProcessing(false);
     }
@@ -167,6 +236,11 @@ const Checkout = () => {
               onSubmit={handleSubmit}
               className="space-y-6"
             >
+              {paymentError && (
+                <div className="rounded-lg border border-destructive/30 bg-destructive/10 p-4 text-sm text-destructive">
+                  {paymentError}
+                </div>
+              )}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="font-body text-sm mb-2 block">Full Name</label>
@@ -229,19 +303,34 @@ const Checkout = () => {
                 </div>
               </div>
 
-              <div>
-                <label className="font-body text-sm mb-2 block">Payment Method</label>
-                <Select value={paymentMethod} onValueChange={(v: PaymentMethod) => setPaymentMethod(v)}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select payment method" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="paystack">Paystack</SelectItem>
-                    <SelectItem value="flutterwave">Flutterwave</SelectItem>
-                    <SelectItem value="stripe">Stripe</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+<div>
+                 <label className="font-body text-sm mb-2 block">Payment Method</label>
+                 <Select value={paymentMethod} onValueChange={(v: PaymentMethod) => setPaymentMethod(v)}>
+                   <SelectTrigger>
+                     <SelectValue placeholder="Select payment method" />
+                   </SelectTrigger>
+                   <SelectContent>
+                     <SelectItem value="paystack">Paystack</SelectItem>
+                     <SelectItem value="flutterwave">Flutterwave</SelectItem>
+                     <SelectItem value="stripe">Stripe</SelectItem>
+                   </SelectContent>
+                 </Select>
+               </div>
+
+               <div>
+                 <label className="font-body text-sm mb-2 block">Currency</label>
+                 <Select value={currency} onValueChange={setCurrency}>
+                   <SelectTrigger>
+                     <SelectValue placeholder="Select currency" />
+                   </SelectTrigger>
+                   <SelectContent>
+                     <SelectItem value="USD">USD - US Dollar</SelectItem>
+                     <SelectItem value="EUR">EUR - Euro</SelectItem>
+                     <SelectItem value="GBP">GBP - British Pound</SelectItem>
+                     <SelectItem value="NGN">NGN - Nigerian Naira</SelectItem>
+                   </SelectContent>
+                 </Select>
+               </div>
 
               <Button type="submit" variant="hero" size="lg" disabled={isProcessing} className="w-full">
                 {isProcessing ? (

@@ -13,9 +13,10 @@ const orderSchema = new mongoose.Schema({
   customerEmail: { type: String, required: true },
   items: [orderItemSchema],
   totalAmount: { type: Number, required: true },
-  status: { type: String, enum: ['pending', 'processing', 'completed', 'cancelled'], default: 'pending' },
+  status: { type: String, enum: ['pending', 'processing', 'shipped', 'delivered', 'completed', 'cancelled'], default: 'pending' },
   paymentMethod: { type: String, default: '' },
   paymentId: { type: String, default: '' },
+  idempotencyKey: { type: String, unique: true, sparse: true },
   shippingAddress: {
     street: String,
     city: String,
@@ -24,5 +25,9 @@ const orderSchema = new mongoose.Schema({
     zipCode: String,
   },
 }, { timestamps: true });
+
+orderSchema.index({ status: 1, createdAt: -1 });
+orderSchema.index({ customerEmail: 1 });
+orderSchema.index({ createdAt: -1 });
 
 module.exports = mongoose.model('Order', orderSchema);

@@ -1,4 +1,6 @@
 import { useState, useEffect } from "react";
+import { useEditor, EditorContent } from '@tiptap/react';
+import StarterKit from '@tiptap/starter-kit';
 import { useNavigate } from "react-router-dom";
 import { Save } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -27,6 +29,12 @@ const AdminContentManager = () => {
       if (about) setAboutStory(about.content || "");
     });
   }, []);
+
+  const editor = useEditor({
+    extensions: [StarterKit],
+    content: aboutStory,
+    onUpdate: ({ editor }) => setAboutStory(editor.getHTML()),
+  });
 
   const handleSave = async () => {
     setSaving(true);
@@ -78,7 +86,14 @@ const AdminContentManager = () => {
             <CardDescription>Origin story</CardDescription>
           </CardHeader>
           <CardContent>
-            <Textarea value={aboutStory} onChange={(e) => setAboutStory(e.target.value)} rows={8} />
+            {/* TipTap rich text editor */}
+            {editor ? (
+              <div className="prose max-w-none">
+                <EditorContent editor={editor} />
+              </div>
+            ) : (
+              <Textarea value={aboutStory} onChange={(e) => setAboutStory(e.target.value)} rows={8} />
+            )}
           </CardContent>
         </Card>
 

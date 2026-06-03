@@ -61,35 +61,37 @@ export const PodcastPlayer = ({ episodes, className }: PodcastPlayerProps) => {
                   {currentEpisode.description}
                 </p>
               </div>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setIsPlaylistOpen(!isPlaylistOpen)}
-              >
-                <List size={18} />
-              </Button>
+<Button
+                 variant="ghost"
+                 size="sm"
+                 onClick={() => setIsPlaylistOpen(!isPlaylistOpen)}
+                 aria-label="Toggle playlist"
+               >
+                 <List size={18} />
+               </Button>
             </div>
 
-            <div className="flex items-center justify-center gap-4 mb-4">
-              <Button variant="ghost" size="sm" onClick={handlePrevious}>
-                <SkipBack size={18} />
-              </Button>
-              <Button
-                variant="hero"
-                size="lg"
-                onClick={handlePlayPause}
-                className="w-14 h-14 rounded-full"
-              >
-                {isPlaying ? (
-                  <Pause className="w-6 h-6" />
-                ) : (
-                  <Play className="w-6 h-6 ml-1" />
-                )}
-              </Button>
-              <Button variant="ghost" size="sm" onClick={handleNext}>
-                <SkipForward size={18} />
-              </Button>
-            </div>
+<div className="flex items-center justify-center gap-4 mb-4">
+               <Button variant="ghost" size="sm" onClick={handlePrevious} aria-label="Previous episode">
+                 <SkipBack size={18} />
+               </Button>
+               <Button
+                 variant="hero"
+                 size="lg"
+                 onClick={handlePlayPause}
+                 className="w-14 h-14 rounded-full"
+                 aria-label={isPlaying ? "Pause" : "Play"}
+               >
+                 {isPlaying ? (
+                   <Pause className="w-6 h-6" />
+                 ) : (
+                   <Play className="w-6 h-6 ml-1" />
+                 )}
+               </Button>
+               <Button variant="ghost" size="sm" onClick={handleNext} aria-label="Next episode">
+                 <SkipForward size={18} />
+               </Button>
+             </div>
 
             <div className="flex items-center gap-2">
               <Volume2 className="w-4 h-4 text-muted-foreground" />

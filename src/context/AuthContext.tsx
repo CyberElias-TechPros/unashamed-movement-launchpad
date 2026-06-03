@@ -14,80 +14,74 @@ interface AuthContextType {
   isLoading: boolean;
   isAdmin: boolean;
   login: (email: string, password: string) => Promise<void>;
-  logout: () => void;
+  logout: () => Promise<void>;
   refreshToken: () => Promise<boolean>;
+  getCsrfToken: () => string | null;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-const TOKEN_EXPIRY_KEY = 'ttin_token_expiry';
-const TOKEN_REFRESH_BUFFER = 5 * 60 * 1000; // 5 minutes
-
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [csrfToken, setCsrfToken] = useState<string | null>(null);
 
   const refreshToken = async (): Promise<boolean> => {
-    const storedUser = localStorage.getItem('ttin_admin_user');
-    const token = localStorage.getItem('ttin_auth_token');
-    
-    if (!token) return false;
-
     try {
-      const profile = await authApi.getProfile();
-      const mapped: User = {
-        id: profile.id,
-        email: profile.email,
-        name: profile.name,
-        role: profile.role as 'user' | 'admin',
-      };
-      setUser(mapped);
-      localStorage.setItem('ttin_admin_user', JSON.stringify(mapped));
-      return true;
+      const response = await authApi.refreshToken();
+      if (response.user) {
+        setUser({
+          id: response.user.id,
+          email: response.user.email,
+          name: response.user.name,
+          role: response.user.role as 'user' | 'admin',
+        });
+        return true;
+      }
+      return false;
     } catch (error) {
-      localStorage.removeItem('ttin_auth_token');
-      localStorage.removeItem('ttin_admin_user');
-      localStorage.removeItem(TOKEN_EXPIRY_KEY);
       setUser(null);
       return false;
     }
   };
 
-  useEffect(() => {
-    const checkAuth = async () => {
-      const token = localStorage.getItem('ttin_auth_token');
-      const tokenExpiry = localStorage.getItem(TOKEN_EXPIRY_KEY);
-      
-      if (token) {
-        const now = Date.now();
-        const shouldRefresh = !tokenExpiry || (now - parseInt(tokenExpiry)) > (1000 * 60 * 30);
-        
-        if (shouldRefresh) {
-          const refreshed = await refreshToken();
-          if (!refreshed) {
-            setIsLoading(false);
-            return;
-          }
-        } else {
-          const storedUser = localStorage.getItem('ttin_admin_user');
-          if (storedUser) {
-            setUser(JSON.parse(storedUser));
-          }
-        }
+  const fetchCsrfToken = async (): Promise<string | null> => {
+    try {
+      const response = await fetch('/api/auth/csrf-token', { credentials: 'include' });
+      if (response.ok) {
+        const data = await response.json();
+        setCsrfToken(data.csrfToken);
+        return data.csrfToken;
       }
-      setIsLoading(false);
+      return null;
+    } catch {
+      return null;
+    }
+  };
+
+  const getCsrfToken = () => csrfToken;
+
+  useEffect(() => {
+    const initAuth = async () => {
+      try {
+        await refreshToken();
+        const profile = await authApi.getProfile();
+        if (profile) {
+          setUser({
+            id: profile.id,
+            email: profile.email,
+            name: profile.name,
+            role: profile.role as 'user' | 'admin',
+          });
+        }
+      } catch (error) {
+        setUser(null);
+      } finally {
+        setIsLoading(false);
+      }
     };
 
-    checkAuth();
-
-    const interval = setInterval(() => {
-      const tokenExpiry = localStorage.getItem(TOKEN_EXPIRY_KEY);
-      if (tokenExpiry && Date.now() - parseInt(tokenExpiry) > (1000 * 60 * 25)) {
-        refreshToken();
-      }
-    }, 1000 * 60 * 10);
-
-    return () => clearInterval(interval);
+    initAuth();
   }, []);
 
   const login = async (email: string, password: string) => {
@@ -101,18 +95,22 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           name: response.user.name,
           role: response.user.role as 'user' | 'admin',
         });
-        localStorage.setItem(TOKEN_EXPIRY_KEY, Date.now().toString());
+        await fetchCsrfToken();
       }
     } finally {
       setIsLoading(false);
     }
   };
 
-  const logout = () => {
-    localStorage.removeItem('ttin_auth_token');
-    localStorage.removeItem('ttin_admin_user');
-    localStorage.removeItem(TOKEN_EXPIRY_KEY);
-    setUser(null);
+  const logout = async () => {
+    try {
+      await authApi.logout();
+    } catch {
+      // Ignore logout errors
+    } finally {
+      setUser(null);
+      setCsrfToken(null);
+    }
   };
 
   const isAdmin = user?.role === 'admin';
@@ -124,7 +122,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     isAdmin,
     login,
     logout,
-    refreshToken
+    refreshToken,
+    getCsrfToken,
   };
 
   return (

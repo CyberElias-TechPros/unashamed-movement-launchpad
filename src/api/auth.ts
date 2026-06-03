@@ -6,11 +6,10 @@ export interface LoginData {
 }
 
 export interface AuthResponse {
-  token: string;
   user: {
     id: string;
     email: string;
-    name: string;
+    name?: string;
     role: string;
   };
 }
@@ -18,45 +17,51 @@ export interface AuthResponse {
 export interface User {
   id: string;
   email: string;
-  name: string;
+  name?: string;
   role: string;
 }
 
+const getCsrf = async () => {
+  const response = await api.get<{ csrfToken: string }>('/auth/csrf-token');
+  return response.csrfToken;
+};
+
+const postWithCsrf = async <T>(endpoint: string, body: unknown) => {
+  const csrfToken = await getCsrf();
+  return api.post<T>(endpoint, body, { csrfToken });
+};
+
 export const authApi = {
   login: async (data: LoginData): Promise<AuthResponse> => {
-    const response = await api.post<AuthResponse>('/auth/login', data);
-    if (response.token && response.user) {
-      localStorage.setItem('ttin_auth_token', response.token);
-      localStorage.setItem('ttin_admin_user', JSON.stringify(response.user));
-    }
-    return response;
+    return postWithCsrf<AuthResponse>('/auth/login', data);
   },
   
-  register: async (data: LoginData & { name: string }) => {
-    const response = await api.post<AuthResponse>('/auth/register', data);
-    if (response.token) {
-      localStorage.setItem('ttin_auth_token', response.token);
-      localStorage.setItem('ttin_admin_user', JSON.stringify(response.user));
-    }
-    return response;
+  register: async (data: LoginData & { name: string }): Promise<AuthResponse> => {
+    return postWithCsrf<AuthResponse>('/auth/register', data);
   },
   
   getProfile: () => api.get<User>('/auth/profile'),
   
-  updateProfile: (data: Partial<User>) => api.put<User>('/auth/profile', data),
+  updateProfile: (data: Partial<User>) => postWithCsrf<User>('/auth/profile', data),
   
-  logout: () => {
-    localStorage.removeItem('ttin_auth_token');
-    localStorage.removeItem('ttin_admin_user');
-  },
+  logout: () => postWithCsrf('/auth/logout', {}),
+
+  sendVerification: (email: { email: string }) => postWithCsrf<{ verificationUrl?: string }>('/auth/send-verification', email),
+
+  verifyEmail: (token: { token: string }) => postWithCsrf<{ message: string }>('/auth/verify-email', token),
+  forgotPassword: (email: { email: string }) => postWithCsrf<{ resetUrl?: string }>('/auth/forgot-password', email),
+  resetPassword: (payload: { token: string; password: string }) => postWithCsrf<{ message: string }>('/auth/reset-password', payload),
+  
+  refreshToken: () => api.post<{ accessToken: string; user: User }>('/auth/refresh'),
+  
+  getCsrfToken: () => api.get<{ csrfToken: string }>('/auth/csrf-token'),
   
   getCurrentUser: (): User | null => {
-    const userStr = localStorage.getItem('ttin_admin_user');
-    return userStr ? JSON.parse(userStr) : null;
+    return null;
   },
   
   isAuthenticated: (): boolean => {
-    return !!localStorage.getItem('ttin_auth_token');
+    return true;
   },
 };
 

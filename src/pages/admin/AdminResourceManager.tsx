@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { FileDown, Plus, Edit, Trash2, Save, Image as ImageIcon } from "lucide-react";
+import { FileDown, Plus, Edit, Trash2, Save, Image as ImageIcon, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -20,10 +20,13 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { resourcesApi } from "@/api/resources";
 import MediaPicker from "@/components/MediaPicker";
 import { useToast } from "@/hooks/use-toast";
+import { usePaginatedQuery } from "@/hooks/use-paginated-query";
+import { Pagination, PaginationInfo, PageSizeSelector } from "@/components/ui/pagination";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface Resource {
   id: string;
@@ -57,10 +60,31 @@ const AdminResourceManager = () => {
   const [editing, setEditing] = useState<Resource | null>(null);
   const [open, setOpen] = useState(false);
   const [mediaPickerOpen, setMediaPickerOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [typeFilter, setTypeFilter] = useState<string>("all");
 
-  const { data: resources = [], isLoading } = useQuery({
+  const {
+    data: resources,
+    pagination,
+    isLoading,
+    page,
+    limit,
+    setPage,
+    setLimit,
+    refresh,
+  } = usePaginatedQuery<Resource>({
+    endpoint: "/resources",
     queryKey: ["resources", "admin"],
-    queryFn: () => resourcesApi.getAll(),
+  });
+
+  // Client-side filtering
+  const filteredResources = resources.filter((r: Resource) => {
+    const matchesSearch = !searchQuery ||
+      r.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      r.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      r.author.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesType = typeFilter === "all" || r.type === typeFilter;
+    return matchesSearch && matchesType;
   });
 
   const createMutation = useMutation({
@@ -75,18 +99,27 @@ const AdminResourceManager = () => {
         category: data.category,
         imageUrl: data.imageUrl,
       }),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["resources", "admin"] }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["resources"] });
+      refresh();
+    },
   });
 
   const updateMutation = useMutation({
     mutationFn: ({ id, data }: { id: string; data: Partial<Resource> }) =>
       resourcesApi.update(id, data),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["resources", "admin"] }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["resources"] });
+      refresh();
+    },
   });
 
   const deleteMutation = useMutation({
     mutationFn: (id: string) => resourcesApi.delete(id),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["resources", "admin"] }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["resources"] });
+      refresh();
+    },
   });
 
   const openAddModal = () => {
@@ -141,21 +174,59 @@ const AdminResourceManager = () => {
         </Button>
       </div>
 
+      {/* Filters */}
+      <div className="flex flex-col sm:flex-row gap-2">
+        <div className="relative flex-1 sm:flex-none sm:w-72">
+          <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Search resources..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-9"
+          />
+        </div>
+        <Select value={typeFilter} onValueChange={setTypeFilter}>
+          <SelectTrigger className="w-36">
+            <SelectValue placeholder="Type" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Types</SelectItem>
+            {resourceTypes.map((t) => (
+              <SelectItem key={t} value={t}>{t.charAt(0).toUpperCase() + t.slice(1)}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
+      {/* Pagination Info */}
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+        <PaginationInfo
+          page={pagination.page}
+          limit={pagination.limit}
+          totalCount={pagination.totalCount}
+        />
+        <PageSizeSelector
+          value={limit}
+          onChange={setLimit}
+          options={[9, 18, 36, 72]}
+        />
+      </div>
+
       {isLoading ? (
         <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
           {Array.from({ length: 6 }).map((_, i) => (
             <Card key={i}>
               <CardHeader>
-                <div className="h-5 w-3/4 bg-muted rounded animate-pulse" />
+                <Skeleton className="h-5 w-3/4" />
               </CardHeader>
               <CardContent>
-                <div className="h-4 w-full bg-muted rounded animate-pulse mb-2" />
-                <div className="h-4 w-1/2 bg-muted rounded animate-pulse" />
+                <Skeleton className="h-4 w-full mb-2" />
+                <Skeleton className="h-4 w-1/2" />
               </CardContent>
             </Card>
           ))}
         </div>
-      ) : resources.length === 0 ? (
+      ) : filteredResources.length === 0 ? (
         <Card className="border-dashed bg-muted/30">
           <CardContent className="flex flex-col items-center justify-center py-16 text-center">
             <FileDown className="h-12 w-12 text-muted-foreground/40 mb-3" />
@@ -164,49 +235,60 @@ const AdminResourceManager = () => {
           </CardContent>
         </Card>
       ) : (
-        <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
-          {resources.map((resource) => (
-            <Card key={resource.id} className="transition-all hover:shadow-md">
-              <CardHeader className="pb-3">
-                <div className="flex items-start justify-between gap-2">
-                  <div className="flex-1 min-w-0">
-                    <CardTitle className="text-base truncate">{resource.title}</CardTitle>
-                    <CardDescription className="line-clamp-2 mt-1">{resource.description}</CardDescription>
+        <>
+          <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+            {filteredResources.map((resource) => (
+              <Card key={resource.id} className="transition-all hover:shadow-md">
+                <CardHeader className="pb-3">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="flex-1 min-w-0">
+                      <CardTitle className="text-base truncate">{resource.title}</CardTitle>
+                      <CardDescription className="line-clamp-2 mt-1">{resource.description}</CardDescription>
+                    </div>
+                    <Badge variant="secondary">{resource.type}</Badge>
                   </div>
-                  <Badge variant="secondary">{resource.type}</Badge>
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                {resource.imageUrl && (
-                  <div className="aspect-video rounded-lg overflow-hidden bg-muted">
-                    <img src={resource.imageUrl} alt={resource.title} className="w-full h-full object-cover" loading="lazy" />
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  {resource.imageUrl && (
+                    <div className="aspect-video rounded-lg overflow-hidden bg-muted">
+                      <img src={resource.imageUrl} alt={resource.title} className="w-full h-full object-cover" loading="lazy" />
+                    </div>
+                  )}
+                  <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
+                    <Badge variant="outline">{resource.category}</Badge>
+                    <Badge variant={resource.free ? "default" : "outline"}>{resource.free ? "Free" : "Paid"}</Badge>
+                    <span className="ml-auto">By {resource.author || "Unknown"}</span>
                   </div>
-                )}
-                <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
-                  <Badge variant="outline">{resource.category}</Badge>
-                  <Badge variant={resource.free ? "default" : "outline"}>{resource.free ? "Free" : "Paid"}</Badge>
-                  <span className="ml-auto">By {resource.author || "Unknown"}</span>
-                </div>
-                <div className="flex justify-end gap-1 pt-2 border-t">
-                  <Button variant="ghost" size="sm" onClick={() => openEditModal(resource)}>
-                    <Edit className="h-4 w-4 mr-1" />
-                    Edit
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => handleDelete(resource.id)}
-                    disabled={deleteMutation.isPending}
-                    className="text-destructive hover:text-destructive"
-                  >
-                    <Trash2 className="h-4 w-4 mr-1" />
-                    Delete
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+                  <div className="flex justify-end gap-1 pt-2 border-t">
+                    <Button variant="ghost" size="sm" onClick={() => openEditModal(resource)}>
+                      <Edit className="h-4 w-4 mr-1" />
+                      Edit
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleDelete(resource.id)}
+                      disabled={deleteMutation.isPending}
+                      className="text-destructive hover:text-destructive"
+                    >
+                      <Trash2 className="h-4 w-4 mr-1" />
+                      Delete
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+
+          {/* Pagination */}
+          <div className="flex justify-center pt-4">
+            <Pagination
+              page={pagination.page}
+              totalPages={pagination.totalPages}
+              onPageChange={setPage}
+            />
+          </div>
+        </>
       )}
 
       <Dialog open={open} onOpenChange={setOpen}>

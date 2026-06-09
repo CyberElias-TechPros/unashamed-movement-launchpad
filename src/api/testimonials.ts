@@ -1,4 +1,4 @@
-import { api } from './client';
+import { api, PaginationParams } from '../lib/api-client';
 
 export interface Testimonial {
   id?: string;
@@ -15,10 +15,25 @@ export interface Testimonial {
   createdAt?: string;
 }
 
-export const testimonialsApi = {
-  getAll: () => api.get<Testimonial[]>('/testimonies'),
+export interface TestimonialFilters extends PaginationParams {
+  category?: string;
+  search?: string;
+}
 
-  getAllForAdmin: () => api.get<Testimonial[]>('/testimonies/manage/all'),
+export interface TestimonialAdminFilters extends PaginationParams {
+  category?: string;
+  isApproved?: boolean;
+  search?: string;
+}
+
+export const testimonialsApi = {
+  // Public paginated endpoints
+  getAll: (filters?: TestimonialFilters) => 
+    api.getPaginated<Testimonial>('/testimonies', filters || {}),
+
+  // Admin paginated endpoints
+  getAllForAdmin: (filters?: TestimonialAdminFilters) => 
+    api.getPaginated<Testimonial>('/testimonies/manage/all', filters || {}),
   
   getById: (id: string) => api.get<Testimonial>(`/testimonies/${id}`),
   
@@ -29,6 +44,10 @@ export const testimonialsApi = {
     api.put<Testimonial>(`/testimonies/${id}`, data),
   
   delete: (id: string) => api.delete(`/testimonies/${id}`),
+  
+  // Bulk operations
+  bulkApprove: (ids: string[]) => api.post('/testimonies/bulk-approve', { ids }),
+  bulkReject: (ids: string[]) => api.post('/testimonies/bulk-reject', { ids }),
 };
 
 export default testimonialsApi;

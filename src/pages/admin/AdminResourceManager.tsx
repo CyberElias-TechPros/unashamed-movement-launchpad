@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { FileDown, Plus, Edit, Trash2, Save, Image as ImageIcon, Search } from "lucide-react";
+import { FileDown, Plus, Edit, Trash2, Save, Image as ImageIcon, Search, CheckSquare, Square } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -62,6 +62,7 @@ const AdminResourceManager = () => {
   const [mediaPickerOpen, setMediaPickerOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [typeFilter, setTypeFilter] = useState<string>("all");
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
 
   const {
     data: resources,
@@ -118,6 +119,15 @@ const AdminResourceManager = () => {
     mutationFn: (id: string) => resourcesApi.delete(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["resources"] });
+      refresh();
+    },
+  });
+
+  const bulkDeleteMutation = useMutation({
+    mutationFn: (ids: string[]) => resourcesApi.bulkDelete(ids),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["resources"] });
+      setSelectedIds([]);
       refresh();
     },
   });
@@ -198,6 +208,25 @@ const AdminResourceManager = () => {
         </Select>
       </div>
 
+      {/* Bulk Actions */}
+      {selectedIds.length > 0 && (
+        <div className="flex items-center gap-2 p-3 bg-muted rounded-md">
+          <span className="text-sm font-medium">{selectedIds.length} selected</span>
+          <Button
+            size="sm"
+            variant="destructive"
+            onClick={() => bulkDeleteMutation.mutate(selectedIds)}
+            disabled={bulkDeleteMutation.isPending}
+          >
+            <Trash2 className="h-4 w-4 mr-1" />
+            Delete Selected
+          </Button>
+          <Button size="sm" variant="ghost" onClick={() => setSelectedIds([])}>
+            Clear
+          </Button>
+        </div>
+      )}
+
       {/* Pagination Info */}
       <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
         <PaginationInfo
@@ -237,13 +266,27 @@ const AdminResourceManager = () => {
       ) : (
         <>
           <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
-            {filteredResources.map((resource) => (
-              <Card key={resource.id} className="transition-all hover:shadow-md">
+            {filteredResources.map((resource) => {
+              const isSelected = selectedIds.includes(resource.id);
+              return (
+              <Card key={resource.id} className={`transition-all hover:shadow-md ${isSelected ? "ring-2 ring-primary" : ""}`}>
                 <CardHeader className="pb-3">
                   <div className="flex items-start justify-between gap-2">
-                    <div className="flex-1 min-w-0">
-                      <CardTitle className="text-base truncate">{resource.title}</CardTitle>
-                      <CardDescription className="line-clamp-2 mt-1">{resource.description}</CardDescription>
+                    <div className="flex items-center gap-2 flex-1 min-w-0">
+                      <button
+                        onClick={() => {
+                          setSelectedIds(prev => 
+                            isSelected ? prev.filter(id => id !== resource.id) : [...prev, resource.id]
+                          );
+                        }}
+                        className="shrink-0 text-muted-foreground hover:text-primary transition-colors"
+                      >
+                        {isSelected ? <CheckSquare className="h-5 w-5" /> : <Square className="h-5 w-5" />}
+                      </button>
+                      <div className="flex-1 min-w-0">
+                        <CardTitle className="text-base truncate">{resource.title}</CardTitle>
+                        <CardDescription className="line-clamp-2 mt-1">{resource.description}</CardDescription>
+                      </div>
                     </div>
                     <Badge variant="secondary">{resource.type}</Badge>
                   </div>

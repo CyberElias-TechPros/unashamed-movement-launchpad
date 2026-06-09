@@ -12,6 +12,8 @@ import {
   Upload,
   Tag,
   Package,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -27,9 +29,13 @@ import {
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { productsApi, Product } from "@/api/products";
 import MediaPicker from "@/components/MediaPicker";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { usePaginatedQuery } from "@/hooks/use-paginated-query";
+import { Pagination, PaginationInfo, PageSizeSelector } from "@/components/ui/pagination";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -65,37 +71,58 @@ const emptyProduct: ProductFormData = {
 };
 
 const AdminProductManager = () => {
-  const [products, setProducts] = useState<Product[]>([]);
   const [editing, setEditing] = useState<ProductFormData | null>(null);
   const [open, setOpen] = useState(false);
   const [mediaPickerOpen, setMediaPickerOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [categoryFilter, setCategoryFilter] = useState<ProductCategory | "all">("all");
-  const [sidebarOpen, setSidebarOpen] = useState(true);
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
   const queryClient = useQueryClient();
 
-  const { data: allProducts = [], isLoading } = useQuery({
+  // Use paginated query for products
+  const {
+    data: products,
+    pagination,
+    isLoading,
+    page,
+    limit,
+    setPage,
+    setLimit,
+    goToNextPage,
+    goToPrevPage,
+    refresh,
+  } = usePaginatedQuery<Product>({
+    endpoint: "/products/admin/all",
     queryKey: ["products", "admin"],
-    queryFn: productsApi.getAll,
   });
 
   const createMutation = useMutation({
     mutationFn: (data: Omit<Product, "id">) => productsApi.create(data),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["products"] }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["products"] });
+      refresh();
+    },
   });
 
   const updateMutation = useMutation({
     mutationFn: ({ id, data }: { id: string; data: Partial<Product> }) => productsApi.update(id, data),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["products"] }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["products"] });
+      refresh();
+    },
   });
 
   const deleteMutation = useMutation({
     mutationFn: (id: string) => productsApi.delete(id),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["products"] }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["products"] });
+      refresh();
+      setDeleteTarget(null);
+    },
   });
 
-  const filtered = allProducts.filter((p) => {
+  // Client-side filtering for search (will be moved to server-side in future)
+  const filtered = products.filter((p) => {
     const matchesSearch = p.name.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesCategory = categoryFilter === "all" || p.category === categoryFilter;
     return matchesSearch && matchesCategory;
@@ -150,7 +177,6 @@ const AdminProductManager = () => {
   const confirmDelete = useCallback(async () => {
     if (!deleteTarget) return;
     await deleteMutation.mutateAsync(deleteTarget);
-    setDeleteTarget(null);
   }, [deleteTarget, deleteMutation]);
 
   return (
@@ -192,6 +218,20 @@ const AdminProductManager = () => {
         </Select>
       </div>
 
+      {/* Pagination Controls */}
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+        <PaginationInfo
+          page={pagination.page}
+          limit={pagination.limit}
+          totalCount={pagination.totalCount}
+        />
+        <PageSizeSelector
+          value={limit}
+          onChange={setLimit}
+          options={[10, 25, 50, 100]}
+        />
+      </div>
+
       {isLoading ? (
         <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
           {Array.from({ length: 6 }).map((_, i) => (
@@ -212,48 +252,59 @@ const AdminProductManager = () => {
             <Package className="h-12 w-12 text-muted-foreground/40 mb-3" />
             <p className="text-muted-foreground font-medium">No products found.</p>
             <p className="text-sm text-muted-foreground/70 mt-1">
-              {allProducts.length === 0 ? "Add your first product to get started." : "Try adjusting your search or filter."}
+              {products.length === 0 ? "Add your first product to get started." : "Try adjusting your search or filter."}
             </p>
           </CardContent>
         </Card>
       ) : (
-        <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
-          {filtered.map((p) => (
-            <Card key={p._id || p.id} className="transition-all hover:shadow-md group">
-              <CardHeader className="pb-3">
-                <div className="flex items-start justify-between gap-2">
-                  <div className="flex-1 min-w-0">
-                    <CardTitle className="text-base truncate">{p.name}</CardTitle>
-                    <CardDescription className="line-clamp-2 mt-1">{p.description}</CardDescription>
+        <>
+          <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+            {filtered.map((p) => (
+              <Card key={p._id || p.id} className="transition-all hover:shadow-md group">
+                <CardHeader className="pb-3">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="flex-1 min-w-0">
+                      <CardTitle className="text-base truncate">{p.name}</CardTitle>
+                      <CardDescription className="line-clamp-2 mt-1">{p.description}</CardDescription>
+                    </div>
+                    <Badge variant="secondary" className="shrink-0">${p.price?.toFixed(2)}</Badge>
                   </div>
-                  <Badge variant="secondary" className="shrink-0">${p.price?.toFixed(2)}</Badge>
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                {p.images?.[0] && (
-                  <div className="aspect-video rounded-lg overflow-hidden bg-muted">
-                    <img src={p.images[0]} alt={p.name} className="w-full h-full object-cover" />
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  {p.images?.[0] && (
+                    <div className="aspect-video rounded-lg overflow-hidden bg-muted">
+                      <img src={p.images[0]} alt={p.name} className="w-full h-full object-cover" />
+                    </div>
+                  )}
+                  <div className="flex flex-wrap gap-2">
+                    <Badge variant="outline">{p.category}</Badge>
+                    {p.tag && <Badge variant="secondary">{p.tag}</Badge>}
+                    <span className="text-xs text-muted-foreground ml-auto">Stock: {p.stock ?? 0}</span>
                   </div>
-                )}
-                <div className="flex flex-wrap gap-2">
-                  <Badge variant="outline">{p.category}</Badge>
-                  {p.tag && <Badge variant="secondary">{p.tag}</Badge>}
-                  <span className="text-xs text-muted-foreground ml-auto">Stock: {p.stock ?? 0}</span>
-                </div>
-                <div className="flex justify-end gap-1 pt-2 border-t">
-                  <Button variant="ghost" size="sm" onClick={() => openEditModal(p)}>
-                    <Edit className="h-4 w-4 mr-1" />
-                    Edit
-                  </Button>
-                  <Button variant="ghost" size="sm" onClick={() => handleDelete(p._id || p.id || "")} className="text-destructive hover:text-destructive">
-                    <Trash2 className="h-4 w-4 mr-1" />
-                    Delete
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+                  <div className="flex justify-end gap-1 pt-2 border-t">
+                    <Button variant="ghost" size="sm" onClick={() => openEditModal(p)}>
+                      <Edit className="h-4 w-4 mr-1" />
+                      Edit
+                    </Button>
+                    <Button variant="ghost" size="sm" onClick={() => handleDelete(p._id || p.id || "")} className="text-destructive hover:text-destructive">
+                      <Trash2 className="h-4 w-4 mr-1" />
+                      Delete
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+          
+          {/* Pagination */}
+          <div className="flex justify-center pt-4">
+            <Pagination
+              page={pagination.page}
+              totalPages={pagination.totalPages}
+              onPageChange={setPage}
+            />
+          </div>
+        </>
       )}
 
       <Dialog open={open} onOpenChange={setOpen}>

@@ -112,6 +112,41 @@ const apiClient = async <T>(endpoint: string, options: RequestOptions = {}): Pro
   }
 };
 
+export interface PaginationParams {
+  page?: number;
+  limit?: number;
+  sort?: string;
+  order?: 'asc' | 'desc';
+  search?: string;
+  [key: string]: unknown;
+}
+
+export interface PaginatedResponse<T> {
+  success: boolean;
+  data: T[];
+  pagination: {
+    page: number;
+    limit: number;
+    totalCount: number;
+    totalPages: number;
+    hasNextPage: boolean;
+    hasPrevPage: boolean;
+    nextPage: number | null;
+    prevPage: number | null;
+  };
+}
+
+const buildQueryString = (params: PaginationParams): string => {
+  const query = new URLSearchParams();
+  Object.entries(params).forEach(([key, value]) => {
+    if (value !== undefined && value !== null && value !== '') {
+      query.append(key, String(value));
+    }
+  });
+  const queryString = query.toString();
+  return queryString ? `?${queryString}` : '';
+};
+
 export const api = {
   get: <T>(endpoint: string, options?: Omit<RequestOptions, 'method' | 'body'>) =>
     apiClient<T>(endpoint, { ...options, method: 'GET' }),
@@ -123,6 +158,10 @@ export const api = {
     apiClient<T>(endpoint, { ...options, method: 'PATCH', body }),
   delete: <T>(endpoint: string, options?: Omit<RequestOptions, 'method' | 'body'>) =>
     apiClient<T>(endpoint, { ...options, method: 'DELETE' }),
+  
+  // Paginated GET with query parameters
+  getPaginated: <T>(endpoint: string, params: PaginationParams, options?: Omit<RequestOptions, 'method' | 'body'>) =>
+    apiClient<PaginatedResponse<T>>(`${endpoint}${buildQueryString(params)}`, { ...options, method: 'GET' }),
 };
 
 export default api;

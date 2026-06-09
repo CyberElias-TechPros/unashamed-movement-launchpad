@@ -1,4 +1,4 @@
-import { api } from './client';
+import { api, PaginationParams } from '../lib/api-client';
 
 export interface NewsletterSubscriber {
   id?: string;
@@ -13,8 +13,15 @@ export interface SubscribeData {
   email: string;
 }
 
+export interface NewsletterFilters extends PaginationParams {
+  active?: boolean;
+  search?: string;
+}
+
 export const newsletterApi = {
-  getSubscribers: () => api.get<NewsletterSubscriber[]>('/newsletter'),
+  // Paginated endpoints
+  getSubscribers: (filters?: NewsletterFilters) => 
+    api.getPaginated<NewsletterSubscriber>('/newsletter', filters || {}),
   
   subscribe: (data: SubscribeData) => api.post<{ message: string }>('/newsletter/subscribe', data),
   
@@ -22,6 +29,9 @@ export const newsletterApi = {
   
   importSubscribers: (data: { subscribers: { email: string; name?: string }[] }) => 
     api.post<{ imported: number }>('/newsletter/import', data),
+  
+  // Bulk operations
+  bulkUnsubscribe: (emails: string[]) => api.post('/newsletter/bulk-unsubscribe', { emails }),
 };
 
 export default newsletterApi;

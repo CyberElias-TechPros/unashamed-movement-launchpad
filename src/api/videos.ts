@@ -1,20 +1,39 @@
-import { api } from './client';
+import { api, PaginationParams } from '../lib/api-client';
 
 export interface Video {
   id?: string;
   _id?: string;
   title: string;
   description: string;
-  url: string;
+  youtubeUrl: string;
+  thumbnailUrl?: string;
   thumbnail?: string;
-  duration?: number;
+  duration?: string;
+  episode?: string;
   category?: string;
+  isActive?: boolean;
   isPublished?: boolean;
+  order?: number;
   createdAt?: string;
 }
 
+export interface VideoFilters extends PaginationParams {
+  search?: string;
+}
+
+export interface VideoAdminFilters extends PaginationParams {
+  search?: string;
+  isActive?: boolean;
+}
+
 export const videosApi = {
-  getAll: () => api.get<Video[]>('/videos'),
+  // Public paginated endpoints
+  getAll: (filters?: VideoFilters) => 
+    api.getPaginated<Video>('/videos', filters || {}),
+  
+  // Admin paginated endpoints
+  getAllAdmin: (filters?: VideoAdminFilters) => 
+    api.getPaginated<Video>('/videos/admin/all', filters || {}),
   
   getById: (id: string) => api.get<Video>(`/videos/${id}`),
   
@@ -31,6 +50,11 @@ export const videosApi = {
     formData.append('video', file);
     return api.post<Video>('/videos/upload', formData);
   },
+  
+  // Bulk operations
+  bulkDelete: (ids: string[]) => api.post('/videos/bulk-delete', { ids }),
+  bulkUpdateStatus: (ids: string[], isActive: boolean) => 
+    api.post('/videos/bulk-update-status', { ids, isActive }),
 };
 
 export default videosApi;

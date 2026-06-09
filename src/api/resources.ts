@@ -1,4 +1,4 @@
-import { api } from './client';
+import { api, PaginationParams } from '../lib/api-client';
 
 export interface Resource {
   id?: string;
@@ -12,13 +12,31 @@ export interface Resource {
   category: string;
   downloadCount?: number;
   imageUrl?: string;
+  isActive?: boolean;
+}
+
+export interface ResourceFilters extends PaginationParams {
+  type?: string;
+  category?: string;
+  search?: string;
+  free?: boolean;
+}
+
+export interface ResourceAdminFilters extends PaginationParams {
+  type?: string;
+  category?: string;
+  search?: string;
+  isActive?: boolean;
 }
 
 export const resourcesApi = {
-  getAll: (category?: string) => {
-    const query = category && category !== 'All' ? `?category=${category}` : '';
-    return api.get<Resource[]>(`/resources${query}`);
-  },
+  // Public paginated endpoints
+  getAll: (filters?: ResourceFilters) => 
+    api.getPaginated<Resource>('/resources', filters || {}),
+
+  // Admin paginated endpoints
+  getAllAdmin: (filters?: ResourceAdminFilters) => 
+    api.getPaginated<Resource>('/resources/admin/all', filters || {}),
 
   getById: (id: string) => api.get<Resource>(`/resources/${id}`),
 
@@ -30,6 +48,11 @@ export const resourcesApi = {
   update: (id: string, data: Partial<Resource>) => api.put<Resource>(`/resources/${id}`, data),
 
   delete: (id: string) => api.delete(`/resources/${id}`),
+  
+  // Bulk operations
+  bulkDelete: (ids: string[]) => api.post('/resources/bulk-delete', { ids }),
+  bulkUpdateStatus: (ids: string[], isActive: boolean) => 
+    api.post('/resources/bulk-update-status', { ids, isActive }),
 };
 
 export default resourcesApi;

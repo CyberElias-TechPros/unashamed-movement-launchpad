@@ -1,4 +1,4 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { reviewsApi, Review } from "@/api/reviews";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
@@ -14,6 +14,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { usePaginatedQuery } from "@/hooks/use-paginated-query";
+import { Pagination, PaginationInfo, PageSizeSelector } from "@/components/ui/pagination";
+import { Skeleton } from "@/components/ui/skeleton";
 
 type ReviewFilter = "all" | "pending" | "approved" | "rejected";
 
@@ -26,9 +29,18 @@ const AdminReviews = () => {
   const [filter, setFilter] = useState<ReviewFilter>("all");
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
 
-  const { data: reviews = [], isLoading } = useQuery({
-    queryKey: ["reviews", "admin", filter],
-    queryFn: () => reviewsApi.getAll(),
+  const {
+    data: reviews,
+    pagination,
+    isLoading,
+    page,
+    limit,
+    setPage,
+    setLimit,
+    refresh,
+  } = usePaginatedQuery<Review>({
+    endpoint: "/reviews",
+    queryKey: ["reviews", "admin"],
   });
 
   const filtered = reviews.filter((r: ReviewWithStatus) => {
@@ -51,32 +63,43 @@ const AdminReviews = () => {
 
   const approveMutation = useMutation({
     mutationFn: (id: string) => reviewsApi.approve(id),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["reviews"] }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["reviews"] });
+      refresh();
+    },
   });
 
   const rejectMutation = useMutation({
     mutationFn: (id: string) => reviewsApi.reject(id),
-    onSuccess: () => queryClient.invalidateQueries({ key: ["reviews"] }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["reviews"] });
+      refresh();
+    },
   });
 
   const removeMutation = useMutation({
     mutationFn: (id: string) => reviewsApi.remove(id),
-    onSuccess: () => queryClient.invalidateQueries({ key: ["reviews"] }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["reviews"] });
+      refresh();
+    },
   });
 
   const bulkApproveMutation = useMutation({
-    mutationFn: (ids: string[]) => Promise.all(ids.map(id => reviewsApi.approve(id))),
+    mutationFn: (ids: string[]) => reviewsApi.bulkApprove(ids),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["reviews"] });
       setSelectedIds([]);
+      refresh();
     },
   });
 
   const bulkRejectMutation = useMutation({
-    mutationFn: (ids: string[]) => Promise.all(ids.map(id => reviewsApi.reject(id))),
+    mutationFn: (ids: string[]) => reviewsApi.bulkReject(ids),
     onSuccess: () => {
-      queryClient.invalidateQueries({ key: ["reviews"] });
+      queryClient.invalidateQueries({ queryKey: ["reviews"] });
       setSelectedIds([]);
+      refresh();
     },
   });
 
@@ -98,7 +121,7 @@ const AdminReviews = () => {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-heading">{reviews.length}</div>
+            <div className="text-2xl font-heading">{pagination.totalCount}</div>
           </CardContent>
         </Card>
         <Card>
@@ -110,7 +133,8 @@ const AdminReviews = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-heading text-green-600">
-              {reviews.filter((r: ReviewWithStatus) => r.approved && !r.rejected).length}
+              {isLoading ? <Skeleton className="h-8 w-16" /> :
+                reviews.filter((r: ReviewWithStatus) => r.approved && !r.rejected).length}
             </div>
           </CardContent>
         </Card>
@@ -162,10 +186,51 @@ const AdminReviews = () => {
             </Select>
           </div>
         </CardHeader>
-        <CardContent>
+        <CardContent className="space-y-4">
+          {/* Pagination Controls */}
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+            <PaginationInfo
+              page={pagination.page}
+              limit={pagination.limit}
+              totalCount={pagination.totalCount}
+            />
+            <PageSizeSelector
+              value={limit}
+              onChange={setLimit}
+              options={[10, 25, 50, 100]}
+            />
+          </div>
+
           {isLoading ? (
-            <div className="flex items-center justify-center py-16">
-              <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+            <div className="rounded-md border">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="w-10">
+                      <Skeleton className="h-4 w-4" />
+                    </TableHead>
+                    <TableHead><Skeleton className="h-4 w-20" /></TableHead>
+                    <TableHead><Skeleton className="h-4 w-20" /></TableHead>
+                    <TableHead><Skeleton className="h-4 w-16" /></TableHead>
+                    <TableHead className="hidden md:table-cell"><Skeleton className="h-4 w-32" /></TableHead>
+                    <TableHead><Skeleton className="h-4 w-16" /></TableHead>
+                    <TableHead className="text-right"><Skeleton className="h-4 w-20 ml-auto" /></TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {Array.from({ length: 5 }).map((_, i) => (
+                    <TableRow key={i}>
+                      <TableCell><Skeleton className="h-4 w-4" /></TableCell>
+                      <TableCell><Skeleton className="h-4 w-24" /></TableCell>
+                      <TableCell><Skeleton className="h-4 w-24" /></TableCell>
+                      <TableCell><Skeleton className="h-4 w-12" /></TableCell>
+                      <TableCell className="hidden md:table-cell"><Skeleton className="h-4 w-full" /></TableCell>
+                      <TableCell><Skeleton className="h-6 w-20" /></TableCell>
+                      <TableCell className="text-right"><Skeleton className="h-8 w-20 ml-auto" /></TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
             </div>
           ) : filtered.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-16 text-center">
@@ -173,96 +238,107 @@ const AdminReviews = () => {
               <p className="text-muted-foreground font-medium">No reviews found.</p>
             </div>
           ) : (
-            <div className="rounded-md border">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="w-10">
-                      <input
-                        type="checkbox"
-                        checked={selectedIds.length === filtered.length && filtered.length > 0}
-                        onChange={(e) => {
-                          setSelectedIds(e.target.checked ? filtered.map((r) => r._id!) : []);
-                        }}
-                        className="h-4 w-4"
-                      />
-                    </TableHead>
-                    <TableHead>Reviewer</TableHead>
-                    <TableHead>Product</TableHead>
-                    <TableHead>Rating</TableHead>
-                    <TableHead className="hidden md:table-cell">Review</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filtered.map((r: ReviewWithStatus) => {
-                    const status = getStatus(r);
-                    return (
-                      <TableRow key={r._id}>
-                        <TableCell>
-                          <input
-                            type="checkbox"
-                            checked={selectedIds.includes(r._id!)}
-                            onChange={(e) => {
-                              setSelectedIds(prev => 
-                                e.target.checked ? [...prev, r._id!] : prev.filter(id => id !== r._id)
-                              );
-                            }}
-                            className="h-4 w-4"
-                          />
-                        </TableCell>
-                        <TableCell className="font-medium">
-                          {r.name || "Anonymous"}
-                        </TableCell>
-                        <TableCell className="text-sm text-muted-foreground">
-                          <div className="flex items-center gap-1">
-                            <Package className="h-3 w-3" />
-                            {r.product || "Unknown"}
-                          </div>
-                        </TableCell>
-                        <TableCell className="text-xs">
-                          <span className="inline-flex items-center gap-1 text-amber-600">
-                            <Star className="h-3 w-3 fill-current" />
-                            {r.rating}/5
-                          </span>
-                        </TableCell>
-                        <TableCell className="hidden md:table-cell">
-                          <span className="line-clamp-1 text-sm">{r.title || r.body || "—"}</span>
-                        </TableCell>
-                        <TableCell>
-                          <Badge variant={status.variant}>{status.label}</Badge>
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <div className="flex justify-end gap-1">
-                            {!r.approved && !r.rejected && (
+            <>
+              <div className="rounded-md border">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="w-10">
+                        <input
+                          type="checkbox"
+                          checked={selectedIds.length === filtered.length && filtered.length > 0}
+                          onChange={(e) => {
+                            setSelectedIds(e.target.checked ? filtered.map((r) => r._id!) : []);
+                          }}
+                          className="h-4 w-4"
+                        />
+                      </TableHead>
+                      <TableHead>Reviewer</TableHead>
+                      <TableHead>Product</TableHead>
+                      <TableHead>Rating</TableHead>
+                      <TableHead className="hidden md:table-cell">Review</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead className="text-right">Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {filtered.map((r: ReviewWithStatus) => {
+                      const status = getStatus(r);
+                      return (
+                        <TableRow key={r._id}>
+                          <TableCell>
+                            <input
+                              type="checkbox"
+                              checked={selectedIds.includes(r._id!)}
+                              onChange={(e) => {
+                                setSelectedIds(prev => 
+                                  e.target.checked ? [...prev, r._id!] : prev.filter(id => id !== r._id)
+                                );
+                              }}
+                              className="h-4 w-4"
+                            />
+                          </TableCell>
+                          <TableCell className="font-medium">
+                            {r.name || "Anonymous"}
+                          </TableCell>
+                          <TableCell className="text-sm text-muted-foreground">
+                            <div className="flex items-center gap-1">
+                              <Package className="h-3 w-3" />
+                              {r.product || "Unknown"}
+                            </div>
+                          </TableCell>
+                          <TableCell className="text-xs">
+                            <span className="inline-flex items-center gap-1 text-amber-600">
+                              <Star className="h-3 w-3 fill-current" />
+                              {r.rating}/5
+                            </span>
+                          </TableCell>
+                          <TableCell className="hidden md:table-cell">
+                            <span className="line-clamp-1 text-sm">{r.title || r.body || "—"}</span>
+                          </TableCell>
+                          <TableCell>
+                            <Badge variant={status.variant}>{status.label}</Badge>
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <div className="flex justify-end gap-1">
+                              {!r.approved && !r.rejected && (
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  onClick={() => approveMutation.mutate(r._id!)}
+                                  disabled={approveMutation.isPending}
+                                  className="text-green-600 hover:text-green-600"
+                                >
+                                  <CheckCircle2 className="h-4 w-4" />
+                                </Button>
+                              )}
                               <Button
                                 size="sm"
                                 variant="ghost"
-                                onClick={() => approveMutation.mutate(r._id!)}
-                                disabled={approveMutation.isPending}
-                                className="text-green-600 hover:text-green-600"
+                                onClick={() => removeMutation.mutate(r._id!)}
+                                disabled={removeMutation.isPending}
+                                className="text-destructive hover:text-destructive"
                               >
-                                <CheckCircle2 className="h-4 w-4" />
+                                <Trash2 className="h-4 w-4" />
                               </Button>
-                            )}
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              onClick={() => removeMutation.mutate(r._id!)}
-                              disabled={removeMutation.isPending}
-                              className="text-destructive hover:text-destructive"
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })}
-                </TableBody>
-              </Table>
-            </div>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
+                  </TableBody>
+                </Table>
+              </div>
+
+              {/* Pagination */}
+              <div className="flex justify-center pt-4">
+                <Pagination
+                  page={pagination.page}
+                  totalPages={pagination.totalPages}
+                  onPageChange={setPage}
+                />
+              </div>
+            </>
           )}
         </CardContent>
       </Card>

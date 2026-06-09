@@ -11,10 +11,18 @@ const validate = (req, res, next) => {
   next();
 };
 
+// Public routes with pagination
 router.get('/', c.getAll);
+router.get('/admin/all', protect, admin, c.getAllAdmin);
 router.get('/:id/stock', c.getStock);
 router.post('/:id/subscribe-stock', c.subscribeStock);
 router.get('/:id', c.getById);
+
+// Bulk operations
+router.post('/bulk-delete', protect, admin, c.bulkDelete);
+router.post('/bulk-update-status', protect, admin, c.bulkUpdateStatus);
+
+// CRUD operations
 router.post('/', protect, admin, [
   body('name').trim().notEmpty(),
   body('description').trim().notEmpty(),

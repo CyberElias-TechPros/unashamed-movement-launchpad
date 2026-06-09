@@ -1,6 +1,7 @@
 const Order = require('../models/Order');
 const Product = require('../models/Product');
 const { sendEmail } = require('../utils/email');
+const { paginate, parsePaginationParams, parseSortParams } = require('../utils/pagination');
 
 const orderNotification = async ({ to, subject, text, html }) => {
   try {
@@ -11,8 +12,40 @@ const orderNotification = async ({ to, subject, text, html }) => {
 };
 
 exports.getAll = async (req, res) => {
-  try { res.json(await Order.find().populate('items.product').sort({ createdAt: -1 })); }
-  catch (error) { res.status(500).json({ message: error.message }); }
+  try {
+    const { status, search, startDate, endDate } = req.query;
+    const { page, limit } = parsePaginationParams(req.query);
+    const sort = parseSortParams(req.query, { createdAt: true, totalAmount: true, status: true }, '-createdAt');
+    
+    // Build filter
+    const filter = {};
+    if (status && status !== 'all') filter.status = status;
+    if (startDate || endDate) {
+      filter.createdAt = {};
+      if (startDate) filter.createdAt.$gte = new Date(startDate);
+      if (endDate) filter.createdAt.$lte = new Date(endDate);
+    }
+    if (search) {
+      filter.$or = [
+        { customerName: { $regex: search, $options: 'i' } },
+        { customerEmail: { $regex: search, $options: 'i' } },
+      ];
+    }
+    
+    const result = await paginate(Order, filter, {
+      page,
+      limit,
+      sort,
+      populate: { path: 'items.product', select: 'name images' },
+    });
+    
+    res.json({
+      success: true,
+      ...result,
+    });
+  } catch (error) { 
+    res.status(500).json({ message: error.message }); 
+  }
 };
 
 exports.getById = async (req, res) => {
@@ -171,8 +204,24 @@ exports.updateStatus = async (req, res) => {
 };
 
 exports.getUserOrders = async (req, res) => {
-  try { res.json(await Order.find({ user: req.user._id }).sort({ createdAt: -1 })); }
-  catch (error) { res.status(500).json({ message: error.message }); }
+  try {
+    const { page, limit } = parsePaginationParams(req.query);
+    const sort = parseSortParams(req.query, { createdAt: true, totalAmount: true }, '-createdAt');
+    
+    const result = await paginate(Order, { user: req.user._id }, {
+      page,
+      limit,
+      sort,
+      populate: { path: 'items.product', select: 'name images' },
+    });
+    
+    res.json({
+      success: true,
+      ...result,
+    });
+  } catch (error) { 
+    res.status(500).json({ message: error.message }); 
+  }
 };
 
 exports.createCheckoutSession = async (req, res) => {
@@ -217,5 +266,49 @@ exports.updateStock = async (req, res) => {
     res.json(order);
   } catch (error) {
     res.status(500).json({ message: error.message });
+  }
+};
+
+// Bulk operations
+exports.bulkUpdateStatus = async (req, res) => {
+  try {
+    const { ids, status } = req.body;
+    if (!Array.isArray(ids) || ids.length === 0) {
+      return res.status(400).json({ message: 'Array of order IDs required' });
+    }
+    if (!status) {
+      return res.status(400).json({ message: 'Status is required' });
+    }
+    
+    // Get orders before update to send notifications
+    const orders = await Order.find({ _id: { $in: ids } });
+    
+    const result = await Order.updateMany(
+      { _id: { $in: ids } },
+      { status }
+    );
+    
+    // Send notifications for status changes
+    if (['shipped', 'delivered', 'cancelled'].includes(status)) {
+      for (const order of orders) {
+        const subject =
+          status === 'shipped'
+            ? `Your order ${order._id} is on the way`
+            : status === 'delivered'
+            ? `Your order ${order._id} has been delivered`
+            : `Your order ${order._id} has been cancelled`;
+        
+        const html = `<p>Hi ${order.customerName},</p><p>Your order <strong>${order._id}</strong> status has been updated to <strong>${status}</strong>.</p>`;
+        const text = `Hi ${order.customerName},\n\nYour order ${order._id} status has been updated to ${status}.`;
+        orderNotification({ to: order.customerEmail, subject, html, text });
+      }
+    }
+    
+    res.json({
+      message: 'Orders updated',
+      modifiedCount: result.modifiedCount,
+    });
+  } catch (error) { 
+    res.status(500).json({ message: error.message }); 
   }
 };

@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useState } from "react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { ordersApi, Order, OrderItem } from "@/api/orders";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -21,6 +21,9 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Package, Search } from "lucide-react";
+import { usePaginatedQuery } from "@/hooks/use-paginated-query";
+import { Pagination, PaginationInfo, PageSizeSelector } from "@/components/ui/pagination";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const statusOptions = [
   "all",
@@ -35,11 +38,24 @@ const statusOptions = [
 const AdminOrders = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
-  const { data: orders = [], isLoading, error } = useQuery({
+  
+  const {
+    data: orders,
+    pagination,
+    isLoading,
+    isError,
+    error,
+    page,
+    limit,
+    setPage,
+    setLimit,
+    refresh,
+  } = usePaginatedQuery<Order>({
+    endpoint: "/orders",
     queryKey: ["orders", "admin"],
-    queryFn: () => ordersApi.getAll(),
   });
 
+  // Client-side filtering for search (can be moved to server-side later)
   const filteredOrders = orders.filter((o: Order) => {
     const q = searchQuery.toLowerCase();
     const matchesSearch =
@@ -51,14 +67,14 @@ const AdminOrders = () => {
     return matchesSearch && matchesStatus;
   });
 
-  if (error) {
+  if (isError) {
     return (
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
             <h1 className="font-heading text-3xl tracking-wider text-foreground">Orders</h1>
           </div>
-          <Button variant="outline" size="sm" onClick={() => window.location.reload()}>
+          <Button variant="outline" size="sm" onClick={refresh}>
             Retry
           </Button>
         </div>
@@ -78,7 +94,7 @@ const AdminOrders = () => {
           <h1 className="font-heading text-3xl tracking-wider text-foreground">Orders</h1>
           <p className="text-muted-foreground mt-1">Manage orders and update fulfillment status.</p>
         </div>
-        <Button variant="outline" size="sm" onClick={() => window.location.reload()}>
+        <Button variant="outline" size="sm" onClick={refresh}>
           Refresh
         </Button>
       </div>
@@ -86,10 +102,10 @@ const AdminOrders = () => {
       <div className="grid gap-4 grid-cols-2 sm:grid-cols-4">
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Filtered</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">Total</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-heading">{filteredOrders.length}</div>
+            <div className="text-2xl font-heading">{pagination.totalCount}</div>
           </CardContent>
         </Card>
         <Card>
@@ -98,7 +114,8 @@ const AdminOrders = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-heading text-amber-600">
-              {filteredOrders.filter((o: Order) => o.status === "pending").length}
+              {isLoading ? <Skeleton className="h-8 w-16" /> : 
+                orders.filter((o: Order) => o.status === "pending").length}
             </div>
           </CardContent>
         </Card>
@@ -108,7 +125,8 @@ const AdminOrders = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-heading text-blue-600">
-              {filteredOrders.filter((o: Order) => o.status === "processing").length}
+              {isLoading ? <Skeleton className="h-8 w-16" /> : 
+                orders.filter((o: Order) => o.status === "processing").length}
             </div>
           </CardContent>
         </Card>
@@ -118,7 +136,8 @@ const AdminOrders = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-heading text-green-600">
-              {filteredOrders.filter((o: Order) => o.status === "delivered" || o.status === "completed").length}
+              {isLoading ? <Skeleton className="h-8 w-16" /> : 
+                orders.filter((o: Order) => o.status === "delivered" || o.status === "completed").length}
             </div>
           </CardContent>
         </Card>
@@ -129,10 +148,10 @@ const AdminOrders = () => {
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <CardTitle>
-                {isLoading ? "Loading orders..." : `All Orders (${filteredOrders.length})`}
+                {isLoading ? "Loading orders..." : `All Orders (${pagination.totalCount})`}
               </CardTitle>
             </div>
-            <div className="flex gap-2">
+            <div className="flex flex-col sm:flex-row gap-2">
               <div className="relative flex-1 sm:flex-none sm:w-56">
                 <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
                 <Input
@@ -155,7 +174,21 @@ const AdminOrders = () => {
             </div>
           </div>
         </CardHeader>
-        <CardContent>
+        <CardContent className="space-y-4">
+          {/* Pagination Controls */}
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+            <PaginationInfo
+              page={pagination.page}
+              limit={pagination.limit}
+              totalCount={pagination.totalCount}
+            />
+            <PageSizeSelector
+              value={limit}
+              onChange={setLimit}
+              options={[10, 25, 50, 100]}
+            />
+          </div>
+
           {!isLoading && filteredOrders.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-16 text-center">
               <Package className="h-12 w-12 text-muted-foreground/40 mb-3" />
@@ -178,12 +211,38 @@ const AdminOrders = () => {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {filteredOrders.map((order: Order) => (
-                      <OrderRow key={order.id || order._id} order={order} />
-                    ))}
+                    {isLoading ? (
+                      Array.from({ length: 5 }).map((_, i) => (
+                        <TableRow key={i}>
+                          <TableCell><Skeleton className="h-4 w-20" /></TableCell>
+                          <TableCell><Skeleton className="h-4 w-32" /></TableCell>
+                          <TableCell className="hidden md:table-cell"><Skeleton className="h-4 w-40" /></TableCell>
+                          <TableCell className="hidden lg:table-cell"><Skeleton className="h-4 w-24" /></TableCell>
+                          <TableCell className="hidden xl:table-cell"><Skeleton className="h-4 w-32" /></TableCell>
+                          <TableCell><Skeleton className="h-4 w-16" /></TableCell>
+                          <TableCell><Skeleton className="h-8 w-24" /></TableCell>
+                          <TableCell className="text-right"><Skeleton className="h-8 w-20 ml-auto" /></TableCell>
+                        </TableRow>
+                      ))
+                    ) : (
+                      filteredOrders.map((order: Order) => (
+                        <OrderRow key={order.id || order._id} order={order} />
+                      ))
+                    )}
                   </TableBody>
                 </Table>
               </div>
+            </div>
+          )}
+
+          {/* Pagination */}
+          {!isLoading && filteredOrders.length > 0 && (
+            <div className="flex justify-center pt-4">
+              <Pagination
+                page={pagination.page}
+                totalPages={pagination.totalPages}
+                onPageChange={setPage}
+              />
             </div>
           )}
         </CardContent>
@@ -198,7 +257,7 @@ const OrderRow = ({ order }: { order: Order }) => {
 
   const updateMutation = useMutation({
     mutationFn: (status: string) => ordersApi.updateStatus(orderId, status),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["orders", "admin"] }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["orders"] }),
   });
 
   return (
@@ -265,28 +324,28 @@ const OrderItemsDialog = ({ order }: { order: Order }) => {
             Order #{orderId?.slice(0, 8).toUpperCase()}
           </p>
         </DialogHeader>
-<div className="space-y-3 max-h-[50vh] overflow-y-auto">
-           {order.items?.map((item: OrderItem, idx: number) => (
-             <Card key={`${item.productId || item.name}-${idx}`}>
-               <CardContent className="flex items-center justify-between p-4">
-                 <div className="flex items-center gap-3">
-                   <div className="h-10 w-10 rounded bg-muted flex items-center justify-center">
-                     <Package className="h-5 w-5 text-muted-foreground" />
-                   </div>
-                   <div className="flex-1 min-w-0">
-                     <p className="font-medium text-sm truncate">
-                       {item.name || item.product?.name || "Unknown item"}
-                     </p>
-                     <p className="text-xs text-muted-foreground">Qty: {item.quantity}</p>
-                   </div>
-                 </div>
-                 <Badge variant="outline" className="shrink-0">
-                   ${item.price?.toFixed(2) ?? "0.00"}
-                 </Badge>
-               </CardContent>
-             </Card>
-           ))}
-         </div>
+        <div className="space-y-3 max-h-[50vh] overflow-y-auto">
+          {order.items?.map((item: OrderItem, idx: number) => (
+            <Card key={`${item.productId || item.name}-${idx}`}>
+              <CardContent className="flex items-center justify-between p-4">
+                <div className="flex items-center gap-3">
+                  <div className="h-10 w-10 rounded bg-muted flex items-center justify-center">
+                    <Package className="h-5 w-5 text-muted-foreground" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-medium text-sm truncate">
+                      {item.name || item.product?.name || "Unknown item"}
+                    </p>
+                    <p className="text-xs text-muted-foreground">Qty: {item.quantity}</p>
+                  </div>
+                </div>
+                <Badge variant="outline" className="shrink-0">
+                  ${item.price?.toFixed(2) ?? "0.00"}
+                </Badge>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
       </DialogContent>
     </Dialog>
   );

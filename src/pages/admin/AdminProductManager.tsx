@@ -14,6 +14,8 @@ import {
   Package,
   ChevronLeft,
   ChevronRight,
+  CheckSquare,
+  Square,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -77,6 +79,7 @@ const AdminProductManager = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [categoryFilter, setCategoryFilter] = useState<ProductCategory | "all">("all");
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const queryClient = useQueryClient();
 
   // Use paginated query for products
@@ -118,6 +121,15 @@ const AdminProductManager = () => {
       queryClient.invalidateQueries({ queryKey: ["products"] });
       refresh();
       setDeleteTarget(null);
+    },
+  });
+
+  const bulkDeleteMutation = useMutation({
+    mutationFn: (ids: string[]) => productsApi.bulkDelete(ids),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["products"] });
+      setSelectedIds([]);
+      refresh();
     },
   });
 
@@ -218,6 +230,25 @@ const AdminProductManager = () => {
         </Select>
       </div>
 
+      {/* Bulk Actions */}
+      {selectedIds.length > 0 && (
+        <div className="flex items-center gap-2 p-3 bg-muted rounded-md">
+          <span className="text-sm font-medium">{selectedIds.length} selected</span>
+          <Button
+            size="sm"
+            variant="destructive"
+            onClick={() => bulkDeleteMutation.mutate(selectedIds)}
+            disabled={bulkDeleteMutation.isPending}
+          >
+            <Trash2 className="h-4 w-4 mr-1" />
+            Delete Selected
+          </Button>
+          <Button size="sm" variant="ghost" onClick={() => setSelectedIds([])}>
+            Clear
+          </Button>
+        </div>
+      )}
+
       {/* Pagination Controls */}
       <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
         <PaginationInfo
@@ -259,13 +290,28 @@ const AdminProductManager = () => {
       ) : (
         <>
           <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
-            {filtered.map((p) => (
-              <Card key={p._id || p.id} className="transition-all hover:shadow-md group">
+            {filtered.map((p) => {
+              const productId = p._id || p.id || "";
+              const isSelected = selectedIds.includes(productId);
+              return (
+              <Card key={productId} className={`transition-all hover:shadow-md group ${isSelected ? "ring-2 ring-primary" : ""}`}>
                 <CardHeader className="pb-3">
                   <div className="flex items-start justify-between gap-2">
-                    <div className="flex-1 min-w-0">
-                      <CardTitle className="text-base truncate">{p.name}</CardTitle>
-                      <CardDescription className="line-clamp-2 mt-1">{p.description}</CardDescription>
+                    <div className="flex items-center gap-2 flex-1 min-w-0">
+                      <button
+                        onClick={() => {
+                          setSelectedIds(prev => 
+                            isSelected ? prev.filter(id => id !== productId) : [...prev, productId]
+                          );
+                        }}
+                        className="shrink-0 text-muted-foreground hover:text-primary transition-colors"
+                      >
+                        {isSelected ? <CheckSquare className="h-5 w-5" /> : <Square className="h-5 w-5" />}
+                      </button>
+                      <div className="flex-1 min-w-0">
+                        <CardTitle className="text-base truncate">{p.name}</CardTitle>
+                        <CardDescription className="line-clamp-2 mt-1">{p.description}</CardDescription>
+                      </div>
                     </div>
                     <Badge variant="secondary" className="shrink-0">${p.price?.toFixed(2)}</Badge>
                   </div>
@@ -293,7 +339,8 @@ const AdminProductManager = () => {
                   </div>
                 </CardContent>
               </Card>
-            ))}
+            );
+          })}
           </div>
           
           {/* Pagination */}
@@ -310,7 +357,7 @@ const AdminProductManager = () => {
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="max-w-xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle className="font-heading tracking-wider">{editing?._id || editing?._id ? "Edit" : "New"} Product</DialogTitle>
+            <DialogTitle className="font-heading tracking-wider">{editing?._id || editing?.id ? "Edit" : "New"} Product</DialogTitle>
           </DialogHeader>
           {editing && (
             <div className="space-y-5 py-2">

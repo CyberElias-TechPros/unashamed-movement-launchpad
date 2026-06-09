@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { VideoIcon, Plus, Trash2, Search, Eye, ExternalLink, Image as ImageIcon, Edit } from "lucide-react";
+import { VideoIcon, Plus, Trash2, Search, Eye, ExternalLink, Image as ImageIcon, Edit, CheckSquare, Square } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -37,6 +37,7 @@ const AdminVideoManager = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<"all" | "published" | "draft">("all");
   const [mediaPickerOpen, setMediaPickerOpen] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const queryClient = useQueryClient();
 
   const {
@@ -86,6 +87,24 @@ const AdminVideoManager = () => {
     mutationFn: ({ id, data }: { id: string; data: Partial<Video> }) => videosApi.update(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["videos"] });
+      refresh();
+    },
+  });
+
+  const bulkDeleteMutation = useMutation({
+    mutationFn: (ids: string[]) => videosApi.bulkDelete(ids),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["videos"] });
+      setSelectedIds([]);
+      refresh();
+    },
+  });
+
+  const bulkUpdateMutation = useMutation({
+    mutationFn: ({ ids, data }: { ids: string[]; data: Partial<Video> }) => videosApi.bulkUpdate(ids, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["videos"] });
+      setSelectedIds([]);
       refresh();
     },
   });
@@ -326,6 +345,40 @@ const AdminVideoManager = () => {
           </div>
         </CardHeader>
         <CardContent className="space-y-4">
+          {/* Bulk Actions */}
+          {selectedIds.length > 0 && (
+            <div className="flex items-center gap-2 p-3 bg-muted rounded-md">
+              <span className="text-sm font-medium">{selectedIds.length} selected</span>
+              <Button
+                size="sm"
+                onClick={() => bulkUpdateMutation.mutate({ ids: selectedIds, data: { isPublished: true } })}
+                disabled={bulkUpdateMutation.isPending}
+              >
+                Publish
+              </Button>
+              <Button
+                size="sm"
+                variant="secondary"
+                onClick={() => bulkUpdateMutation.mutate({ ids: selectedIds, data: { isPublished: false } })}
+                disabled={bulkUpdateMutation.isPending}
+              >
+                Unpublish
+              </Button>
+              <Button
+                size="sm"
+                variant="destructive"
+                onClick={() => bulkDeleteMutation.mutate(selectedIds)}
+                disabled={bulkDeleteMutation.isPending}
+              >
+                <Trash2 className="h-4 w-4 mr-1" />
+                Delete
+              </Button>
+              <Button size="sm" variant="ghost" onClick={() => setSelectedIds([])}>
+                Clear
+              </Button>
+            </div>
+          )}
+
           {/* Pagination Controls */}
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
             <PaginationInfo
@@ -370,8 +423,11 @@ const AdminVideoManager = () => {
           ) : (
             <>
               <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
-                {filteredVideos.map((v) => (
-                  <Card key={v._id || v.id} className="overflow-hidden transition-all hover:shadow-md group">
+                {filteredVideos.map((v) => {
+                  const videoId = v._id || v.id || "";
+                  const isSelected = selectedIds.includes(videoId);
+                  return (
+                  <Card key={videoId} className={`overflow-hidden transition-all hover:shadow-md group ${isSelected ? "ring-2 ring-primary" : ""}`}>
                     <div className="aspect-video bg-muted relative overflow-hidden">
                       <img
                         src={getThumbnailUrl(v)}
@@ -380,7 +436,17 @@ const AdminVideoManager = () => {
                         loading="lazy"
                         onError={(e) => (e.currentTarget.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='225' fill='%23e5e7eb'%3E%3Crect width='400' height='225'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='%239ca3af' font-size='16'%3ENo Thumbnail%3C/text%3E%3C/svg%3E")}
                       />
-                      <Badge variant={v.isPublished ? "default" : "secondary"} className="absolute top-3 left-3">
+                      <button
+                        onClick={() => {
+                          setSelectedIds(prev => 
+                            isSelected ? prev.filter(id => id !== videoId) : [...prev, videoId]
+                          );
+                        }}
+                        className="absolute top-3 left-3 z-10 text-white drop-shadow-md hover:scale-110 transition-transform"
+                      >
+                        {isSelected ? <CheckSquare className="h-6 w-6" /> : <Square className="h-6 w-6" />}
+                      </button>
+                      <Badge variant={v.isPublished ? "default" : "secondary"} className="absolute top-3 left-12">
                         {v.isPublished ? "Published" : "Draft"}
                       </Badge>
                       <Button

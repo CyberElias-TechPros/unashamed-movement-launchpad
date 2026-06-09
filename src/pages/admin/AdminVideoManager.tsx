@@ -488,7 +488,8 @@ const AdminVideoManager = () => {
                       </div>
                     </CardContent>
                   </Card>
-                ))}
+                  );
+                })}
               </div>
 
               {/* Pagination */}

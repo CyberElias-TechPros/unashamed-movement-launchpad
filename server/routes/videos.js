@@ -13,19 +13,30 @@ const validate = (req, res, next) => {
   next();
 };
 
+// Public routes with pagination
 router.get('/', c.getAll);
 router.get('/feed', c.getFeed);
+
+// Admin routes with pagination
+router.get('/admin/all', protect, admin, c.getAllAdmin);
+
+// Bulk operations
+router.post('/bulk-delete', protect, admin, c.bulkDelete);
+router.post('/bulk-update-status', protect, admin, c.bulkUpdateStatus);
+
+// Individual operations
 router.get('/:id', c.getById);
 router.post('/', protect, admin, [
   body('title').trim().notEmpty(),
   body('description').optional().trim(),
-  body('url').isURL(),
-  body('thumbnail').optional().isURL(),
-  body('category').optional().isString(),
+  body('youtubeUrl').isURL(),
+  body('thumbnailUrl').optional().isURL(),
+  body('episode').optional().isString(),
+  body('duration').optional().isString(),
 ], validate, c.create);
 router.put('/:id', protect, admin, [
   body('title').optional().trim(),
-  body('url').optional().isURL(),
+  body('youtubeUrl').optional().isURL(),
 ], validate, c.update);
 router.delete('/:id', protect, admin, c.remove);
 router.post('/upload', protect, admin, upload.single('file'), c.upload);

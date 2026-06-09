@@ -11,8 +11,17 @@ const validate = (req, res, next) => {
   next();
 };
 
+// Public routes with pagination
 router.get('/', c.getAll);
+
+// Admin routes with pagination
 router.get('/manage/all', protect, admin, c.getAllForAdmin);
+
+// Bulk operations
+router.post('/bulk-approve', protect, admin, c.bulkApprove);
+router.post('/bulk-reject', protect, admin, c.bulkReject);
+
+// Individual operations
 router.get('/:id', c.getById);
 router.post('/', [
   body('name').trim().notEmpty().withMessage('Name is required'),

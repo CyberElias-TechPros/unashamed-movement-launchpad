@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Mail, Download, Trash2, Search, Users, CheckCircle2, XCircle, Upload } from "lucide-react";
+import { Mail, Download, Trash2, Search, Users, CheckCircle2, XCircle, Upload, CheckSquare, Square } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -34,6 +34,7 @@ const AdminNewsletterManager = () => {
   const [statusFilter, setStatusFilter] = useState<"all" | "active" | "inactive">("all");
   const [csvFile, setCsvFile] = useState<File | null>(null);
   const [importDialogOpen, setImportDialogOpen] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
@@ -55,6 +56,15 @@ const AdminNewsletterManager = () => {
     mutationFn: (email: string) => newsletterApi.unsubscribe(email),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["newsletter"] });
+      refresh();
+    },
+  });
+
+  const bulkUnsubscribeMutation = useMutation({
+    mutationFn: (ids: string[]) => newsletterApi.bulkUnsubscribe(ids),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["newsletter"] });
+      setSelectedIds([]);
       refresh();
     },
   });
@@ -205,6 +215,25 @@ const AdminNewsletterManager = () => {
           </div>
         </CardHeader>
         <CardContent className="space-y-4">
+          {/* Bulk Actions */}
+          {selectedIds.length > 0 && (
+            <div className="flex items-center gap-2 p-3 bg-muted rounded-md">
+              <span className="text-sm font-medium">{selectedIds.length} selected</span>
+              <Button
+                size="sm"
+                variant="destructive"
+                onClick={() => bulkUnsubscribeMutation.mutate(selectedIds)}
+                disabled={bulkUnsubscribeMutation.isPending}
+              >
+                <XCircle className="h-4 w-4 mr-1" />
+                Unsubscribe Selected
+              </Button>
+              <Button size="sm" variant="ghost" onClick={() => setSelectedIds([])}>
+                Clear
+              </Button>
+            </div>
+          )}
+
           {/* Pagination Controls */}
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
             <PaginationInfo
@@ -253,6 +282,21 @@ const AdminNewsletterManager = () => {
                 <Table>
                   <TableHeader>
                     <TableRow>
+                      <TableHead className="w-10">
+                        <button
+                          onClick={() => {
+                            const allIds = filtered.map((s: Subscriber) => s.id).filter(Boolean);
+                            setSelectedIds(prev => 
+                              prev.length === allIds.length ? [] : allIds
+                            );
+                          }}
+                          className="text-muted-foreground hover:text-primary transition-colors"
+                        >
+                          {selectedIds.length === filtered.length && filtered.length > 0 ? 
+                            <CheckSquare className="h-5 w-5" /> : <Square className="h-5 w-5" />
+                          }
+                        </button>
+                      </TableHead>
                       <TableHead>Email</TableHead>
                       <TableHead className="hidden md:table-cell">Subscribed On</TableHead>
                       <TableHead>Status</TableHead>
@@ -260,8 +304,22 @@ const AdminNewsletterManager = () => {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {filtered.map((sub) => (
-                      <TableRow key={sub.id}>
+                    {filtered.map((sub) => {
+                      const isSelected = selectedIds.includes(sub.id);
+                      return (
+                      <TableRow key={sub.id} className={isSelected ? "bg-muted/50" : ""}>
+                        <TableCell>
+                          <button
+                            onClick={() => {
+                              setSelectedIds(prev => 
+                                isSelected ? prev.filter(id => id !== sub.id) : [...prev, sub.id]
+                              );
+                            }}
+                            className="text-muted-foreground hover:text-primary transition-colors"
+                          >
+                            {isSelected ? <CheckSquare className="h-5 w-5" /> : <Square className="h-5 w-5" />}
+                          </button>
+                        </TableCell>
                         <TableCell className="font-medium">{sub.email}</TableCell>
                         <TableCell className="hidden md:table-cell text-muted-foreground">
                           {new Date(sub.subscribedAt).toLocaleDateString(undefined, {

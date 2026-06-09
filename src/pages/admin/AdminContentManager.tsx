@@ -30,6 +30,34 @@ const ContentSections: { key: string; label: string; description: string }[] = [
   { key: "featured", label: "Featured Section", description: "Highlighted content" },
 ];
 
+// Separate component for the editor to properly use the useEditor hook
+const SectionEditor = ({ 
+  content, 
+  onUpdate, 
+  enabled 
+}: { 
+  content: string; 
+  onUpdate: (html: string) => void; 
+  enabled: boolean;
+}) => {
+  const editor = useEditor({
+    extensions: [StarterKit],
+    content: content,
+    onUpdate: ({ editor }) => onUpdate(editor.getHTML()),
+    enabled: enabled,
+  });
+
+  if (!enabled || !editor) {
+    return <div className="min-h-[200px] rounded-md border bg-muted/30" />;
+  }
+
+  return (
+    <div className="prose prose-sm dark:prose-invert max-w-none min-h-[200px] rounded-md border p-3">
+      <EditorContent editor={editor} />
+    </div>
+  );
+};
+
 const AdminContentManager = () => {
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState("hero");
@@ -133,12 +161,6 @@ const AdminContentManager = () => {
 
         {ContentSections.map((section) => {
           const data = sections.find((s) => s.key === section.key) || { title: "", content: "", imageUrl: "" };
-          const editor = useEditor({
-            extensions: [StarterKit],
-            content: data.content,
-            onUpdate: ({ editor }) => updateLocal({ content: editor.getHTML() }),
-            enabled: activeTab === section.key && activeTab !== "hero",
-          });
 
           return (
             <TabsContent key={section.key} value={section.key} className="space-y-6">
@@ -221,9 +243,11 @@ const AdminContentManager = () => {
                           className="border-0 focus-visible:ring-0"
                         />
                       ) : (
-                        <div className="prose prose-sm max-w-none p-4 min-h-[200px] border-0">
-                          <EditorContent editor={editor} />
-                        </div>
+                        <SectionEditor
+                          content={data.content}
+                          onUpdate={(html) => updateLocal({ content: html })}
+                          enabled={activeTab === section.key}
+                        />
                       )}
                     </div>
                   </div>

@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from "react";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { VideoIcon, Plus, Trash2, Search, Eye, ExternalLink, Image as ImageIcon, Edit } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -7,7 +7,13 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   Dialog,
   DialogContent,
@@ -16,6 +22,9 @@ import {
 } from "@/components/ui/dialog";
 import { videosApi, type Video } from "@/api/videos";
 import MediaPicker from "@/components/MediaPicker";
+import { usePaginatedQuery } from "@/hooks/use-paginated-query";
+import { Pagination, PaginationInfo, PageSizeSelector } from "@/components/ui/pagination";
+import { Skeleton } from "@/components/ui/skeleton";
 
 type VideoType = "youtube" | "external" | "upload";
 
@@ -30,19 +39,25 @@ const AdminVideoManager = () => {
   const [mediaPickerOpen, setMediaPickerOpen] = useState(false);
   const queryClient = useQueryClient();
 
-  const [isUploadingProgress, setIsUploadingProgress] = useState(false);
-  const [uploadProgress, setUploadProgress] = useState(0);
+  const {
+    data: videos,
+    pagination,
+    isLoading,
+    page,
+    limit,
+    setPage,
+    setLimit,
+    refresh,
+  } = usePaginatedQuery<Video>({
+    endpoint: "/videos",
+    queryKey: ["videos", "admin"],
+  });
 
-  const { data: videos = [], isLoading } = useQuery({
-    queryKey: ["videos", "admin", statusFilter, searchQuery],
-    queryFn: async () => {
-      const data = await videosApi.getAll();
-      return data.filter((v) => {
-        const matchesSearch = !searchQuery || v.title.toLowerCase().includes(searchQuery.toLowerCase());
-        const matchesStatus = statusFilter === "all" || (statusFilter === "published" ? v.isPublished : !v.isPublished);
-        return matchesSearch && matchesStatus;
-      });
-    },
+  // Client-side filtering
+  const filteredVideos = videos.filter((v: Video) => {
+    const matchesSearch = !searchQuery || v.title.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesStatus = statusFilter === "all" || (statusFilter === "published" ? v.isPublished : !v.isPublished);
+    return matchesSearch && matchesStatus;
   });
 
   const addMutation = useMutation({
@@ -53,18 +68,25 @@ const AdminVideoManager = () => {
         description,
         isPublished: true,
       }),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["videos"] }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["videos"] });
+      refresh();
+    },
   });
 
   const deleteMutation = useMutation({
     mutationFn: (id: string) => videosApi.delete(id),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["videos"] }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["videos"] });
+      refresh();
+    },
   });
 
   const updateMutation = useMutation({
     mutationFn: ({ id, data }: { id: string; data: Partial<Video> }) => videosApi.update(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["videos"] });
+      refresh();
     },
   });
 
@@ -114,10 +136,6 @@ const AdminVideoManager = () => {
     setThumbnail("");
     setVideoType("youtube");
   }, []);
-
-  const load = useCallback(() => {
-    queryClient.invalidateQueries({ queryKey: ["videos"] });
-  }, [queryClient]);
 
   const handleAdd = useCallback(async () => {
     if (!title.trim() || !url.trim()) return;
@@ -282,9 +300,9 @@ const AdminVideoManager = () => {
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <CardTitle>Video Library</CardTitle>
-              <CardDescription>{videos.length} videos in your library.</CardDescription>
+              <CardDescription>{pagination.totalCount} videos in your library.</CardDescription>
             </div>
-            <div className="flex gap-2">
+            <div className="flex flex-col sm:flex-row gap-2">
               <div className="relative flex-1 sm:flex-none sm:w-56">
                 <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
                 <Input
@@ -307,69 +325,115 @@ const AdminVideoManager = () => {
             </div>
           </div>
         </CardHeader>
-        <CardContent>
-          {isLoading && <div className="space-y-3">Loading videos...</div>}
-          {!isLoading && videos.length === 0 && (
-            <div className="flex flex-col items-center justify-center py-16 text-center">
-              <VideoIcon className="h-12 w-12 text-muted-foreground/40 mb-3" />
-              <p className="text-muted-foreground font-medium">No videos yet.</p>
-              <p className="text-sm text-muted-foreground/70 mt-1">Add your first video above.</p>
-            </div>
-          )}
-          {videos.length > 0 && (
+        <CardContent className="space-y-4">
+          {/* Pagination Controls */}
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+            <PaginationInfo
+              page={pagination.page}
+              limit={pagination.limit}
+              totalCount={pagination.totalCount}
+            />
+            <PageSizeSelector
+              value={limit}
+              onChange={setLimit}
+              options={[9, 18, 36, 72]}
+            />
+          </div>
+
+          {isLoading ? (
             <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
-              {videos.map((v) => (
-                <Card key={v._id || v.id} className="overflow-hidden transition-all hover:shadow-md group">
-                  <div className="aspect-video bg-muted relative overflow-hidden">
-                    <img
-                      src={getThumbnailUrl(v)}
-                      alt={v.title}
-                      className="w-full h-full object-cover"
-                      loading="lazy"
-                      onError={(e) => (e.currentTarget.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='225' fill='%23e5e7eb'%3E%3Crect width='400' height='225'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='%239ca3af' font-size='16'%3ENo Thumbnail%3C/text%3E%3C/svg%3E")}
-                    />
-                    <Badge variant={v.isPublished ? "default" : "secondary"} className="absolute top-3 left-3">
-                      {v.isPublished ? "Published" : "Draft"}
-                    </Badge>
-                    <Button
-                      variant="secondary"
-                      size="icon"
-                      className="absolute top-3 right-3 h-8 w-8 bg-black/40 hover:bg-black/60 text-white opacity-0 group-hover:opacity-100 transition-opacity"
-                      onClick={() => window.open(v.url, "_blank")}
-                    >
-                      <ExternalLink className="h-4 w-4" />
-                    </Button>
-                  </div>
+              {Array.from({ length: 6 }).map((_, i) => (
+                <Card key={i}>
+                  <Skeleton className="aspect-video" />
                   <CardHeader className="pb-2">
-                    <CardTitle className="text-sm truncate">{v.title}</CardTitle>
-                    <CardDescription className="line-clamp-1 text-xs">{v.url}</CardDescription>
+                    <Skeleton className="h-4 w-3/4" />
+                    <Skeleton className="h-3 w-full" />
                   </CardHeader>
                   <CardContent>
                     <div className="flex items-center justify-between">
-                      <Badge variant="outline" className="text-xs">
-                        {v.type || "video"}
-                      </Badge>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="h-8 mr-1"
-                        onClick={() => handleEdit(v)}
-                      >
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => deleteMutation.mutate(v._id || v.id || "")}
-                        className="text-destructive hover:text-destructive h-8"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
+                      <Skeleton className="h-6 w-16" />
+                      <div className="flex gap-1">
+                        <Skeleton className="h-8 w-8" />
+                        <Skeleton className="h-8 w-8" />
+                      </div>
                     </div>
                   </CardContent>
                 </Card>
               ))}
             </div>
+          ) : filteredVideos.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-16 text-center">
+              <VideoIcon className="h-12 w-12 text-muted-foreground/40 mb-3" />
+              <p className="text-muted-foreground font-medium">No videos yet.</p>
+              <p className="text-sm text-muted-foreground/70 mt-1">Add your first video above.</p>
+            </div>
+          ) : (
+            <>
+              <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+                {filteredVideos.map((v) => (
+                  <Card key={v._id || v.id} className="overflow-hidden transition-all hover:shadow-md group">
+                    <div className="aspect-video bg-muted relative overflow-hidden">
+                      <img
+                        src={getThumbnailUrl(v)}
+                        alt={v.title}
+                        className="w-full h-full object-cover"
+                        loading="lazy"
+                        onError={(e) => (e.currentTarget.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='225' fill='%23e5e7eb'%3E%3Crect width='400' height='225'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='%239ca3af' font-size='16'%3ENo Thumbnail%3C/text%3E%3C/svg%3E")}
+                      />
+                      <Badge variant={v.isPublished ? "default" : "secondary"} className="absolute top-3 left-3">
+                        {v.isPublished ? "Published" : "Draft"}
+                      </Badge>
+                      <Button
+                        variant="secondary"
+                        size="icon"
+                        className="absolute top-3 right-3 h-8 w-8 bg-black/40 hover:bg-black/60 text-white opacity-0 group-hover:opacity-100 transition-opacity"
+                        onClick={() => window.open(v.url, "_blank")}
+                      >
+                        <ExternalLink className="h-4 w-4" />
+                      </Button>
+                    </div>
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-sm truncate">{v.title}</CardTitle>
+                      <CardDescription className="line-clamp-1 text-xs">{v.url}</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="flex items-center justify-between">
+                        <Badge variant="outline" className="text-xs">
+                          {v.type || "video"}
+                        </Badge>
+                        <div className="flex">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-8 mr-1"
+                            onClick={() => handleEdit(v)}
+                          >
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => deleteMutation.mutate(v._id || v.id || "")}
+                            className="text-destructive hover:text-destructive h-8"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+
+              {/* Pagination */}
+              <div className="flex justify-center pt-4">
+                <Pagination
+                  page={pagination.page}
+                  totalPages={pagination.totalPages}
+                  onPageChange={setPage}
+                />
+              </div>
+            </>
           )}
         </CardContent>
       </Card>
@@ -384,7 +448,3 @@ const AdminVideoManager = () => {
 };
 
 export default AdminVideoManager;
-
-
-
-

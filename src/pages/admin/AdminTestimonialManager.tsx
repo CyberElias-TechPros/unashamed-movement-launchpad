@@ -13,7 +13,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Check, X, Star, StarOff, Search } from "lucide-react";
+import { Check, X, Star, StarOff, Search, CheckSquare, Square } from "lucide-react";
 import { usePaginatedQuery } from "@/hooks/use-paginated-query";
 import { Pagination, PaginationInfo, PageSizeSelector } from "@/components/ui/pagination";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -23,6 +23,7 @@ const AdminTestimonialManager = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
   const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
   
   const {
     data: testimonials,
@@ -77,6 +78,24 @@ const AdminTestimonialManager = () => {
     },
   });
 
+  const bulkApproveMutation = useMutation({
+    mutationFn: (ids: string[]) => testimonialsApi.bulkApprove(ids),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["testimonials"] });
+      setSelectedIds([]);
+      refresh();
+    },
+  });
+
+  const bulkRejectMutation = useMutation({
+    mutationFn: (ids: string[]) => testimonialsApi.bulkDelete(ids),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["testimonials"] });
+      setSelectedIds([]);
+      refresh();
+    },
+  });
+
   const pending = testimonials.filter((t: Testimonial) => !t.isApproved);
   const approved = testimonials.filter((t: Testimonial) => t.isApproved);
 
@@ -96,6 +115,33 @@ const AdminTestimonialManager = () => {
           </Badge>
         </div>
       </div>
+
+      {/* Bulk Actions */}
+      {selectedIds.length > 0 && (
+        <div className="flex items-center gap-2 p-3 bg-muted rounded-md">
+          <span className="text-sm font-medium">{selectedIds.length} selected</span>
+          <Button
+            size="sm"
+            onClick={() => bulkApproveMutation.mutate(selectedIds)}
+            disabled={bulkApproveMutation.isPending}
+          >
+            <Check className="h-4 w-4 mr-1" />
+            Approve
+          </Button>
+          <Button
+            size="sm"
+            variant="destructive"
+            onClick={() => bulkRejectMutation.mutate(selectedIds)}
+            disabled={bulkRejectMutation.isPending}
+          >
+            <X className="h-4 w-4 mr-1" />
+            Reject
+          </Button>
+          <Button size="sm" variant="ghost" onClick={() => setSelectedIds([])}>
+            Clear
+          </Button>
+        </div>
+      )}
 
       <Card>
         <CardHeader>
@@ -178,13 +224,26 @@ const AdminTestimonialManager = () => {
           ) : (
             <>
               <div className="space-y-3">
-                {filtered.map((t: Testimonial) => (
+                {filtered.map((t: Testimonial) => {
+                  const testimonialId = t._id || t.id || "";
+                  const isSelected = selectedIds.includes(testimonialId);
+                  return (
                   <div
-                    key={t._id}
-                    className="flex flex-col gap-3 p-4 rounded-lg border border-border bg-card hover:shadow-sm transition-shadow"
+                    key={testimonialId}
+                    className={`flex flex-col gap-3 p-4 rounded-lg border border-border bg-card hover:shadow-sm transition-shadow ${isSelected ? "ring-2 ring-primary" : ""}`}
                   >
                     <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                      <div className="flex gap-3">
+                      <div className="flex items-center gap-3">
+                        <button
+                          onClick={() => {
+                            setSelectedIds(prev => 
+                              isSelected ? prev.filter(id => id !== testimonialId) : [...prev, testimonialId]
+                            );
+                          }}
+                          className="shrink-0 text-muted-foreground hover:text-primary transition-colors"
+                        >
+                          {isSelected ? <CheckSquare className="h-5 w-5" /> : <Square className="h-5 w-5" />}
+                        </button>
                         <Avatar className="h-10 w-10 border border-border">
                           <AvatarImage src={t.avatar || t.image} alt={t.name} />
                           <AvatarFallback className="text-xs font-heading">
@@ -236,7 +295,8 @@ const AdminTestimonialManager = () => {
                       </Button>
                     </div>
                   </div>
-                ))}
+                );
+              })}
               </div>
               
               {/* Pagination */}

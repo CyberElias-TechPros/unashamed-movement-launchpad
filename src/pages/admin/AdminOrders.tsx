@@ -20,7 +20,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Package, Search } from "lucide-react";
+import { Package, Search, CheckSquare, Square, Trash2 } from "lucide-react";
 import { usePaginatedQuery } from "@/hooks/use-paginated-query";
 import { Pagination, PaginationInfo, PageSizeSelector } from "@/components/ui/pagination";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -38,6 +38,8 @@ const statusOptions = [
 const AdminOrders = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const queryClient = useQueryClient();
   
   const {
     data: orders,
@@ -53,6 +55,16 @@ const AdminOrders = () => {
   } = usePaginatedQuery<Order>({
     endpoint: "/orders",
     queryKey: ["orders", "admin"],
+  });
+
+  const bulkUpdateStatusMutation = useMutation({
+    mutationFn: ({ ids, status }: { ids: string[]; status: string }) =>
+      ordersApi.bulkUpdateStatus(ids, status),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["orders"] });
+      setSelectedIds([]);
+      refresh();
+    },
   });
 
   // Client-side filtering for search (can be moved to server-side later)
@@ -143,6 +155,33 @@ const AdminOrders = () => {
         </Card>
       </div>
 
+      {/* Bulk Actions */}
+      {selectedIds.length > 0 && (
+        <div className="flex items-center gap-2 p-3 bg-muted rounded-md">
+          <span className="text-sm font-medium">{selectedIds.length} selected</span>
+          <Select
+            value=""
+            onValueChange={(status) => {
+              if (status) {
+                bulkUpdateStatusMutation.mutate({ ids: selectedIds, status });
+              }
+            }}
+          >
+            <SelectTrigger className="w-40 h-8">
+              <SelectValue placeholder="Update Status..." />
+            </SelectTrigger>
+            <SelectContent>
+              {statusOptions.filter(s => s !== "all").map((s) => (
+                <SelectItem key={s} value={s}>{s}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Button size="sm" variant="ghost" onClick={() => setSelectedIds([])}>
+            Clear
+          </Button>
+        </div>
+      )}
+
       <Card>
         <CardHeader>
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -200,6 +239,21 @@ const AdminOrders = () => {
                 <Table>
                   <TableHeader>
                     <TableRow>
+                      <TableHead className="w-10">
+                        <button
+                          onClick={() => {
+                            const allIds = filteredOrders.map((o: Order) => o.id || o._id || "").filter(Boolean);
+                            setSelectedIds(prev => 
+                              prev.length === allIds.length ? [] : allIds
+                            );
+                          }}
+                          className="text-muted-foreground hover:text-primary transition-colors"
+                        >
+                          {selectedIds.length === filteredOrders.length && filteredOrders.length > 0 ? 
+                            <CheckSquare className="h-5 w-5" /> : <Square className="h-5 w-5" />
+                          }
+                        </button>
+                      </TableHead>
                       <TableHead>Order ID</TableHead>
                       <TableHead>Customer</TableHead>
                       <TableHead className="hidden md:table-cell">Email</TableHead>
@@ -225,9 +279,22 @@ const AdminOrders = () => {
                         </TableRow>
                       ))
                     ) : (
-                      filteredOrders.map((order: Order) => (
-                        <OrderRow key={order.id || order._id} order={order} />
-                      ))
+                      filteredOrders.map((order: Order) => {
+                        const orderId = order.id || order._id || "";
+                        const isSelected = selectedIds.includes(orderId);
+                        return (
+                          <OrderRow 
+                            key={orderId} 
+                            order={order} 
+                            isSelected={isSelected}
+                            onSelect={() => {
+                              setSelectedIds(prev => 
+                                isSelected ? prev.filter(id => id !== orderId) : [...prev, orderId]
+                              );
+                            }}
+                          />
+                        );
+                      })
                     )}
                   </TableBody>
                 </Table>
@@ -251,7 +318,7 @@ const AdminOrders = () => {
   );
 };
 
-const OrderRow = ({ order }: { order: Order }) => {
+const OrderRow = ({ order, isSelected, onSelect }: { order: Order; isSelected: boolean; onSelect: () => void }) => {
   const queryClient = useQueryClient();
   const orderId = order.id || order._id;
 
@@ -261,7 +328,15 @@ const OrderRow = ({ order }: { order: Order }) => {
   });
 
   return (
-    <TableRow>
+    <TableRow className={isSelected ? "bg-muted/50" : ""}>
+      <TableCell>
+        <button
+          onClick={onSelect}
+          className="text-muted-foreground hover:text-primary transition-colors"
+        >
+          {isSelected ? <CheckSquare className="h-5 w-5" /> : <Square className="h-5 w-5" />}
+        </button>
+      </TableCell>
       <TableCell className="font-mono text-xs">
         {orderId?.slice(0, 8).toUpperCase()}
       </TableCell>

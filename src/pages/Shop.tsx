@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { ShoppingCart, Eye, X, Heart } from "lucide-react";
 import { useCart } from "@/context/CartContext";
 import { trackAddToCart } from "@/lib/analytics";
+import { useToast } from "@/hooks/use-toast";
 import { productsApi, Product } from "@/api/products";
 import { reviewsApi, Review } from "@/api/reviews";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -63,7 +64,11 @@ const Shop = () => {
     if (!selectedProduct) return;
     const pid = selectedProduct._id || selectedProduct.id || "";
     if (selectedProduct.stock != null && selectedProduct.stock < quantity) {
-      alert(`Only ${selectedProduct.stock} left in stock.`);
+      toast({
+        title: "Limited stock",
+        description: `Only ${selectedProduct.stock} left in stock.`,
+        variant: "destructive",
+      });
       return;
     }
     addItem(

@@ -23,6 +23,7 @@ export interface User {
 
 const getCsrf = async () => {
   const response = await api.get<{ csrfToken: string }>('/auth/csrf-token');
+  await new Promise(resolve => setTimeout(resolve, 100));
   return response.csrfToken;
 };
 

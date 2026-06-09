@@ -26,8 +26,19 @@ const orderSchema = new mongoose.Schema({
   },
 }, { timestamps: true });
 
-orderSchema.index({ status: 1, createdAt: -1 });
-orderSchema.index({ customerEmail: 1 });
-orderSchema.index({ createdAt: -1 });
+// Performance indexes for common queries
+orderSchema.index({ status: 1, createdAt: -1 }); // Admin status filtering
+orderSchema.index({ customerEmail: 1 }); // Lookup by email
+orderSchema.index({ createdAt: -1 }); // Sort by newest
+
+// Additional performance indexes
+orderSchema.index({ user: 1 }); // User order history
+orderSchema.index({ user: 1, createdAt: -1 }); // User orders sorted
+orderSchema.index({ status: 1 }); // Status filtering
+orderSchema.index({ paymentId: 1 }); // Payment lookup
+orderSchema.index({ idempotencyKey: 1 }, { sparse: true }); // Idempotency checks
+orderSchema.index({ 'items.product': 1 }); // Product order history
+orderSchema.index({ totalAmount: 1 }); // Revenue sorting
+orderSchema.index({ createdAt: 1, status: 1 }); // Date range + status
 
 module.exports = mongoose.model('Order', orderSchema);

@@ -19,6 +19,9 @@ export const newsletterApi = {
   subscribe: (data: SubscribeData) => api.post<{ message: string }>('/newsletter/subscribe', data),
   
   unsubscribe: (email: string) => api.delete<{ message: string }>(`/newsletter/unsubscribe/${email}`),
+  
+  importSubscribers: (data: { subscribers: { email: string; name?: string }[] }) => 
+    api.post<{ imported: number }>('/newsletter/import', data),
 };
 
 export default newsletterApi;

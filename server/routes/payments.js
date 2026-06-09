@@ -4,6 +4,7 @@ const router = require('express').Router();
 const Stripe = require('stripe');
 const crypto = require('crypto');
 const Order = require('../models/Order');
+const axios = require('axios');
 
 const clientUrl = () => process.env.CLIENT_URL || 'http://localhost:8080';
 
@@ -34,6 +35,34 @@ const updateOrderStatus = async ({ orderId, status, paymentId, paymentMethod }) 
   return Order.findOneAndUpdate(query, updates, { new: true });
 };
 
+router.get('/stripe/initialize', (req, res) => {
+  res.json({ configured: !!stripe, message: stripe ? 'Stripe configured' : 'Stripe dev mode' });
+});
+
+router.get('/paystack/verify/:reference', async (req, res) => {
+  try {
+    const response = await axios.get(`https://api.paystack.co/transaction/verify/${req.params.reference}`, {
+      headers: { Authorization: `Bearer ${process.env.PAYSTACK_SECRET_KEY}` },
+    });
+    res.json(response.data);
+  } catch (error) {
+    const message = error?.response?.data?.message || error?.message || 'Verify failed';
+    res.status(500).json({ status: false, message });
+  }
+});
+
+router.get('/flutterwave/verify/:transactionId', async (req, res) => {
+  try {
+    const response = await axios.get(`https://api.flutterwave.com/v3/transactions/${req.params.transactionId}/verify`, {
+      headers: { Authorization: `Bearer ${process.env.FLUTTERWAVE_SECRET_KEY}` },
+    });
+    res.json(response.data);
+  } catch (error) {
+    const message = error?.response?.data?.message || error?.message || 'Verify failed';
+    res.status(500).json({ status: false, message });
+  }
+});
+
 router.post('/stripe/create-session', async (req, res) => {
   try {
     if (!stripe) {
@@ -44,7 +73,7 @@ router.post('/stripe/create-session', async (req, res) => {
         message: 'Stripe dev mode - no key configured',
       });
     }
-    
+
     const sessionData = {
       payment_method_types: ['card'],
       mode: 'payment',
@@ -66,7 +95,7 @@ router.post('/stripe/create-session', async (req, res) => {
     }
 
     const session = await stripe.checkout.sessions.create(sessionData);
-    
+
     res.json({ sessionId: session.id, url: session.url });
   } catch (error) {
     const message = error?.raw?.message || error?.message || 'Stripe checkout session failed';
@@ -78,11 +107,11 @@ router.post('/stripe/webhook', async (req, res) => {
   try {
     const sig = req.headers['stripe-signature'];
     const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
-    
+
     if (!webhookSecret) {
       return res.status(503).json({ message: 'Stripe webhook not configured' });
     }
-    
+
     let event;
     try {
       const payload = req.rawBody || JSON.stringify(req.body);
@@ -90,7 +119,7 @@ router.post('/stripe/webhook', async (req, res) => {
     } catch (err) {
       return res.status(400).json({ message: 'Invalid signature' });
     }
-    
+
     if (event.type === 'checkout.session.completed') {
       const session = event.data.object;
       const orderId = session.client_reference_id || session.metadata?.orderId;
@@ -101,7 +130,7 @@ router.post('/stripe/webhook', async (req, res) => {
         paymentMethod: 'stripe',
       });
     }
-    
+
     res.json({ received: true });
   } catch (error) {
     console.error('Stripe webhook error:', error);
@@ -118,8 +147,7 @@ router.post('/paystack/initialize', async (req, res) => {
       data: { authorization_url: successUrl, reference: `dev_${Date.now()}` },
     });
   }
-  
-  const axios = require('axios');
+
   try {
     const response = await axios.post('https://api.paystack.co/transaction/initialize', {
       email: req.body.email,
@@ -141,12 +169,12 @@ router.post('/paystack/webhook', async (req, res) => {
   try {
     const signature = req.headers['x-paystack-signature'];
     const webhookSecret = process.env.PAYSTACK_WEBHOOK_SECRET;
-    
+
     const payload = req.rawBody || JSON.stringify(req.body);
     if (!webhookSecret || !verifyWebhookSignature(payload, signature, webhookSecret, 'sha512')) {
       return res.status(400).json({ message: 'Invalid signature' });
     }
-    
+
     const event = req.body;
     const orderId = event?.data?.metadata?.orderId || event?.data?.reference || event?.data?.trx?.reference;
     if (event.event === 'charge.success' && event.data?.status === 'success') {
@@ -157,7 +185,7 @@ router.post('/paystack/webhook', async (req, res) => {
         paymentMethod: 'paystack',
       });
     }
-    
+
     res.json({ received: true });
   } catch (error) {
     console.error('Paystack webhook error:', error);
@@ -174,8 +202,7 @@ router.post('/flutterwave/initialize', async (req, res) => {
       data: { authorization_url: successUrl },
     });
   }
-  
-  const axios = require('axios');
+
   try {
     const response = await axios.post('https://api.flutterwave.com/v3/payments', {
       tx_ref: req.body.tx_ref,
@@ -198,11 +225,11 @@ router.post('/flutterwave/webhook', async (req, res) => {
     const signature = req.headers['verif-hash'];
     const webhookSecret = process.env.FLUTTERWAVE_WEBHOOK_SECRET;
     const payload = req.rawBody || JSON.stringify(req.body);
-    
+
     if (!webhookSecret || !verifyWebhookSignature(payload, signature, webhookSecret, 'sha256')) {
       return res.status(400).json({ message: 'Invalid signature' });
     }
-    
+
     const event = req.body;
     const orderId = event?.data?.meta?.orderId || event?.data?.tx_ref || event?.data?.flw_ref;
     const status = event?.data?.status || event?.status;

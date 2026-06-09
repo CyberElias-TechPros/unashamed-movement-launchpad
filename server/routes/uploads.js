@@ -4,7 +4,6 @@ const upload = multer();
 
 router.post('/cloudinary', upload.single('file'), async (req, res) => {
   try {
-    // If Cloudinary config present, try to upload using cloudinary SDK
     if (process.env.CLOUDINARY_URL || (process.env.CLOUDINARY_CLOUD_NAME && process.env.CLOUDINARY_API_KEY)) {
       try {
         const cloudinary = require('cloudinary').v2;
@@ -16,18 +15,16 @@ router.post('/cloudinary', upload.single('file'), async (req, res) => {
         });
 
         if (req.file && req.file.buffer) {
-          const resu = await cloudinary.uploader.upload_stream({ resource_type: 'auto' }, (error, result) => {
+          const stream = cloudinary.uploader.upload_stream({ resource_type: 'auto' }, (error, result) => {
             if (error) return res.status(500).json({ message: 'Upload failed', error });
             res.json({ url: result.secure_url, provider: 'cloudinary' });
           });
-          // pipe buffer
-          const stream = cloudinary.uploader.upload_stream({ resource_type: 'auto' }, () => {});
-          stream.end(req.file.buffer);
+          const bufStream = require('stream').Readable.from(req.file.buffer);
+          bufStream.pipe(stream);
           return;
         }
 
         if (req.body.url) {
-          // remote fetch
           const result = await cloudinary.uploader.upload(req.body.url, { resource_type: 'auto' });
           return res.json({ url: result.secure_url, provider: 'cloudinary' });
         }
@@ -36,12 +33,34 @@ router.post('/cloudinary', upload.single('file'), async (req, res) => {
       }
     }
 
-    // Fallback: accept provided URL or return not-available
     if (req.body.url) return res.json({ url: req.body.url, provider: 'fallback' });
 
     return res.status(400).json({ message: 'No upload configured or no file/url provided' });
   } catch (error) {
     console.error('Upload endpoint error', error);
+    res.status(500).json({ message: error.message });
+  }
+});
+
+const fs = require('fs').promises;
+const path = require('path');
+
+router.get('/cloudinary', async (req, res) => {
+  try {
+    const uploadDir = path.join(__dirname, '../../public/uploads');
+    let files = [];
+    try { files = await fs.readdir(uploadDir); } catch { files = []; }
+    files = files.filter((f) => /\.(jpg|jpeg|png|gif|webp|mp4|webm|ogg)$/i.test(f));
+    const items = await Promise.all(
+      files.map(async (f) => ({
+        id: f,
+        url: `/uploads/${f}`,
+        publicId: f,
+        createdAt: (await fs.stat(path.join(uploadDir, f)).catch(() => ({ mtime: new Date() }))).mtime,
+      }))
+    );
+    res.json(items);
+  } catch (error) {
     res.status(500).json({ message: error.message });
   }
 });

@@ -25,6 +25,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [csrfToken, setCsrfToken] = useState<string | null>(null);
+  const [initialized, setInitialized] = useState(false);
 
   const refreshToken = async (): Promise<boolean> => {
     try {
@@ -39,7 +40,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         return true;
       }
       return false;
-    } catch (error) {
+    } catch {
       setUser(null);
       return false;
     }
@@ -62,19 +63,24 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const getCsrfToken = () => csrfToken;
 
   useEffect(() => {
+    if (initialized) return;
+    setInitialized(true);
+    
     const initAuth = async () => {
       try {
-        await refreshToken();
-        const profile = await authApi.getProfile();
-        if (profile) {
-          setUser({
-            id: profile.id,
-            email: profile.email,
-            name: profile.name,
-            role: profile.role as 'user' | 'admin',
-          });
+        const refreshSuccess = await refreshToken();
+        if (refreshSuccess) {
+          const profile = await authApi.getProfile();
+          if (profile) {
+            setUser({
+              id: profile.id,
+              email: profile.email,
+              name: profile.name,
+              role: profile.role as 'user' | 'admin',
+            });
+          }
         }
-      } catch (error) {
+      } catch {
         setUser(null);
       } finally {
         setIsLoading(false);
@@ -82,7 +88,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     };
 
     initAuth();
-  }, []);
+  }, [initialized]);
 
   const login = async (email: string, password: string) => {
     setIsLoading(true);
@@ -97,6 +103,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         });
         await fetchCsrfToken();
       }
+    } catch (err: unknown) {
+      const error = err as { message?: string; status?: number };
+      throw error;
     } finally {
       setIsLoading(false);
     }

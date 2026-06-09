@@ -1,22 +1,30 @@
 import { api } from './client';
 
+export interface OrderItem {
+  productId?: string;
+  product?: { _id?: string; name?: string };
+  name?: string;
+  quantity: number;
+  price: number;
+  variant?: {
+    size?: string;
+    color?: string;
+  };
+}
+
 export interface Order {
   _id?: string;
   id?: string;
   userId?: string;
-  items: Array<{
-    productId: string;
-    quantity: number;
-    price: number;
-    variant?: {
-      size?: string;
-      color?: string;
-    };
-  }>;
+  items: OrderItem[];
   subtotal: number;
   tax: number;
   shipping: number;
   total: number;
+  totalAmount?: number;
+  customerName?: string;
+  customerEmail?: string;
+  paymentMethod?: string;
   shippingAddress: {
     name: string;
     address: string;
@@ -66,6 +74,7 @@ export interface CreateOrderPayload {
     country?: string;
     zipCode?: string;
   };
+  customer?: string;
 }
 
 export const ordersApi = {

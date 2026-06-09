@@ -1,11 +1,18 @@
 import { useEffect, useState } from "react";
 import Layout from "@/components/Layout";
-import { ordersApi } from "@/api/orders";
+import { ordersApi, Order } from "@/api/orders";
 import { useAuth } from "@/context/AuthContext";
+
+interface OrderItem {
+  product?: { _id?: string; name?: string };
+  name?: string;
+  quantity: number;
+  price: number;
+}
 
 const Orders = () => {
   const { isAuthenticated } = useAuth();
-  const [orders, setOrders] = useState<any[]>([]);
+  const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -18,8 +25,8 @@ const Orders = () => {
       try {
         const response = await ordersApi.getUserOrders();
         setOrders(response);
-      } catch (err: any) {
-        setError(err?.message || "Unable to fetch orders.");
+      } catch (err) {
+        setError((err as Error)?.message || "Unable to fetch orders.");
       } finally {
         setLoading(false);
       }
@@ -55,15 +62,15 @@ const Orders = () => {
                     <p className="font-semibold">${order.totalAmount?.toFixed(2) ?? order.totalAmount}</p>
                   </div>
                 </div>
-                <div className="grid gap-2 sm:grid-cols-2">
-                  {order.items?.map((item: any) => (
-                    <div key={item.product._id || item.product} className="rounded-lg bg-muted p-3">
-                      <p className="font-medium">{item.name}</p>
-                      <p className="text-sm">Qty: {item.quantity}</p>
-                      <p className="text-sm">${item.price}</p>
-                    </div>
-                  ))}
-                </div>
+<div className="grid gap-2 sm:grid-cols-2">
+                    {order.items?.map((item: OrderItem, idx: number) => (
+                      <div key={item.product?._id || item.name || idx} className="rounded-lg bg-muted p-3">
+                        <p className="font-medium">{item.name || item.product?.name || "Unknown item"}</p>
+                        <p className="text-sm">Qty: {item.quantity}</p>
+                        <p className="text-sm">${item.price?.toFixed(2) ?? "0.00"}</p>
+                      </div>
+                    ))}
+                  </div>
               </div>
             ))}
           </div>

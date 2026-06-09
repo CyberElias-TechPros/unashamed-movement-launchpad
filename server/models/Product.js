@@ -14,8 +14,19 @@ const productSchema = new mongoose.Schema({
   colors: [{ type: String }],
 }, { timestamps: true });
 
-productSchema.index({ category: 1, isActive: 1 });
-productSchema.index({ createdAt: -1 });
-productSchema.index({ name: 'text', description: 'text' });
+// Performance indexes for common queries
+productSchema.index({ category: 1, isActive: 1 }); // Shop filtering
+productSchema.index({ createdAt: -1 }); // Sort by newest
+productSchema.index({ name: 'text', description: 'text' }); // Search
+
+// Additional performance indexes
+productSchema.index({ isActive: 1 }); // Filter active products
+productSchema.index({ category: 1 }); // Category filtering
+productSchema.index({ price: 1 }); // Price sorting
+productSchema.index({ stock: 1 }); // Inventory queries
+productSchema.index({ tag: 1 }); // Tag filtering
+productSchema.index({ category: 1, price: 1 }); // Category + price sorting
+productSchema.index({ category: 1, createdAt: -1 }); // Category + newest
+productSchema.index({ isActive: 1, stock: { $gt: 0 } }); // In-stock products
 
 module.exports = mongoose.model('Product', productSchema);

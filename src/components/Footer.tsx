@@ -20,7 +20,7 @@ const Footer = () => {
             reach more people and create more resources for the kingdom.
           </p>
           <Link
-            to="/contact"
+            to="/donate"
             onClick={() => trackEvent({ category: "navigation", action: "click", label: "donate_footer" })}
             className="inline-block bg-accent text-accent-foreground font-heading text-lg tracking-wider px-10 py-4 rounded-md hover:bg-accent/90 transition-all duration-300 hover:scale-105 shadow-lg"
           >

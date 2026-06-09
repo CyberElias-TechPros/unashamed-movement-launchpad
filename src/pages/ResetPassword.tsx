@@ -21,13 +21,13 @@ const ResetPassword = () => {
     setError('');
     if (password.length < 8) return setError('Password must be at least 8 characters');
     if (password !== confirm) return setError('Passwords do not match');
-    try {
-      const res = await authApi.resetPassword({ token, password });
-      setSuccess(res.message || 'Password reset successful');
-      setTimeout(() => navigate('/admin/login'), 1500);
-    } catch (err: any) {
-      setError(err?.message || 'Reset failed');
-    }
+try {
+       const res = await authApi.resetPassword({ token, password });
+       setSuccess(res.message || 'Password reset successful');
+       setTimeout(() => navigate('/admin/login'), 1500);
+     } catch (err) {
+       setError((err as Error)?.message || 'Reset failed');
+     }
   };
 
   return (

@@ -10,4 +10,13 @@ const testimonySchema = new mongoose.Schema({
   isFeatured: { type: Boolean, default: false },
 }, { timestamps: true });
 
+// Performance indexes for common queries
+testimonySchema.index({ isApproved: 1, createdAt: -1 }); // Public testimonies sorted
+testimonySchema.index({ isApproved: 1, isFeatured: 1, createdAt: -1 }); // Featured testimonies
+testimonySchema.index({ category: 1, isApproved: 1 }); // Category filtering
+testimonySchema.index({ location: 1 }); // Location filtering
+testimonySchema.index({ isFeatured: 1 }); // Featured queries
+testimonySchema.index({ createdAt: -1 }); // Sort by newest
+testimonySchema.index({ name: 'text', text: 'text', location: 'text' }); // Search functionality
+
 module.exports = mongoose.model('Testimony', testimonySchema);

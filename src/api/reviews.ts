@@ -9,6 +9,7 @@ export interface Review {
   title?: string;
   body?: string;
   approved?: boolean;
+  rejected?: boolean;
   createdAt?: string;
 }
 
@@ -17,6 +18,7 @@ export const reviewsApi = {
   create: (productId: string, data: Partial<Review>) => api.post<Review>(`/reviews/product/${productId}`, data),
   getAll: () => api.get<Review[]>('/reviews'),
   approve: (id: string) => api.post(`/reviews/${id}/approve`),
+  reject: (id: string) => api.post(`/reviews/${id}/reject`),
   remove: (id: string) => api.delete(`/reviews/${id}`),
 };
 

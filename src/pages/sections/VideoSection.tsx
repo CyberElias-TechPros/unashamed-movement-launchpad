@@ -1,12 +1,19 @@
 import SectionWrapper from "@/components/SectionWrapper";
+import { motion } from "framer-motion";
+import { useQuery } from "@tanstack/react-query";
+import { videosApi } from "@/api/videos";
+import { Badge } from "@/components/ui/badge";
+
+const VIDEO_FEED_QUERY_KEY = ["videos", "feed"];
 
 const VideoSection = () => {
-  const videos = [
-    { id: "pFyf6yPBr9A", title: "Being Ambitious for Christ", duration: "21:07" },
-    { id: "ndP307bxp4k", title: "The Gospel Simplified", duration: "28:48" },
-    { id: "ahIbBSvVoQs", title: "The Ministry of the Holy Spirit in Evangelism", duration: "1:25:44" },
-    { id: "oxGmlhJDUq0", title: "Unashamed Webinar 3.0", duration: "2:00:11" },
-  ];
+  const { data: videos = [], isLoading } = useQuery({
+    queryKey: VIDEO_FEED_QUERY_KEY,
+    queryFn: async () => {
+      const data = await videosApi.getAll();
+      return data.filter((v) => v.isPublished !== false).slice(0, 4);
+    },
+  });
 
   return (
     <section className="section-padding bg-primary">
@@ -26,24 +33,55 @@ const VideoSection = () => {
         </SectionWrapper>
 
         <SectionWrapper delay={0.2}>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-6xl mx-auto video-container">
-            {videos.map((video, index) => (
-              <div key={video.id} className="relative bg-black rounded-2xl overflow-hidden aspect-video group">
-                <iframe
-                  src={`https://www.youtube.com/embed/${video.id}?modestbranding=1&rel=0&showinfo=0&color=white`}
-                  className="absolute inset-0 w-full h-full"
-                  allow="accelerometer; encrypted-media; gyroscope; picture-in-picture"
-                  allowFullScreen
-                  title={video.title}
-                  loading="lazy"
-                />
-                <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-4 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <p className="text-white font-heading text-lg">{video.title}</p>
-                  <span className="text-white/70 text-sm">{video.duration}</span>
+          {isLoading ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-6xl mx-auto video-container">
+              {Array.from({ length: 4 }).map((_, i) => (
+                <div key={i} className="relative bg-black rounded-2xl overflow-hidden aspect-video">
+                  <div className="absolute inset-0 bg-muted/20 animate-pulse" />
                 </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          ) : videos.length === 0 ? (
+            <p className="text-center text-primary-foreground/70">No videos available yet.</p>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-6xl mx-auto video-container">
+              {videos.map((video, index) => {
+                let embedUrl = video.url;
+                if (video.url && (video.url.includes("youtube.com") || video.url.includes("youtu.be"))) {
+                  const ytMatch = video.url.match(/(?:youtube\.com\/(?:watch\?v=|shorts\/)|youtu\.be\/)([A-Za-z0-9_-]{11})/);
+                  if (ytMatch) {
+                    embedUrl = `https://www.youtube.com/embed/${ytMatch[1]}?modestbranding=1&rel=0&showinfo=0&color=white`;
+                  }
+                }
+
+                return (
+                  <motion.div
+                    key={video._id || video.id || index}
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 0.5, delay: index * 0.1 }}
+                    className="relative bg-black rounded-2xl overflow-hidden aspect-video group"
+                  >
+                    <iframe
+                      src={embedUrl}
+                      className="absolute inset-0 w-full h-full"
+                      allow="accelerometer; encrypted-media; gyroscope; picture-in-picture"
+                      allowFullScreen
+                      title={video.title}
+                      loading="lazy"
+                    />
+                    <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-4 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+                      <p className="text-white font-heading text-lg">{video.title}</p>
+                      {video.description && (
+                        <p className="text-white/70 text-sm line-clamp-1">{video.description}</p>
+                      )}
+                    </div>
+                  </motion.div>
+                );
+              })}
+            </div>
+          )}
         </SectionWrapper>
       </div>
     </section>

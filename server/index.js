@@ -15,7 +15,75 @@ const app = express();
 
 connectDB();
 
-app.use(helmet());
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: [
+        "'self'",
+        "'unsafe-inline'",
+        "https://www.youtube.com",
+        "https://s.ytimg.com",
+        "https://www.google-analytics.com",
+        "https://www.googletagmanager.com",
+      ],
+      styleSrc: [
+        "'self'",
+        "'unsafe-inline'",
+        "https://fonts.googleapis.com",
+      ],
+      fontSrc: [
+        "'self'",
+        "https://fonts.gstatic.com",
+        "data:",
+      ],
+      imgSrc: [
+        "'self'",
+        "data:",
+        "https:",
+        "blob:",
+        "https://res.cloudinary.com",
+        "https://img.youtube.com",
+        "https://i.ytimg.com",
+      ],
+      mediaSrc: ["'self'", "https:"],
+      connectSrc: [
+        "'self'",
+        "https://api.paystack.co",
+        "https://api.flutterwave.com",
+        "https://api.stripe.com",
+        "https://www.google-analytics.com",
+        "https://res.cloudinary.com",
+      ],
+      frameSrc: [
+        "'self'",
+        "https://www.youtube.com",
+        "https://youtube.com",
+        "https://www.youtube-nocookie.com",
+      ],
+      objectSrc: ["'none'"],
+      baseUri: ["'self'"],
+      formAction: ["'self'"],
+      upgradeInsecureRequests: [],
+    },
+  },
+  crossOriginEmbedderPolicy: false, // Allow embedded YouTube videos
+  crossOriginResourcePolicy: { policy: 'cross-origin' },
+  hsts: {
+    maxAge: 31536000,
+    includeSubDomains: true,
+    preload: true,
+  },
+  referrerPolicy: { policy: 'strict-origin-when-cross-origin' },
+  permissionsPolicy: {
+    features: {
+      camera: ["'self'"],
+      microphone: ["'self'"],
+      geolocation: ["'self'"],
+      payment: ["'self'"],
+    },
+  },
+}));
 app.use(compression());
 app.use(morgan('combined'));
 app.use(corsMiddleware);
@@ -50,6 +118,7 @@ app.use('/api/countries', require('./routes/countries'));
 app.use('/api/content', require('./routes/content'));
 app.use('/api/reviews', require('./routes/reviews'));
 app.use('/api/uploads', require('./routes/uploads'));
+app.use('/api/settings', require('./routes/settings'));
 
 // Health check
 app.get('/api/health', (req, res) => {

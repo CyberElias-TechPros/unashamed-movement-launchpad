@@ -12,6 +12,13 @@ const reviewSchema = new mongoose.Schema({
   createdAt: { type: Date, default: Date.now },
 });
 
-reviewSchema.index({ product: 1 });
+// Performance indexes for common queries
+reviewSchema.index({ product: 1 }); // Product reviews
+reviewSchema.index({ product: 1, approved: 1 }); // Approved product reviews
+reviewSchema.index({ product: 1, approved: 1, createdAt: -1 }); // Approved reviews sorted
+reviewSchema.index({ approved: 1 }); // Moderation queue
+reviewSchema.index({ rating: 1 }); // Rating sorting
+reviewSchema.index({ createdAt: -1 }); // Newest reviews
+reviewSchema.index({ user: 1 }); // User reviews
 
 module.exports = mongoose.model('Review', reviewSchema);

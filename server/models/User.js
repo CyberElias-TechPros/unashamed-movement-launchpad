@@ -34,6 +34,17 @@ userSchema.methods.toJSON = function () {
   return obj;
 };
 
-userSchema.index({ createdAt: -1 });
+// Performance indexes for common queries
+userSchema.index({ createdAt: -1 }); // Sort by newest first
+userSchema.index({ email: 1 }, { unique: true }); // Login queries (already unique but explicit)
+userSchema.index({ role: 1 }); // Admin queries
+userSchema.index({ role: 1, createdAt: -1 }); // Admin sorted lists
+userSchema.index({ isActive: 1 }); // Filter active users
+userSchema.index({ emailVerified: 1 }); // Find unverified users
+userSchema.index({ name: 'text' }); // Search by name
+
+// Token indexes for password reset and verification flows
+userSchema.index({ resetPasswordToken: 1 }, { sparse: true }); // Token lookups
+userSchema.index({ emailVerificationToken: 1 }, { sparse: true }); // Verification lookups
 
 module.exports = mongoose.model('User', userSchema);

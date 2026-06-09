@@ -26,4 +26,14 @@ resourceSchema.set('toJSON', {
   },
 });
 
+// Performance indexes for common queries
+resourceSchema.index({ type: 1, isActive: 1 }); // Type filtering
+resourceSchema.index({ category: 1, isActive: 1 }); // Category filtering
+resourceSchema.index({ isFree: 1, isActive: 1 }); // Free resources
+resourceSchema.index({ isActive: 1 }); // Active resources
+resourceSchema.index({ downloadCount: -1 }); // Popular resources
+resourceSchema.index({ createdAt: -1 }); // Newest resources
+resourceSchema.index({ title: 'text', description: 'text', author: 'text' }); // Search
+resourceSchema.index({ type: 1, category: 1, isActive: 1 }); // Combined filters
+
 module.exports = mongoose.model('Resource', resourceSchema);

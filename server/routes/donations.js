@@ -20,4 +20,7 @@ router.post('/', [
   body('type').isIn(['one-time', 'monthly']),
 ], validate, c.create);
 
+router.post('/checkout', c.createCheckout);
+router.get('/verify/:paymentIntentId', c.verifyPayment);
+
 module.exports = router;

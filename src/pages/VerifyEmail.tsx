@@ -13,14 +13,14 @@ const VerifyEmail = () => {
     const verify = async () => {
       if (!token) return;
       setStatus('loading');
-      try {
-        const res = await authApi.verifyEmail({ token });
-        setStatus('success');
-        setMessage(res.message || 'Email verified successfully');
-      } catch (err: any) {
-        setStatus('error');
-        setMessage(err?.message || 'Verification failed');
-      }
+try {
+         const res = await authApi.verifyEmail({ token });
+         setStatus('success');
+         setMessage(res.message || 'Email verified successfully');
+       } catch (err) {
+         setStatus('error');
+         setMessage((err as Error)?.message || 'Verification failed');
+       }
     };
     verify();
   }, [token]);

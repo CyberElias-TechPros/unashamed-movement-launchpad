@@ -69,7 +69,7 @@ const apiClient = async <T>(endpoint: string, options: RequestOptions = {}): Pro
           throw new Error('Request timed out');
         }
 
-        if (response.status === 401 && window.location.pathname.startsWith('/admin')) {
+        if (response.status === 401 && window.location.pathname.startsWith('/admin') && window.location.pathname !== '/admin/login') {
           window.location.href = '/admin/login';
           throw new Error('Unauthorized');
         }

@@ -8,8 +8,10 @@ export interface Testimonial {
   text: string;
   category: string;
   image?: string;
+  avatar?: string;
   isApproved?: boolean;
   isFeatured?: boolean;
+  rating?: number;
   createdAt?: string;
 }
 

@@ -18,5 +18,7 @@ router.post('/', validate, c.create);
 router.get('/:id', protect, c.getById);
 router.put('/:id/status', protect, admin, validate, c.updateStatus);
 router.patch('/:id/status', protect, admin, validate, c.updateStatus);
+router.post('/checkout-session', protect, c.createCheckoutSession);
+router.patch('/:id/stock', protect, admin, c.updateStock);
 
 module.exports = router;

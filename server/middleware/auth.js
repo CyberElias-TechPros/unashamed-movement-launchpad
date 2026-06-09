@@ -6,17 +6,18 @@ const generateAccessToken = (id) => {
 };
 
 const generateRefreshToken = (id) => {
-  return jwt.sign({ id }, process.env.JWT_REFRESH_SECRET, { expiresIn: '7d' });
+  return jwt.sign({ id }, process.env.JWT_REFRESH_SECRET || process.env.JWT_SECRET, { expiresIn: '7d' });
 };
 
 const setAuthCookies = (res, user) => {
   const accessToken = generateAccessToken(user._id);
   const refreshToken = generateRefreshToken(user._id);
+  const sameSite = process.env.NODE_ENV === 'production' ? 'strict' : 'lax';
 
   res.cookie('accessToken', accessToken, {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
-    sameSite: 'strict',
+    sameSite,
     maxAge: 15 * 60 * 1000, // 15 minutes
     path: '/',
   });
@@ -24,7 +25,7 @@ const setAuthCookies = (res, user) => {
   res.cookie('refreshToken', refreshToken, {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
-    sameSite: 'strict',
+    sameSite,
     maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
     path: '/api/auth',
   });
@@ -32,7 +33,7 @@ const setAuthCookies = (res, user) => {
   res.cookie('userRole', user.role, {
     httpOnly: false,
     secure: process.env.NODE_ENV === 'production',
-    sameSite: 'strict',
+    sameSite,
     maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
     path: '/',
   });
@@ -74,9 +75,10 @@ const refreshToken = async (req, res) => {
   if (!refreshToken) {
     return res.status(401).json({ message: 'No refresh token' });
   }
+  const sameSite = process.env.NODE_ENV === 'production' ? 'strict' : 'lax';
 
   try {
-    const decoded = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET);
+    const decoded = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET || process.env.JWT_SECRET);
     const user = await User.findById(decoded.id);
     if (!user) {
       return res.status(401).json({ message: 'User not found' });
@@ -85,7 +87,7 @@ const refreshToken = async (req, res) => {
     res.cookie('accessToken', accessToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
+      sameSite,
       maxAge: 15 * 60 * 1000,
       path: '/',
     });

@@ -1,5 +1,4 @@
-import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState } from "react";
 import { motion } from "framer-motion";
 import { FileDown, Plus, Edit, Trash2, Save, Image as ImageIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -7,9 +6,24 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { resourcesApi, Resource as ApiResource } from "@/api/resources";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { resourcesApi } from "@/api/resources";
 import MediaPicker from "@/components/MediaPicker";
+import { useToast } from "@/hooks/use-toast";
 
 interface Resource {
   id: string;
@@ -20,255 +34,296 @@ interface Resource {
   downloadUrl: string;
   free: boolean;
   category: string;
+  imageUrl: string;
 }
 
+const emptyResource: Resource = {
+  id: "",
+  title: "",
+  author: "",
+  description: "",
+  type: "book",
+  downloadUrl: "",
+  free: true,
+  category: "",
+  imageUrl: "",
+};
+
+const resourceTypes = ["book", "devotional", "guide", "article", "podcast"] as const;
+
 const AdminResourceManager = () => {
-  const navigate = useNavigate();
-  const [resources, setResources] = useState<Resource[]>([]);
-  const [isEditing, setIsEditing] = useState<string | null>(null);
-  const [editingResource, setEditingResource] = useState<Resource | null>(null);
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const [editing, setEditing] = useState<Resource | null>(null);
+  const [open, setOpen] = useState(false);
   const [mediaPickerOpen, setMediaPickerOpen] = useState(false);
 
-  useEffect(() => {
-    const load = async () => {
-      try {
-        const data = await resourcesApi.getAll();
-        setResources(
-          data.map((r: ApiResource) => ({
-            id: r._id || r.id || '',
-            title: r.title,
-            author: r.author || '',
-            description: r.description,
-            type: r.type,
-            downloadUrl: r.downloadUrl,
-            free: r.free ?? true,
-            category: r.category || '',
-          }))
-        );
-      } catch (error) {
-        console.error(error);
-      }
-    };
-    load();
-  }, []);
+  const { data: resources = [], isLoading } = useQuery({
+    queryKey: ["resources", "admin"],
+    queryFn: () => resourcesApi.getAll(),
+  });
 
-  const reload = async () => {
-    const data = await resourcesApi.getAll();
-    setResources(
-      data.map((r: ApiResource) => ({
-        id: r._id || r.id || "",
-        title: r.title,
-        author: r.author || "",
-        description: r.description,
-        type: r.type,
-        downloadUrl: r.downloadUrl,
-        free: r.free ?? true,
-        category: r.category || "",
-      }))
-    );
+  const createMutation = useMutation({
+    mutationFn: (data: Omit<Resource, "id">) =>
+      resourcesApi.create({
+        title: data.title,
+        author: data.author,
+        description: data.description,
+        type: data.type,
+        downloadUrl: data.downloadUrl,
+        free: data.free,
+        category: data.category,
+        imageUrl: data.imageUrl,
+      }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["resources", "admin"] }),
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: ({ id, data }: { id: string; data: Partial<Resource> }) =>
+      resourcesApi.update(id, data),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["resources", "admin"] }),
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: (id: string) => resourcesApi.delete(id),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["resources", "admin"] }),
+  });
+
+  const openAddModal = () => {
+    setEditing({ ...emptyResource });
+    setOpen(true);
+  };
+
+  const openEditModal = (resource: Resource) => {
+    setEditing({ ...resource });
+    setOpen(true);
   };
 
   const handleSave = async () => {
-    if (!editingResource) return;
+    if (!editing?.title) return;
     try {
       const payload = {
-        title: editingResource.title,
-        author: editingResource.author,
-        description: editingResource.description,
-        type: editingResource.type,
-        downloadUrl: editingResource.downloadUrl,
-        free: editingResource.free,
-        category: editingResource.category,
-        imageUrl: editingResource.imageUrl,
+        title: editing.title,
+        author: editing.author,
+        description: editing.description,
+        type: editing.type,
+        downloadUrl: editing.downloadUrl,
+        free: editing.free,
+        category: editing.category,
+        imageUrl: editing.imageUrl,
       };
-      if (isEditing) await resourcesApi.update(isEditing, payload);
-      else await resourcesApi.create(payload);
-      await reload();
-      setIsEditing(null);
-      setEditingResource(null);
-    } catch (error) {
-      console.error(error);
-      alert("Failed to save resource");
+      if (editing.id) {
+        await updateMutation.mutateAsync({ id: editing.id, data: payload });
+      } else {
+        await createMutation.mutateAsync(payload as Omit<Resource, "id">);
+      }
+      setOpen(false);
+      setEditing(null);
+    } catch {
+      toast({ title: "Error", description: "Failed to save resource.", variant: "destructive" });
     }
   };
 
   const handleDelete = async (id: string) => {
-    try {
-      await resourcesApi.delete(id);
-      await reload();
-    } catch (error) {
-      console.error(error);
-    }
+    await deleteMutation.mutateAsync(id);
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="flex">
-        <main className="flex-1 p-8">
-          <div className="mb-8">
-            <h2 className="font-heading text-3xl tracking-wider text-foreground mb-2">
-              Resources Management
-            </h2>
-            <p className="text-muted-foreground">
-              Manage downloadable resources and content
-            </p>
-          </div>
+    <div className="space-y-6">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <h1 className="font-heading text-3xl tracking-wider text-foreground">Resources</h1>
+          <p className="text-muted-foreground mt-1">Manage downloads, guides, and media.</p>
+        </div>
+        <Button onClick={openAddModal} className="shrink-0">
+          <Plus className="mr-2 h-4 w-4" />
+          Add Resource
+        </Button>
+      </div>
 
-          <div className="space-y-6">
-            <Card>
+      {isLoading ? (
+        <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <Card key={i}>
               <CardHeader>
-                <CardTitle>Add New Resource</CardTitle>
-                <CardDescription>
-                  Add a new book, guide, or digital resource
-                </CardDescription>
+                <div className="h-5 w-3/4 bg-muted rounded animate-pulse" />
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <Label>Title</Label>
-                    <Input
-                      placeholder="Resource title"
-                      value={editingResource?.title || ""}
-                      onChange={(e) => setEditingResource({ ...editingResource, title: e.target.value } as Resource)}
-                    />
+                <div className="h-4 w-full bg-muted rounded animate-pulse mb-2" />
+                <div className="h-4 w-1/2 bg-muted rounded animate-pulse" />
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      ) : resources.length === 0 ? (
+        <Card className="border-dashed bg-muted/30">
+          <CardContent className="flex flex-col items-center justify-center py-16 text-center">
+            <FileDown className="h-12 w-12 text-muted-foreground/40 mb-3" />
+            <p className="text-muted-foreground font-medium">No resources yet.</p>
+            <p className="text-sm text-muted-foreground/70 mt-1">Add your first resource to get started.</p>
+          </CardContent>
+        </Card>
+      ) : (
+        <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+          {resources.map((resource) => (
+            <Card key={resource.id} className="transition-all hover:shadow-md">
+              <CardHeader className="pb-3">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="flex-1 min-w-0">
+                    <CardTitle className="text-base truncate">{resource.title}</CardTitle>
+                    <CardDescription className="line-clamp-2 mt-1">{resource.description}</CardDescription>
                   </div>
-                  <div>
-                    <Label>Author</Label>
-                    <Input
-                      placeholder="Author name"
-                      value={editingResource?.author || ""}
-                      onChange={(e) => setEditingResource({ ...editingResource, author: e.target.value } as Resource)}
-                    />
-                  </div>
+                  <Badge variant="secondary">{resource.type}</Badge>
                 </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-                  <div>
-                    <Label>Type</Label>
-                    <Select
-                      value={editingResource?.type || ""}
-                      onValueChange={(v) => setEditingResource({ ...editingResource, type: v as Resource["type"] })}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select type" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="book">Book</SelectItem>
-                        <SelectItem value="devotional">Devotional</SelectItem>
-                        <SelectItem value="guide">Guide</SelectItem>
-                        <SelectItem value="article">Article</SelectItem>
-                        <SelectItem value="podcast">Podcast</SelectItem>
-                      </SelectContent>
-                    </Select>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                {resource.imageUrl && (
+                  <div className="aspect-video rounded-lg overflow-hidden bg-muted">
+                    <img src={resource.imageUrl} alt={resource.title} className="w-full h-full object-cover" loading="lazy" />
                   </div>
-                  <div>
-                    <Label>Category</Label>
-                    <Input
-                      placeholder="e.g., Evangelism, Prayer, Boldness"
-                      value={editingResource?.category || ""}
-                      onChange={(e) => setEditingResource({ ...editingResource, category: e.target.value } as Resource)}
-                    />
-                  </div>
+                )}
+                <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
+                  <Badge variant="outline">{resource.category}</Badge>
+                  <Badge variant={resource.free ? "default" : "outline"}>{resource.free ? "Free" : "Paid"}</Badge>
+                  <span className="ml-auto">By {resource.author || "Unknown"}</span>
                 </div>
+                <div className="flex justify-end gap-1 pt-2 border-t">
+                  <Button variant="ghost" size="sm" onClick={() => openEditModal(resource)}>
+                    <Edit className="h-4 w-4 mr-1" />
+                    Edit
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => handleDelete(resource.id)}
+                    disabled={deleteMutation.isPending}
+                    className="text-destructive hover:text-destructive"
+                  >
+                    <Trash2 className="h-4 w-4 mr-1" />
+                    Delete
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
 
-                <div className="mt-4">
-                  <Label>Description</Label>
-                  <Textarea
-                    placeholder="Brief description of the resource..."
-                    rows={3}
-                    value={editingResource?.description || ""}
-                    onChange={(e) => setEditingResource({ ...editingResource, description: e.target.value } as Resource)}
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent className="max-w-xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="font-heading tracking-wider">
+              {editing?.id && editing.id !== "" ? "Edit" : "New"} Resource
+            </DialogTitle>
+          </DialogHeader>
+          {editing && (
+            <div className="space-y-5 py-2">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>Title *</Label>
+                  <Input
+                    value={editing.title}
+                    onChange={(e) => setEditing({ ...editing, title: e.target.value })}
+                    placeholder="Resource title"
                   />
                 </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-                  <div>
-                    <Label>Download URL</Label>
-                    <Input
-                      type="url"
-                      placeholder="https://example.com/resource.pdf"
-                      value={editingResource?.downloadUrl || ""}
-                      onChange={(e) => setEditingResource({ ...editingResource, downloadUrl: e.target.value } as Resource)}
-                    />
-                  </div>
-                  <div className="flex items-end">
-                    <Button onClick={handleSave} className="w-full">
-                      <Save className="w-4 h-4 mr-2" />
-                      Save Resource
-                    </Button>
-                  </div>
+                <div className="space-y-2">
+                  <Label>Author</Label>
+                  <Input
+                    value={editing.author}
+                    onChange={(e) => setEditing({ ...editing, author: e.target.value })}
+                    placeholder="Author name"
+                  />
                 </div>
+              </div>
 
-                <div className="mt-4">
-                  <Label>Image (optional)</Label>
-                  <div className="flex gap-2">
-                    <Input
-                      value={editingResource?.imageUrl || ""}
-                      onChange={(e) => setEditingResource({ ...editingResource, imageUrl: e.target.value } as Resource)}
-                      placeholder="Image URL or select from library"
-                      className="flex-1"
-                    />
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={() => setMediaPickerOpen(true)}
-                      aria-label="Select from media library"
-                    >
-                      <ImageIcon className="w-4 h-4" />
-                    </Button>
-                  </div>
-                  {editingResource?.imageUrl && (
-                    <img src={editingResource.imageUrl} alt="Preview" className="mt-2 h-20 object-cover rounded" />
-                  )}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>Type</Label>
+                  <Select value={editing.type} onValueChange={(v) => setEditing({ ...editing, type: v as Resource["type"] })}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {resourceTypes.map((t) => (
+                        <SelectItem key={t} value={t}>{t.charAt(0).toUpperCase() + t.slice(1)}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
-              </CardContent>
-            </Card>
+                <div className="space-y-2">
+                  <Label>Category</Label>
+                  <Input
+                    value={editing.category}
+                    onChange={(e) => setEditing({ ...editing, category: e.target.value })}
+                    placeholder="e.g., Evangelism, Prayer"
+                  />
+                </div>
+              </div>
 
-            <Card>
-              <CardHeader>
-                <CardTitle>Existing Resources</CardTitle>
-                <CardDescription>
-                  {resources.length} resources in library
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {resources.length === 0 ? (
-                    <div className="text-center py-12">
-                      <FileDown className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-                      <p className="text-muted-foreground">No resources yet</p>
-                    </div>
-                  ) : (
-                    resources.map((resource) => (
-                      <div key={resource.id} className="flex items-center justify-between p-3 rounded-lg border border-border">
-                        <div>
-                          <h4 className="font-heading">{resource.title}</h4>
-                          <p className="text-sm text-muted-foreground">{resource.type} • {resource.category}</p>
-                        </div>
-                        <div className="flex gap-2">
-<Button variant="ghost" size="sm">
-                             <Edit className="w-4 h-4" />
-                             <span className="sr-only">Edit resource</span>
-                           </Button>
-                           <Button variant="ghost" size="sm" onClick={() => handleDelete(resource.id)}>
-                             <Trash2 className="w-4 h-4 text-red-500" />
-                             <span className="sr-only">Delete resource</span>
-                           </Button>
-                        </div>
-                      </div>
-                    ))
-                  )}
+              <div className="space-y-2">
+                <Label>Description</Label>
+                <Textarea
+                  value={editing.description}
+                  onChange={(e) => setEditing({ ...editing, description: e.target.value })}
+                  rows={3}
+                  placeholder="Brief description..."
+                />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>Download URL</Label>
+                  <Input
+                    type="url"
+                    value={editing.downloadUrl}
+                    onChange={(e) => setEditing({ ...editing, downloadUrl: e.target.value })}
+                    placeholder="https://..."
+                  />
                 </div>
-              </CardContent>
-            </Card>
-          </div>
-        </main>
-      </div>
+                <div className="flex items-end">
+                  <Button
+                    onClick={handleSave}
+                    disabled={createMutation.isPending || updateMutation.isPending}
+                    className="w-full"
+                  >
+                    <Save className="w-4 h-4 mr-2" />
+                    {(createMutation.isPending || updateMutation.isPending) ? "Saving..." : "Save Resource"}
+                  </Button>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label>Cover Image (optional)</Label>
+                <div className="flex gap-2">
+                  <Input
+                    value={editing.imageUrl}
+                    onChange={(e) => setEditing({ ...editing, imageUrl: e.target.value })}
+                    placeholder="https://example.com/cover.jpg"
+                    className="flex-1"
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setMediaPickerOpen(true)}
+                    aria-label="Select from media library"
+                  >
+                    <ImageIcon className="h-4 w-4" />
+                  </Button>
+                </div>
+                {editing.imageUrl && (
+                  <img src={editing.imageUrl} alt="Cover preview" className="mt-2 h-24 object-cover rounded-md" loading="lazy" />
+                )}
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
 
       <MediaPicker
         open={mediaPickerOpen}
         onOpenChange={setMediaPickerOpen}
-        onSelect={(url) => setEditingResource({ ...editingResource, imageUrl: url } as Resource)}
+        onSelect={(url) => setEditing({ ...editing!, imageUrl: url })}
       />
     </div>
   );

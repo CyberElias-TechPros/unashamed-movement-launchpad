@@ -15,12 +15,12 @@ const ForgotPassword = () => {
     setError("");
     setMessage("");
     setIsLoading(true);
-    try {
-      const response = await authApi.forgotPassword({ email });
-      setMessage(response.resetUrl ? `Reset link generated. Check console or email.` : 'If that email exists, a reset link has been sent.');
-    } catch (err: any) {
-      setError(err?.message || "Failed to request password reset.");
-    } finally {
+try {
+       const response = await authApi.forgotPassword({ email });
+       setMessage(response.resetUrl ? `Reset link generated. Check console or email.` : 'If that email exists, a reset link has been sent.');
+     } catch (err) {
+       setError((err as Error)?.message || "Failed to request password reset.");
+     } finally {
       setIsLoading(false);
     }
   };

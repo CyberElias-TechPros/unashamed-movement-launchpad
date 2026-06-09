@@ -1,6 +1,6 @@
 import { lazy, Suspense } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Route, Routes, useLocation } from "react-router-dom";
+import { BrowserRouter, Route, Routes, useLocation, Outlet } from "react-router-dom";
 import { useEffect } from "react";
 import { AnimatePresence } from "framer-motion";
 import { Toaster } from "@/components/ui/toaster";
@@ -14,6 +14,7 @@ import { AuthProvider } from "@/context/AuthContext";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { Loader2 } from "lucide-react";
+import AdminLayout from "@/components/AdminLayout";
 
 const Index = lazy(() => import("./pages/Index.tsx"));
 const About = lazy(() => import("./pages/About.tsx"));
@@ -47,6 +48,7 @@ const AdminMedia = lazy(() => import("./pages/admin/AdminMedia.tsx"));
 const ForgotPassword = lazy(() => import("./pages/ForgotPassword.tsx"));
 const Orders = lazy(() => import("./pages/Orders.tsx"));
 const Wishlist = lazy(() => import("./pages/Wishlist.tsx"));
+const Donate = lazy(() => import("./pages/Donate.tsx"));
 
 const PageLoader = () => (
   <div className="min-h-[40vh] flex items-center justify-center">
@@ -54,7 +56,17 @@ const PageLoader = () => (
   </div>
 );
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: false,
+      refetchOnWindowFocus: false,
+      refetchOnMount: false,
+      refetchOnReconnect: false,
+      staleTime: 5 * 60 * 1000,
+    },
+  },
+});
 
 const ScrollToTop = () => {
   const { pathname } = useLocation();
@@ -92,22 +104,25 @@ const AnimatedRoutes = () => {
           <Route path="/contact" element={<PageTransition><Contact /></PageTransition>} />
           <Route path="/search" element={<PageTransition><Search /></PageTransition>} />
           <Route path="/admin/login" element={<AdminLogin />} />
-          <Route path="/admin/dashboard" element={<ProtectedRoute adminOnly><AdminDashboard /></ProtectedRoute>} />
-          <Route path="/admin" element={<ProtectedRoute adminOnly><AdminDashboard /></ProtectedRoute>} />
-          <Route path="/admin/content" element={<ProtectedRoute adminOnly><AdminContentManager /></ProtectedRoute>} />
-          <Route path="/admin/videos" element={<ProtectedRoute adminOnly><AdminVideoManager /></ProtectedRoute>} />
-          <Route path="/admin/testimonials" element={<ProtectedRoute adminOnly><AdminTestimonialManager /></ProtectedRoute>} />
-          <Route path="/admin/newsletter" element={<ProtectedRoute adminOnly><AdminNewsletterManager /></ProtectedRoute>} />
-          <Route path="/admin/analytics" element={<ProtectedRoute adminOnly><AdminAnalytics /></ProtectedRoute>} />
-          <Route path="/admin/resources" element={<ProtectedRoute adminOnly><AdminResourceManager /></ProtectedRoute>} />
-          <Route path="/admin/products" element={<ProtectedRoute adminOnly><AdminProductManager /></ProtectedRoute>} />
-          <Route path="/admin/reviews" element={<ProtectedRoute adminOnly><AdminReviews /></ProtectedRoute>} />
-          <Route path="/admin/settings" element={<ProtectedRoute adminOnly><AdminSettings /></ProtectedRoute>} />
-          <Route path="/admin/orders" element={<ProtectedRoute adminOnly><AdminOrders /></ProtectedRoute>} />
-          <Route path="/admin/media" element={<ProtectedRoute adminOnly><AdminMedia /></ProtectedRoute>} />
+          <Route element={<ProtectedRoute adminOnly><AdminLayout /></ProtectedRoute>}>
+            <Route path="/admin/dashboard" element={<AdminDashboard />} />
+            <Route path="/admin" element={<AdminDashboard />} />
+            <Route path="/admin/content" element={<AdminContentManager />} />
+            <Route path="/admin/videos" element={<AdminVideoManager />} />
+            <Route path="/admin/testimonials" element={<AdminTestimonialManager />} />
+            <Route path="/admin/newsletter" element={<AdminNewsletterManager />} />
+            <Route path="/admin/analytics" element={<AdminAnalytics />} />
+            <Route path="/admin/resources" element={<AdminResourceManager />} />
+            <Route path="/admin/products" element={<AdminProductManager />} />
+            <Route path="/admin/reviews" element={<AdminReviews />} />
+            <Route path="/admin/settings" element={<AdminSettings />} />
+            <Route path="/admin/orders" element={<AdminOrders />} />
+            <Route path="/admin/media" element={<AdminMedia />} />
+          </Route>
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/orders" element={<Orders />} />
           <Route path="/wishlist" element={<Wishlist />} />
+          <Route path="/donate" element={<Donate />} />
           <Route path="/cart" element={<Cart />} />
           <Route path="/checkout" element={<Checkout />} />
           <Route path="/order-success" element={<OrderSuccess />} />

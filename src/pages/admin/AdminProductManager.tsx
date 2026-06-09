@@ -1,156 +1,378 @@
-import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { Plus, Edit, Trash2, Image as ImageIcon } from "lucide-react";
+import { useState, useCallback } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import {
+  Plus,
+  Edit,
+  Trash2,
+  Image as ImageIcon,
+  Search,
+  Filter,
+  Grid3x3,
+  X,
+  Upload,
+  Tag,
+  Package,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
 import { productsApi, Product } from "@/api/products";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import MediaPicker from "@/components/MediaPicker";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
-const emptyProduct: Partial<Product> = {
+type ProductCategory = "merch" | "digital" | "book" | "apparel" | "accessories";
+
+interface ProductFormData {
+  name: string;
+  description: string;
+  price: number;
+  stock: number;
+  category: ProductCategory;
+  tag: string;
+  images: string[];
+}
+
+const emptyProduct: ProductFormData = {
   name: "",
   description: "",
   price: 0,
-  category: "merch",
   stock: 0,
+  category: "merch",
   tag: "",
+  images: [],
 };
 
 const AdminProductManager = () => {
-  const navigate = useNavigate();
   const [products, setProducts] = useState<Product[]>([]);
-  const [editing, setEditing] = useState<Partial<Product> | null>(null);
+  const [editing, setEditing] = useState<ProductFormData | null>(null);
   const [open, setOpen] = useState(false);
   const [mediaPickerOpen, setMediaPickerOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [categoryFilter, setCategoryFilter] = useState<ProductCategory | "all">("all");
+  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
+  const queryClient = useQueryClient();
 
-  const load = async () => {
-    const data = await productsApi.getAll();
-    setProducts(data);
+  const { data: allProducts = [], isLoading } = useQuery({
+    queryKey: ["products", "admin"],
+    queryFn: productsApi.getAll,
+  });
+
+  const createMutation = useMutation({
+    mutationFn: (data: Omit<Product, "id">) => productsApi.create(data),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["products"] }),
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: ({ id, data }: { id: string; data: Partial<Product> }) => productsApi.update(id, data),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["products"] }),
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: (id: string) => productsApi.delete(id),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["products"] }),
+  });
+
+  const filtered = allProducts.filter((p) => {
+    const matchesSearch = p.name.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesCategory = categoryFilter === "all" || p.category === categoryFilter;
+    return matchesSearch && matchesCategory;
+  });
+
+  const openAddModal = () => {
+    setEditing({ ...emptyProduct, images: [] });
+    setOpen(true);
   };
 
-  useEffect(() => {
-    load().catch(console.error);
-  }, []);
+  const openEditModal = (product: Product) => {
+    setEditing({
+      name: product.name || "",
+      description: product.description || "",
+      price: product.price || 0,
+      stock: product.stock ?? 0,
+      category: (product.category as ProductCategory) || "merch",
+      tag: product.tag || "",
+      images: product.images || [],
+    });
+    setOpen(true);
+  };
 
-  const save = async () => {
+  const handleSave = useCallback(async () => {
     if (!editing?.name) return;
-    if (editing._id || editing.id) {
-      await productsApi.update(editing._id || editing.id!, editing);
+    const productData: Partial<Product> & { images?: string[] } = {
+      name: editing.name,
+      description: editing.description,
+      price: editing.price,
+      stock: editing.stock,
+      category: editing.category,
+      tag: editing.tag,
+      images: editing.images,
+    };
+
+    if (editing._id || editing._id) {
+      await updateMutation.mutateAsync({ id: editing._id || editing._id!, data: productData });
     } else {
-      await productsApi.create(editing as Omit<Product, "id">);
+      await createMutation.mutateAsync(productData as Omit<Product, "id">);
     }
     setOpen(false);
     setEditing(null);
-    load();
-  };
+  }, [editing, createMutation, updateMutation]);
 
-  const remove = async (id: string) => {
-    if (!confirm("Delete this product?")) return;
-    await productsApi.delete(id);
-    load();
-  };
+  const handleDelete = useCallback(
+    async (id: string) => {
+      setDeleteTarget(id);
+    },
+    [],
+  );
+
+  const confirmDelete = useCallback(async () => {
+    if (!deleteTarget) return;
+    await deleteMutation.mutateAsync(deleteTarget);
+    setDeleteTarget(null);
+  }, [deleteTarget, deleteMutation]);
 
   return (
-    <div className="min-h-screen bg-background p-8">
-      <div className="flex items-center justify-between mb-8">
+    <div className="space-y-6">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <h1 className="font-heading text-3xl tracking-wider">Products</h1>
-          <p className="text-muted-foreground">Manage shop catalog</p>
+          <h1 className="font-heading text-3xl tracking-wider text-foreground">Products</h1>
+          <p className="text-muted-foreground mt-1">Manage your shop catalog.</p>
         </div>
-        <div className="flex gap-2">
-          <Button variant="outline" onClick={() => navigate("/admin/dashboard")}>Back</Button>
-          <Button onClick={() => { setEditing({ ...emptyProduct }); setOpen(true); }}>
-            <Plus className="w-4 h-4 mr-2" /> Add Product
-          </Button>
-        </div>
+        <Button onClick={openAddModal} className="shrink-0">
+          <Plus className="mr-2 h-4 w-4" />
+          Add Product
+        </Button>
       </div>
 
-      <div className="grid gap-4">
-        {products.map((p) => (
-          <Card key={p._id || p.id}>
-            <CardHeader className="flex flex-row items-center justify-between py-4">
-              <CardTitle className="text-lg">{p.name} — ${p.price}</CardTitle>
-              <div className="flex gap-2">
-<Button variant="ghost" size="sm" onClick={() => { setEditing(p); setOpen(true); }}>
-                   <Edit className="w-4 h-4" />
-                   <span className="sr-only">Edit product</span>
-                 </Button>
-                 <Button variant="ghost" size="sm" onClick={() => remove(p._id || p.id || "")}>
-                   <Trash2 className="w-4 h-4 text-destructive" />
-                   <span className="sr-only">Delete product</span>
-                 </Button>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-muted-foreground line-clamp-2">{p.description}</p>
-              <p className="text-xs mt-2">Stock: {p.stock ?? 0} · {p.category}</p>
-            </CardContent>
-          </Card>
-        ))}
+      <div className="flex flex-wrap gap-3">
+        <div className="relative flex-1 min-w-[200px]">
+          <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Search products..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-9"
+          />
+        </div>
+        <Select value={categoryFilter} onValueChange={(v: ProductCategory | "all") => setCategoryFilter(v)}>
+          <SelectTrigger className="w-40">
+            <Filter className="mr-2 h-4 w-4" />
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Categories</SelectItem>
+            <SelectItem value="merch">Merch</SelectItem>
+            <SelectItem value="digital">Digital</SelectItem>
+            <SelectItem value="book">Book</SelectItem>
+            <SelectItem value="apparel">Apparel</SelectItem>
+            <SelectItem value="accessories">Accessories</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
+
+      {isLoading ? (
+        <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <Card key={i}>
+              <CardHeader>
+                <Skeleton className="h-5 w-3/4" />
+              </CardHeader>
+              <CardContent>
+                <Skeleton className="h-4 w-full" />
+                <Skeleton className="h-4 w-1/2 mt-2" />
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      ) : filtered.length === 0 ? (
+        <Card className="border-dashed bg-muted/30">
+          <CardContent className="flex flex-col items-center justify-center py-16 text-center">
+            <Package className="h-12 w-12 text-muted-foreground/40 mb-3" />
+            <p className="text-muted-foreground font-medium">No products found.</p>
+            <p className="text-sm text-muted-foreground/70 mt-1">
+              {allProducts.length === 0 ? "Add your first product to get started." : "Try adjusting your search or filter."}
+            </p>
+          </CardContent>
+        </Card>
+      ) : (
+        <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+          {filtered.map((p) => (
+            <Card key={p._id || p.id} className="transition-all hover:shadow-md group">
+              <CardHeader className="pb-3">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="flex-1 min-w-0">
+                    <CardTitle className="text-base truncate">{p.name}</CardTitle>
+                    <CardDescription className="line-clamp-2 mt-1">{p.description}</CardDescription>
+                  </div>
+                  <Badge variant="secondary" className="shrink-0">${p.price?.toFixed(2)}</Badge>
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                {p.images?.[0] && (
+                  <div className="aspect-video rounded-lg overflow-hidden bg-muted">
+                    <img src={p.images[0]} alt={p.name} className="w-full h-full object-cover" />
+                  </div>
+                )}
+                <div className="flex flex-wrap gap-2">
+                  <Badge variant="outline">{p.category}</Badge>
+                  {p.tag && <Badge variant="secondary">{p.tag}</Badge>}
+                  <span className="text-xs text-muted-foreground ml-auto">Stock: {p.stock ?? 0}</span>
+                </div>
+                <div className="flex justify-end gap-1 pt-2 border-t">
+                  <Button variant="ghost" size="sm" onClick={() => openEditModal(p)}>
+                    <Edit className="h-4 w-4 mr-1" />
+                    Edit
+                  </Button>
+                  <Button variant="ghost" size="sm" onClick={() => handleDelete(p._id || p.id || "")} className="text-destructive hover:text-destructive">
+                    <Trash2 className="h-4 w-4 mr-1" />
+                    Delete
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
 
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="max-w-lg">
+        <DialogContent className="max-w-xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>{editing?._id || editing?.id ? "Edit" : "New"} Product</DialogTitle>
+            <DialogTitle className="font-heading tracking-wider">{editing?._id || editing?._id ? "Edit" : "New"} Product</DialogTitle>
           </DialogHeader>
           {editing && (
-            <div className="space-y-4">
-              <div>
-                <Label>Name</Label>
-                <Input value={editing.name || ""} onChange={(e) => setEditing({ ...editing, name: e.target.value })} />
+            <div className="space-y-5 py-2">
+              <div className="space-y-2">
+                <Label>Product Name *</Label>
+                <Input
+                  value={editing.name}
+                  onChange={(e) => setEditing({ ...editing, name: e.target.value })}
+                  placeholder="e.g., Unashamed T-Shirt"
+                />
               </div>
-              <div>
+              <div className="space-y-2">
                 <Label>Description</Label>
-                <Textarea value={editing.description || ""} onChange={(e) => setEditing({ ...editing, description: e.target.value })} />
+                <Textarea
+                  value={editing.description}
+                  onChange={(e) => setEditing({ ...editing, description: e.target.value })}
+                  rows={3}
+                  placeholder="Describe the product..."
+                />
               </div>
               <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label>Price</Label>
-                  <Input type="number" value={editing.price ?? 0} onChange={(e) => setEditing({ ...editing, price: Number(e.target.value) })} />
+                <div className="space-y-2">
+                  <Label>Price ($)</Label>
+                  <Input
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    value={editing.price}
+                    onChange={(e) => setEditing({ ...editing, price: Number(e.target.value) })}
+                  />
                 </div>
-                <div>
+                <div className="space-y-2">
                   <Label>Stock</Label>
-                  <Input type="number" value={editing.stock ?? 0} onChange={(e) => setEditing({ ...editing, stock: Number(e.target.value) })} />
+                  <Input
+                    type="number"
+                    min="0"
+                    value={editing.stock}
+                    onChange={(e) => setEditing({ ...editing, stock: Number(e.target.value) })}
+                  />
                 </div>
               </div>
-              <div>
-                <Label>Category</Label>
-                <Select value={editing.category} onValueChange={(v: "merch" | "digital") => setEditing({ ...editing, category: v })}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="merch">Merch</SelectItem>
-                    <SelectItem value="digital">Digital</SelectItem>
-                  </SelectContent>
-                </Select>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>Category</Label>
+                  <Select value={editing.category} onValueChange={(v: ProductCategory) => setEditing({ ...editing, category: v })}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="merch">Merch</SelectItem>
+                      <SelectItem value="digital">Digital</SelectItem>
+                      <SelectItem value="book">Book</SelectItem>
+                      <SelectItem value="apparel">Apparel</SelectItem>
+                      <SelectItem value="accessories">Accessories</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label>Tag</Label>
+                  <Input
+                    value={editing.tag}
+                    onChange={(e) => setEditing({ ...editing, tag: e.target.value })}
+                    placeholder="e.g., new, sale"
+                  />
+                </div>
               </div>
-              <div>
+              <div className="space-y-3">
                 <Label>Images</Label>
+                {editing.images && editing.images.length > 0 && (
+                  <div className="flex flex-wrap gap-2 mb-3">
+                    {editing.images.map((img, idx) => (
+                      <div key={idx} className="relative h-16 w-16 rounded-lg overflow-hidden border border-border group/img">
+                        <img src={img} alt="" className="w-full h-full object-cover" />
+                        <Button
+                          variant="destructive"
+                          size="icon"
+                          className="absolute top-0.5 right-0.5 h-5 w-5 opacity-0 group-hover/img:opacity-100 transition-opacity"
+                          onClick={() => setEditing({
+                            ...editing,
+                            images: editing.images?.filter((_, i) => i !== idx),
+                          })}
+                        >
+                          <X className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                )}
                 <div className="flex gap-2">
                   <Input
                     value={editing.images?.[0] || ""}
-                    onChange={(e) => setEditing({ ...editing, images: [e.target.value] })}
-                    placeholder="Image URL"
+                    onChange={(e) => setEditing({
+                      ...editing,
+                      images: e.target.value ? [e.target.value] : [],
+                    })}
+                    placeholder="Image URL or select from library"
                     className="flex-1"
                   />
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => setMediaPickerOpen(true)}
-                    aria-label="Select from media library"
-                  >
-                    <ImageIcon className="w-4 h-4" />
+                  <Button type="button" variant="outline" onClick={() => setMediaPickerOpen(true)}>
+                    <ImageIcon className="h-4 w-4" />
                   </Button>
                 </div>
-                {editing.images?.[0] && (
-                  <img src={editing.images[0]} alt="Preview" className="mt-2 h-20 object-cover rounded" />
-                )}
+                <p className="text-xs text-muted-foreground">
+                  Tip: Use the Media Library to browse and select images.
+                </p>
               </div>
-              <Button className="w-full" onClick={save}>Save</Button>
+              <Button
+                className="w-full"
+                onClick={handleSave}
+                disabled={createMutation.isPending || updateMutation.isPending}
+              >
+                {createMutation.isPending || updateMutation.isPending ? "Saving..." : "Save Product"}
+              </Button>
             </div>
           )}
         </DialogContent>
@@ -159,8 +381,35 @@ const AdminProductManager = () => {
       <MediaPicker
         open={mediaPickerOpen}
         onOpenChange={setMediaPickerOpen}
-        onSelect={(url) => setEditing({ ...editing, images: [url] })}
+        onSelect={(url) => {
+          setEditing((prev) => {
+            const currentImages = prev?.images || [];
+            if (currentImages.includes(url)) return prev;
+            return { ...prev!, images: [...currentImages, url] };
+          });
+        }}
       />
+
+      <AlertDialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete product?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently remove the product from your catalog.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmDelete}
+              disabled={deleteMutation.isPending}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {deleteMutation.isPending ? "Deleting..." : "Delete"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };

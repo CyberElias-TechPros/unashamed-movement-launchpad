@@ -83,7 +83,11 @@ const Checkout = () => {
 
       const stockError = stockResults.find(r => r?.error);
       if (stockError) {
-        alert(stockError.error);
+        toast({
+          title: "Stock unavailable",
+          description: stockError.error,
+          variant: "destructive",
+        });
         setIsProcessing(false);
         return;
       }

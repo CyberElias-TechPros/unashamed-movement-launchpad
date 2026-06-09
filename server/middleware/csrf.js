@@ -36,7 +36,7 @@ const setCsrfCookie = (res, sessionId) => {
   res.cookie('sessionId', sessionId, {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
-    sameSite: 'strict',
+    sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
     maxAge: CSRF_TOKEN_EXPIRY,
     path: '/',
   });

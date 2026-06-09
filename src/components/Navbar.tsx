@@ -1,11 +1,10 @@
 import { useState, useEffect, FormEvent } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { Menu, X, ShoppingCart, Search } from "lucide-react";
+import { Menu, X, ShoppingCart } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { useCart } from "@/context/CartContext";
-import { motion, AnimatePresence } from "framer-motion";
 import { useLayout } from "@/context/LayoutContext";
-import LayoutToggle from "./LayoutToggle";
+import { motion, AnimatePresence } from "framer-motion";
 
 const navLinks = [
   { name: "Home", path: "/" },
@@ -16,6 +15,7 @@ const navLinks = [
   { name: "Resources", path: "/resources" },
   { name: "Events", path: "/events" },
   { name: "Contact", path: "/contact" },
+  { name: "Donate", path: "/donate" },
 ];
 
 const Navbar = () => {
@@ -56,10 +56,6 @@ const Navbar = () => {
     };
   }, [isOpen]);
 
-  // Determine if we should show dark navbar (Sympos layout or B&W purple theme)
-  const isDarkNavbar = layoutMode === "sympos" || colorMode === "bw-purple";
-  
-  // Get appropriate classes based on mode
   const getNavbarClasses = () => {
     const base = "fixed top-0 left-0 right-0 z-50 transition-all duration-500";
     
@@ -70,14 +66,12 @@ const Navbar = () => {
       return `${base} bg-primary/95 backdrop-blur-md shadow-xl py-3`;
     }
     
-    // Not scrolled - transparent
     if (colorMode === "bw-purple") {
       return `${base} bg-black/80 py-5`;
     }
     if (layoutMode === "sympos") {
       return `${base} bg-background/80 py-5`;
     }
-    // Default TTIN layout - use primary color
     return `${base} bg-primary/80 py-5`;
   };
 
@@ -111,14 +105,12 @@ const Navbar = () => {
   return (
     <nav className={getNavbarClasses()}>
       <div className="container-custom flex items-center justify-between">
-        {/* Logo */}
         <Link to="/" className="flex items-center gap-2">
           <span className={`font-heading text-3xl tracking-wider ${getTextColor()}`}>
             TTIN
           </span>
         </Link>
 
-        {/* Desktop Nav */}
         <div className="hidden lg:flex items-center gap-8">
           {navLinks.map((link) => (
             <Link
@@ -151,7 +143,7 @@ const Navbar = () => {
               aria-label="Search site"
             />
           </form>
-          <LayoutToggle />
+          
           <Link
             to="/cart"
             className={`relative p-2 rounded-full transition-colors hover:text-accent ${getTextColor()}`}
@@ -166,7 +158,6 @@ const Navbar = () => {
           </Link>
         </div>
 
-        {/* Mobile Toggle */}
         <button
           onClick={() => setIsOpen(!isOpen)}
           className={`lg:hidden p-2 ${getTextColor()}`}
@@ -176,7 +167,6 @@ const Navbar = () => {
         </button>
       </div>
 
-      {/* Mobile Menu */}
       <AnimatePresence>
         {isOpen && (
           <motion.div
@@ -207,18 +197,6 @@ const Navbar = () => {
                 </motion.div>
               ))}
               
-              {/* Mobile Toggles */}
-              <motion.div
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: navLinks.length * 0.05 }}
-                className="pt-4 border-t border-border/20 mt-2"
-              >
-                <p className={`font-body text-sm tracking-wider uppercase mb-3 ${getMobileTextColor()}`}>
-                  Settings
-                </p>
-                <LayoutToggle />
-              </motion.div>
             </div>
           </motion.div>
         )}

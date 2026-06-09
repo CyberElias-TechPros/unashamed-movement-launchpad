@@ -1,120 +1,178 @@
-import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import { motion } from "framer-motion";
-import { Users, Check, X as XIcon, Star, MessageSquare } from "lucide-react";
+import { useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { testimonialsApi, Testimonial } from "@/api/testimonials";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { testimonialsApi, Testimonial } from "@/api/testimonials";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Check, X, Star, StarOff, Search } from "lucide-react";
 
 const AdminTestimonialManager = () => {
-  const navigate = useNavigate();
-  const [testimonials, setTestimonials] = useState<Testimonial[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const queryClient = useQueryClient();
+  const [searchQuery, setSearchQuery] = useState("");
+  const [categoryFilter, setCategoryFilter] = useState<string>("all");
 
-  useEffect(() => {
-    fetchTestimonials();
-  }, []);
+  const { data: testimonials = [], isLoading } = useQuery({
+    queryKey: ["testimonials", "admin", searchQuery, categoryFilter],
+    queryFn: () => testimonialsApi.getAllForAdmin(),
+  });
 
-  const fetchTestimonials = async () => {
-    try {
-      const data = await testimonialsApi.getAllForAdmin();
-      setTestimonials(data);
-    } catch (error) {
-      console.error("Failed to fetch testimonials:", error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  const filtered = testimonials.filter((t: Testimonial) => {
+    const matchesSearch = !searchQuery ||
+      (t.name || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (t.text || "").toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesCategory = categoryFilter === "all" || t.category === categoryFilter;
+    return matchesSearch && matchesCategory;
+  });
 
-  const handleApprove = async (id: string) => {
-    await testimonialsApi.update(id, { isApproved: true });
-    fetchTestimonials();
-  };
+  const categories = Array.from(new Set(testimonials.map((t: Testimonial) => t.category).filter(Boolean)));
 
-  const handleReject = async (id: string) => {
-    await testimonialsApi.delete(id);
-    fetchTestimonials();
-  };
+  const approvalMutation = useMutation({
+    mutationFn: (id: string) => testimonialsApi.update(id, { isApproved: true }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["testimonials", "admin"] }),
+  });
 
-  const handleFeature = async (id: string, isFeatured: boolean) => {
-    await testimonialsApi.update(id, { isFeatured: !isFeatured });
-    fetchTestimonials();
-  };
+  const rejectMutation = useMutation({
+    mutationFn: (id: string) => testimonialsApi.delete(id),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["testimonials", "admin"] }),
+  });
 
-  if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full" />
-      </div>
-    );
-  }
+  const featureMutation = useMutation({
+    mutationFn: ({ id, isFeatured }: { id: string; isFeatured: boolean }) =>
+      testimonialsApi.update(id, { isFeatured: !isFeatured }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["testimonials", "admin"] }),
+  });
+
+  const pending = filtered.filter((t: Testimonial) => !t.isApproved);
+  const approved = filtered.filter((t: Testimonial) => t.isApproved);
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="flex">
-        <main className="flex-1 p-8">
-          <div className="mb-8">
-            <h2 className="font-heading text-3xl tracking-wider text-foreground mb-2">
-              Testimonial Management
-            </h2>
-            <p className="text-muted-foreground">
-              Review and manage user testimonials
-            </p>
-          </div>
+    <div className="space-y-6">
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <h1 className="font-heading text-3xl tracking-wider text-foreground">Testimonials</h1>
+          <p className="text-muted-foreground mt-1">Review, approve, and manage testimonials.</p>
+        </div>
+        <div className="flex gap-2">
+          <Badge variant="outline" className="text-sm">
+            {filtered.length} shown
+          </Badge>
+          <Badge variant="secondary" className="text-sm">
+            {pending.length} pending
+          </Badge>
+        </div>
+      </div>
 
-          <div className="space-y-4">
-            {testimonials.map((testimonial) => (
-              <Card key={testimonial._id || testimonial.id}>
-                <CardContent className="pt-6">
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-3 mb-2">
-                        <h4 className="font-heading">{testimonial.name}</h4>
-                        <Badge variant={testimonial.location ? "outline" : "secondary"}>
-                          {testimonial.location || "Pending location"}
-                        </Badge>
-                        {!testimonial.isApproved && (
-                          <Badge variant="destructive">Pending Review</Badge>
-                        )}
-                        {testimonial.isFeatured && (
-                          <Badge variant="default">Featured</Badge>
-                        )}
-                      </div>
-                      <p className="text-muted-foreground mb-3 line-clamp-3">
-                        "{testimonial.text}"
-                      </p>
-                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                        <span>{testimonial.category}</span>
+      <Card>
+        <CardHeader>
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <CardTitle>All Testimonials</CardTitle>
+              <CardDescription>Showing {filtered.length} of {testimonials.length} total.</CardDescription>
+            </div>
+            <div className="flex gap-2">
+              <div className="relative flex-1 sm:flex-none sm:w-56">
+                <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search testimonials..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-9"
+                />
+              </div>
+              <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+                <SelectTrigger className="w-36">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All</SelectItem>
+                  {categories.map((c: string) => (
+                    <SelectItem key={c} value={c}>{c}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent>
+          {filtered.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-16 text-center">
+              <Check className="h-10 w-10 text-green-500/30 mb-3" />
+              <p className="text-muted-foreground">No testimonials match your search.</p>
+            </div>
+          ) : (
+<div className="space-y-3">
+               {filtered.map((t: Testimonial) => (
+                <div
+                  key={t._id}
+                  className="flex flex-col gap-3 p-4 rounded-lg border border-border bg-card hover:shadow-sm transition-shadow"
+                >
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                    <div className="flex gap-3">
+                      <Avatar className="h-10 w-10 border border-border">
+                        <AvatarImage src={t.avatar || t.image} alt={t.name} />
+                        <AvatarFallback className="text-xs font-heading">
+                          {t.name?.charAt(0).toUpperCase() || "?"}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div>
+                        <p className="font-heading font-medium">{t.name}</p>
+                        <p className="text-xs text-muted-foreground">{t.category}</p>
                       </div>
                     </div>
-                    <div className="flex items-center gap-2">
-                      {!testimonial.isApproved ? (
-                        <>
-                          <Button variant="ghost" size="sm" onClick={() => handleApprove(testimonial._id || testimonial.id || "")}>
-                            <Check size={16} className="text-green-500" />
-                          </Button>
-                          <Button variant="ghost" size="sm" onClick={() => handleReject(testimonial._id || testimonial.id || "")}>
-                            <XIcon size={16} className="text-red-500" />
-                          </Button>
-                        </>
-                      ) : (
-                        <Button 
-                          variant="ghost" 
-                          size="sm" 
-                          onClick={() => handleFeature(testimonial._id || testimonial.id || "", testimonial.isFeatured || false)}
-                        >
-                          <Star size={16} className={testimonial.isFeatured ? "text-yellow-500" : "text-muted-foreground"} />
-                        </Button>
+                    <div className="flex items-center gap-2 sm:ml-auto">
+                      <Badge variant={t.isApproved ? "default" : "destructive"} className="h-6 text-xs">
+                        {t.isApproved ? "Approved" : "Pending"}
+                      </Badge>
+                      {t.rating && (
+                        <Badge variant="outline" className="h-6 text-xs gap-1">
+                          <Star className="h-3 w-3 text-amber-500" />
+                          {t.rating}/5
+                        </Badge>
                       )}
                     </div>
                   </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </main>
-      </div>
+                  <p className="text-sm text-muted-foreground italic leading-relaxed pl-0 sm:pl-[52px]">
+                    &ldquo;{t.text}&rdquo;
+                  </p>
+                  <div className="flex gap-2 pl-0 sm:pl-[52px]">
+                    {!t.isApproved && (
+                      <Button
+                        size="sm"
+                        variant="default"
+                        className="h-8"
+                        onClick={() => approvalMutation.mutate(t._id || t.id)}
+                        disabled={approvalMutation.isPending}
+                      >
+                        <Check className="mr-1.5 h-4 w-4" />
+                        Approve
+                      </Button>
+                    )}
+                    <Button
+                      size="sm"
+                      variant="destructive"
+                      className="h-8"
+                      onClick={() => rejectMutation.mutate(t._id || t.id)}
+                      disabled={rejectMutation.isPending}
+                    >
+                      <X className="mr-1.5 h-4 w-4" />
+                      Reject
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 };

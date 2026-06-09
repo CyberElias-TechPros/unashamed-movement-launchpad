@@ -1,8 +1,65 @@
 const Video = require('../models/Video');
+const { paginate, parsePaginationParams, parseSortParams } = require('../utils/pagination');
 
 exports.getAll = async (req, res) => {
-  try { res.json(await Video.find({ isActive: true }).sort({ order: 1 })); }
-  catch (error) { res.status(500).json({ message: error.message }); }
+  try {
+    const { search } = req.query;
+    const { page, limit } = parsePaginationParams(req.query);
+    const sort = parseSortParams(req.query, { order: true, createdAt: true, title: true }, 'order');
+    
+    const filter = { isActive: true };
+    if (search) {
+      filter.$or = [
+        { title: { $regex: search, $options: 'i' } },
+        { description: { $regex: search, $options: 'i' } },
+        { episode: { $regex: search, $options: 'i' } },
+      ];
+    }
+    
+    const result = await paginate(Video, filter, {
+      page,
+      limit,
+      sort,
+    });
+    
+    res.json({
+      success: true,
+      ...result,
+    });
+  } catch (error) { 
+    res.status(500).json({ message: error.message }); 
+  }
+};
+
+exports.getAllAdmin = async (req, res) => {
+  try {
+    const { search, isActive } = req.query;
+    const { page, limit } = parsePaginationParams(req.query);
+    const sort = parseSortParams(req.query, { order: true, createdAt: true, title: true }, 'order');
+    
+    const filter = {};
+    if (isActive !== undefined) filter.isActive = isActive === 'true';
+    if (search) {
+      filter.$or = [
+        { title: { $regex: search, $options: 'i' } },
+        { description: { $regex: search, $options: 'i' } },
+        { episode: { $regex: search, $options: 'i' } },
+      ];
+    }
+    
+    const result = await paginate(Video, filter, {
+      page,
+      limit,
+      sort,
+    });
+    
+    res.json({
+      success: true,
+      ...result,
+    });
+  } catch (error) { 
+    res.status(500).json({ message: error.message }); 
+  }
 };
 
 exports.getById = async (req, res) => {
@@ -27,7 +84,9 @@ exports.update = async (req, res) => {
 };
 
 exports.getFeed = async (req, res) => {
-  try { res.json(await Video.find({ isActive: true }).sort({ order: 1 })); }
+  try { 
+    res.json(await Video.find({ isActive: true }).sort({ order: 1 })); 
+  }
   catch (error) { res.status(500).json({ message: error.message }); }
 };
 
@@ -60,5 +119,47 @@ exports.remove = async (req, res) => {
     res.json({ message: 'Video removed' });
   } catch (error) {
     res.status(500).json({ message: error.message });
+  }
+};
+
+// Bulk operations
+exports.bulkDelete = async (req, res) => {
+  try {
+    const { ids } = req.body;
+    if (!Array.isArray(ids) || ids.length === 0) {
+      return res.status(400).json({ message: 'Array of IDs required' });
+    }
+    
+    const result = await Video.deleteMany({ _id: { $in: ids } });
+    res.json({ 
+      message: 'Videos deleted', 
+      deletedCount: result.deletedCount 
+    });
+  } catch (error) { 
+    res.status(500).json({ message: error.message }); 
+  }
+};
+
+exports.bulkUpdateStatus = async (req, res) => {
+  try {
+    const { ids, isActive } = req.body;
+    if (!Array.isArray(ids) || ids.length === 0) {
+      return res.status(400).json({ message: 'Array of IDs required' });
+    }
+    if (typeof isActive !== 'boolean') {
+      return res.status(400).json({ message: 'isActive boolean required' });
+    }
+    
+    const result = await Video.updateMany(
+      { _id: { $in: ids } },
+      { isActive }
+    );
+    
+    res.json({
+      message: 'Videos updated',
+      modifiedCount: result.modifiedCount,
+    });
+  } catch (error) { 
+    res.status(500).json({ message: error.message }); 
   }
 };

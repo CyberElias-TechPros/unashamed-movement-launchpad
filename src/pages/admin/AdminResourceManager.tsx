@@ -320,7 +320,8 @@ const AdminResourceManager = () => {
                   </div>
                 </CardContent>
               </Card>
-            ))}
+              );
+            })}
           </div>
 
           {/* Pagination */}

@@ -16,6 +16,7 @@ router.get('/', c.getAll);
 router.post('/:id/download', [
   param('id').notEmpty(),
 ], validate, c.trackDownload);
+router.get('/:id/pdf-url', c.getPdfUrl);
 
 // Admin routes with pagination
 router.get('/admin/all', protect, admin, c.getAllAdmin);

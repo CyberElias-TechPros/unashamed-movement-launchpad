@@ -9,6 +9,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Skeleton } from "@/components/ui/skeleton";
 import { Download, BookOpen, FileText, Headphones, ExternalLink, Eye } from "lucide-react";
 import LazyImage from "@/components/LazyImage";
+import PdfViewer from "@/components/PdfViewer";
 import { resourcesApi, Resource } from "@/api/resources";
 import { trackDownload } from "@/lib/analytics";
 
@@ -29,12 +30,31 @@ const Resources = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [preview, setPreview] = useState<Resource | null>(null);
+  const [pdfUrl, setPdfUrl] = useState<string | null>(null);
 
   const setCategory = (cat: string) => {
     setFilter(cat);
     if (cat === "All") searchParams.delete("category");
     else searchParams.set("category", cat);
     setSearchParams(searchParams, { replace: true });
+  };
+
+  const handlePreview = async (resource: Resource) => {
+    if (resource.type === 'book') {
+      const base = (import.meta.env.VITE_API_URL || 'http://localhost:5000/api').replace(/\/$/, '');
+      const previewUrl = resource.downloadUrl && !resource.downloadUrl.startsWith('http')
+        ? `${base}${resource.downloadUrl}`
+        : resource.downloadUrl;
+      setPdfUrl(previewUrl || '');
+      setPreview(null);
+    } else {
+      setPreview(resource);
+      setPdfUrl(null);
+    }
+  };
+
+  const handleClosePdf = () => {
+    setPdfUrl(null);
   };
 
   useEffect(() => {
@@ -203,9 +223,15 @@ const Resources = () => {
                   {resource.downloadCount != null && resource.downloadCount > 0 && (
                     <p className="text-xs text-muted-foreground mb-4">{resource.downloadCount} downloads</p>
                   )}
-                  <Button variant="outline" size="sm" className="w-full gap-2 mb-2" onClick={() => setPreview(resource)}>
-                    <Eye size={14} /> Preview
-                  </Button>
+                  {resource.type === 'book' ? (
+                    <Button variant="outline" size="sm" className="w-full gap-2 mb-2" onClick={() => handlePreview(resource)}>
+                      <Eye size={14} /> Read
+                    </Button>
+                  ) : (
+                    <Button variant="outline" size="sm" className="w-full gap-2 mb-2" onClick={() => setPreview(resource)}>
+                      <Eye size={14} /> Preview
+                    </Button>
+                  )}
                   <a
                       href={resource.downloadUrl}
                       target="_blank"
@@ -254,6 +280,8 @@ const Resources = () => {
           )}
         </DialogContent>
       </Dialog>
+
+      <PdfViewer url={pdfUrl || ''} title={preview?.title || 'PDF'} open={!!pdfUrl} onClose={handleClosePdf} />
     </Layout>
   );
 };

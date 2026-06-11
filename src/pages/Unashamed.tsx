@@ -3,7 +3,6 @@ import { motion } from "framer-motion";
 import Layout from "@/components/Layout";
 import SectionWrapper from "@/components/SectionWrapper";
 import FloatingParticles from "@/components/FloatingParticles";
-import { PodcastPlayer } from "@/components/PodcastPlayer";
 import { Play, ExternalLink, Youtube, Instagram } from "lucide-react";
 import { videosApi, Video } from "@/api/videos";
 
@@ -94,14 +93,6 @@ const Unashamed = () => {
     videosApi.getAll().then(setApiVideos).catch(() => setApiVideos([]));
   }, []);
 
-  const podcastEpisodes = videos.map((v) => ({
-    id: String(v.id),
-    title: v.title,
-    description: v.description,
-    duration: v.duration,
-    audioUrl: v.youtubeUrl,
-  }));
-
   const displayVideos = apiVideos.length
     ? apiVideos.map((v, i) => ({
         id: i + 1,
@@ -139,15 +130,6 @@ const Unashamed = () => {
               and into the bold, unashamed life God designed for them.
             </p>
           </motion.div>
-        </div>
-      </section>
-
-      <section className="section-padding bg-muted border-y border-border">
-        <div className="container-custom max-w-3xl">
-          <SectionWrapper>
-            <h2 className="font-heading text-2xl tracking-wider text-center mb-6">Podcast Player</h2>
-            <PodcastPlayer episodes={podcastEpisodes} />
-          </SectionWrapper>
         </div>
       </section>
 

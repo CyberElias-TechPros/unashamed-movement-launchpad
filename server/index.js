@@ -8,12 +8,13 @@ const helmet = require('helmet');
 const compression = require('compression');
 const morgan = require('morgan');
 const cookieParser = require('cookie-parser');
+const path = require('path');
 
 dotenv.config();
 
-const app = express();
-
 connectDB();
+
+const app = express();
 
 app.use(helmet({
   contentSecurityPolicy: {
@@ -67,7 +68,7 @@ app.use(helmet({
       upgradeInsecureRequests: [],
     },
   },
-  crossOriginEmbedderPolicy: false, // Allow embedded YouTube videos
+  crossOriginEmbedderPolicy: false,
   crossOriginResourcePolicy: { policy: 'cross-origin' },
   hsts: {
     maxAge: 31536000,
@@ -100,7 +101,10 @@ app.use(express.json({
 app.use(sanitizeInput);
 app.use(express.urlencoded({ extended: true }));
 
-// Routes
+const DIST_DIR = path.join(__dirname, '..', 'dist');
+app.use(express.static(DIST_DIR, { immutable: true, maxAge: '1y' }));
+app.use('/resources', express.static(path.join(__dirname, '..', 'public', 'resources'), { immutable: true, maxAge: '1y' }));
+
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/testimonies', require('./routes/testimonies'));
 app.use('/api/products', require('./routes/products'));
@@ -120,7 +124,6 @@ app.use('/api/reviews', require('./routes/reviews'));
 app.use('/api/uploads', require('./routes/uploads'));
 app.use('/api/settings', require('./routes/settings'));
 
-// Health check
 app.get('/api/health', (req, res) => {
   res.json({
     status: 'ok',
@@ -129,10 +132,8 @@ app.get('/api/health', (req, res) => {
   });
 });
 
-app.use((err, req, res, next) => {
-  console.error(err.stack);
-  const message = process.env.NODE_ENV === 'production' ? 'Something went wrong!' : err.message;
-  res.status(500).json({ message });
+app.get('*', (req, res) => {
+  res.sendFile(path.join(DIST_DIR, 'index.html'));
 });
 
 const PORT = process.env.PORT || 5000;

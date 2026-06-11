@@ -90,6 +90,18 @@ exports.getById = async (req, res) => {
   } catch (error) { res.status(500).json({ message: error.message }); }
 };
 
+exports.getPdfUrl = async (req, res) => {
+  try {
+    const resource = await Resource.findById(req.params.id);
+    if (!resource) return res.status(404).json({ message: 'Not found' });
+    const pdfUrl = resource.downloadUrl || resource.externalUrl || resource.fileUrl || '';
+    if (!pdfUrl) return res.status(404).json({ message: 'No PDF URL available' });
+    res.json({ pdfUrl });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 exports.create = async (req, res) => {
   try { res.status(201).json(await Resource.create(req.body)); }
   catch (error) { res.status(500).json({ message: error.message }); }

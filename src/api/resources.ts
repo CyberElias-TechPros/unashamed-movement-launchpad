@@ -40,8 +40,9 @@ export const resourcesApi = {
 
   getById: (id: string) => api.get<Resource>(`/resources/${id}`),
 
-  download: (resourceId: string) => 
-    api.post<{ downloadUrl: string; message: string }>(`/resources/${resourceId}/download`),
+  getPdfUrl: (id: string) => api.get<{ pdfUrl: string }>(`/resources/${id}/pdf-url`),
+
+  getDownloadUrl: (id: string) => api.post<{ downloadUrl: string }>(`/resources/${id}/download`),
 
   create: (data: Omit<Resource, 'id' | '_id'>) => api.post<Resource>('/resources', data),
 

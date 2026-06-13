@@ -1,4 +1,4 @@
-const CACHE_NAME = 'ttin-v2';
+const CACHE_NAME = 'ttin-v3';
 const STATIC_CACHE = [
   '/',
   '/index.html',

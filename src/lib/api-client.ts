@@ -30,10 +30,12 @@ const apiClient = async <T>(endpoint: string, options: RequestOptions = {}): Pro
     csrfToken,
   } = options;
 
+  const isFormData = body instanceof FormData;
+
   const config: RequestInit = {
     method,
     headers: {
-      'Content-Type': 'application/json',
+      ...(isFormData ? {} : { 'Content-Type': 'application/json' }),
       ...headers,
     },
     credentials: 'include',
@@ -47,7 +49,7 @@ const apiClient = async <T>(endpoint: string, options: RequestOptions = {}): Pro
   }
 
   if (body) {
-    config.body = JSON.stringify(body);
+    config.body = isFormData ? body : JSON.stringify(body);
   }
 
   if (signal) {
@@ -152,6 +154,8 @@ export const api = {
     apiClient<T>(endpoint, { ...options, method: 'GET' }),
   post: <T>(endpoint: string, body: unknown, options?: Omit<RequestOptions, 'method' | 'body'>) =>
     apiClient<T>(endpoint, { ...options, method: 'POST', body }),
+  upload: <T>(endpoint: string, formData: FormData, options?: Omit<RequestOptions, 'method' | 'body'>) =>
+    apiClient<T>(endpoint, { ...options, method: 'POST', body: formData }),
   put: <T>(endpoint: string, body: unknown, options?: Omit<RequestOptions, 'method' | 'body'>) =>
     apiClient<T>(endpoint, { ...options, method: 'PUT', body }),
   patch: <T>(endpoint: string, body: unknown, options?: Omit<RequestOptions, 'method' | 'body'>) =>

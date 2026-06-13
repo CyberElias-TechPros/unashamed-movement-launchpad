@@ -13,8 +13,8 @@ const validate = (req, res, next) => {
 
 router.get('/', c.getAll);
 router.post('/register', [
-  body('name').trim().notEmpty(),
-  body('email').isEmail().normalizeEmail(),
+  body('attendeeName').trim().notEmpty(),
+  body('attendeeEmail').isEmail().normalizeEmail(),
   body('eventId').notEmpty(),
 ], validate, c.register);
 router.get('/:id/registrations', c.getRegistrationCount);

@@ -101,10 +101,7 @@ app.use(express.json({
 app.use(sanitizeInput);
 app.use(express.urlencoded({ extended: true }));
 
-const DIST_DIR = path.join(__dirname, '..', 'dist');
-app.use(express.static(DIST_DIR, { immutable: true, maxAge: '1y' }));
-app.use('/resources', express.static(path.join(__dirname, '..', 'public', 'resources'), { immutable: true, maxAge: '1y' }));
-
+// Routes
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/testimonies', require('./routes/testimonies'));
 app.use('/api/products', require('./routes/products'));
@@ -130,6 +127,17 @@ app.get('/api/health', (req, res) => {
     message: 'TTIN API is running',
     database: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected',
   });
+});
+
+const DIST_DIR = path.join(__dirname, '..', 'dist');
+app.use(express.static(DIST_DIR, { immutable: true, maxAge: '1y' }));
+app.use('/resources', express.static(path.join(__dirname, '..', 'public', 'resources'), { immutable: true, maxAge: '1y' }));
+app.use('/uploads', express.static(path.join(__dirname, '..', 'public', 'uploads'), { immutable: true, maxAge: '1y' }));
+
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  const message = process.env.NODE_ENV === 'production' ? 'Something went wrong!' : err.message;
+  res.status(500).json({ message });
 });
 
 app.get('*', (req, res) => {

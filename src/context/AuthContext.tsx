@@ -28,6 +28,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [initialized, setInitialized] = useState(false);
 
   const refreshToken = async (): Promise<boolean> => {
+    if (!document.cookie.includes('userRole=')) {
+      return false;
+    }
+
     try {
       const response = await authApi.refreshToken();
       if (response.user) {

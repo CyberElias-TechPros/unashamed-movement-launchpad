@@ -34,7 +34,12 @@ const youtubeVideos = [
 const HeroSection = () => {
   const { data: hero } = useQuery({
     queryKey: ['content', 'hero'],
-    queryFn: () => contentApi.getByKey('hero'),
+    queryFn: () => contentApi.getByKey('hero').catch(() => ({
+      key: 'hero',
+      title: 'UNASHAMED',
+      content: '"Is your timidity worth someone else\'s eternity?"',
+      type: 'hero' as const,
+    })),
   });
 
   const heading = hero?.title || 'UNASHAMED';

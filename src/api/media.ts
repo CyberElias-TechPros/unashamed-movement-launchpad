@@ -4,19 +4,19 @@ export interface MediaItem {
   id: string;
   url: string;
   publicId: string;
+  filename: string;
   createdAt: string;
 }
 
 export const mediaApi = {
-  uploadToCloudinary: (file: File | null, url?: string) => {
+  upload: (file: File) => {
     const form = new FormData();
-    if (file) form.append('file', file);
-    if (url) form.append('url', url);
-    return api.post<{ url: string; publicId: string }>('/uploads/cloudinary', form, {
-      headers: { 'Content-Type': 'multipart/form-data' }
+    form.append('file', file);
+    return api.post<{ url: string; filename: string }>('/uploads/cloudinary', form, {
+      headers: { 'Content-Type': 'multipart/form-data' },
     });
   },
-  getAll: () => api.get<MediaItem[]>('/uploads/cloudinary')
+  list: () => api.get<MediaItem[]>('/uploads/cloudinary'),
 };
 
 export default mediaApi;

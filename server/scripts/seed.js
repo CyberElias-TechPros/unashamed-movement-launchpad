@@ -1,7 +1,3 @@
-/**
- * Seed MongoDB with TTIN catalog data.
- * Usage: cd server && npm run seed
- */
 require('dotenv').config();
 const mongoose = require('mongoose');
 const connectDB = require('../config/db');
@@ -10,6 +6,7 @@ const Product = require('../models/Product');
 const Resource = require('../models/Resource');
 const Event = require('../models/Event');
 const Testimony = require('../models/Testimony');
+const SiteContent = require('../models/SiteContent');
 
 const ADMIN_EMAIL = process.env.SEED_ADMIN_EMAIL || 'admin@thetimeisnow.com';
 const ADMIN_PASSWORD = process.env.SEED_ADMIN_PASSWORD || 'Admin123!';
@@ -78,6 +75,13 @@ const testimonies = [
   { name: 'Grace A.', location: 'Ghana', text: 'We formed a preaching team at our church after joining TTIN.', category: 'Evangelism', isApproved: true },
 ];
 
+const siteContent = [
+  { key: 'hero', title: 'The Time Is Now', content: 'Bold faith for today’s generation.', type: 'hero', metadata: {} },
+  { key: 'about', title: 'About', content: 'We are a global movement of unashamed believers.', type: 'about', metadata: {} },
+  { key: 'mission', title: 'Mission', content: 'Empowering believers to live boldly.', type: 'mission', metadata: {} },
+  { key: 'featured', title: 'Featured', content: 'Highlighted content and calls to action.', type: 'featured', metadata: {} },
+];
+
 async function seed() {
   await connectDB();
 
@@ -86,6 +90,7 @@ async function seed() {
     Resource.deleteMany({}),
     Event.deleteMany({}),
     Testimony.deleteMany({}),
+    SiteContent.deleteMany({}),
   ]);
 
   const existingAdmin = await User.findOne({ email: ADMIN_EMAIL });
@@ -106,8 +111,9 @@ async function seed() {
   await Resource.insertMany(resources);
   await Event.insertMany(events);
   await Testimony.insertMany(testimonies);
+  await SiteContent.insertMany(siteContent);
 
-  console.log(`Seeded ${products.length} products, ${resources.length} resources, ${events.length} events, ${testimonies.length} testimonies`);
+  console.log(`Seeded ${products.length} products, ${resources.length} resources, ${events.length} events, ${testimonies.length} testimonies, ${siteContent.length} site content`);
   await mongoose.connection.close();
   process.exit(0);
 }

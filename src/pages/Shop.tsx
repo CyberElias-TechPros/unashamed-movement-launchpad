@@ -47,8 +47,8 @@ const Shop = () => {
     const fetchProducts = async () => {
       setLoading(true);
       try {
-        const data = await productsApi.getAll(filter === "all" ? undefined : filter);
-        setProducts(data);
+        const data = await productsApi.getAll(filter === "all" ? undefined : { category: filter });
+        setProducts(Array.isArray(data) ? data : data.data || []);
       } catch (err) {
         setError("Failed to load products");
         console.error(err);

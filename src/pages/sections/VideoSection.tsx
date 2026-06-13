@@ -11,7 +11,8 @@ const VideoSection = () => {
     queryKey: VIDEO_FEED_QUERY_KEY,
     queryFn: async () => {
       const data = await videosApi.getAll();
-      return data.filter((v) => v.isPublished !== false).slice(0, 4);
+      const videos = Array.isArray(data) ? data : data.data || [];
+      return videos.filter((v) => v.isPublished !== false).slice(0, 4);
     },
   });
 
@@ -46,9 +47,9 @@ const VideoSection = () => {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-6xl mx-auto video-container">
               {videos.map((video, index) => {
-                let embedUrl = video.url;
-                if (video.url && (video.url.includes("youtube.com") || video.url.includes("youtu.be"))) {
-                  const ytMatch = video.url.match(/(?:youtube\.com\/(?:watch\?v=|shorts\/)|youtu\.be\/)([A-Za-z0-9_-]{11})/);
+                let embedUrl = video.youtubeUrl || video.url;
+                if (embedUrl && (embedUrl.includes("youtube.com") || embedUrl.includes("youtu.be"))) {
+                  const ytMatch = embedUrl.match(/(?:youtube\.com\/(?:watch\?v=|shorts\/)|youtu\.be\/)([A-Za-z0-9_-]{11})/);
                   if (ytMatch) {
                     embedUrl = `https://www.youtube.com/embed/${ytMatch[1]}?modestbranding=1&rel=0&showinfo=0&color=white`;
                   }

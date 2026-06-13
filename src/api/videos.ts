@@ -6,6 +6,7 @@ export interface Video {
   title: string;
   description: string;
   youtubeUrl: string;
+  url?: string;
   thumbnailUrl?: string;
   thumbnail?: string;
   duration?: string;
@@ -47,8 +48,8 @@ export const videosApi = {
   
   upload: (file: File) => {
     const formData = new FormData();
-    formData.append('video', file);
-    return api.post<Video>('/videos/upload', formData);
+    formData.append('file', file);
+    return api.upload<Video>('/videos/upload', formData);
   },
   
   // Bulk operations

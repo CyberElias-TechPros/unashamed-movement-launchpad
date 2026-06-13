@@ -92,19 +92,22 @@ exports.getFeed = async (req, res) => {
 
 exports.upload = async (req, res) => {
   try {
-    if (!req.file) return res.status(400).json({ message: 'No file uploaded' });
-    const ext = req.file.originalname.split('.').pop();
+    const uploadedFile = req.file || req.files?.file?.[0] || req.files?.video?.[0];
+    if (!uploadedFile) return res.status(400).json({ message: 'No file uploaded' });
+    const ext = uploadedFile.originalname.split('.').pop();
     const fs = require('fs').promises;
     const path = require('path');
     const uploadDir = path.join(__dirname, '../../public/uploads');
     await fs.mkdir(uploadDir, { recursive: true });
     const filename = `video-${Date.now()}-${Math.round(Math.random() * 1e9)}.${ext}`;
-    await fs.writeFile(path.join(uploadDir, filename), req.file.buffer);
+    await fs.writeFile(path.join(uploadDir, filename), uploadedFile.buffer);
     const video = await Video.create({
       title: req.body.title || filename,
       description: req.body.description || '',
-      url: `/uploads/${filename}`,
-      thumbnail: req.body.thumbnail || '',
+      youtubeUrl: `/uploads/${filename}`,
+      thumbnailUrl: req.body.thumbnail || '',
+      episode: req.body.episode || '',
+      duration: req.body.duration || '',
       isActive: true,
     });
     res.status(201).json(video);

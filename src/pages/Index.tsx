@@ -53,7 +53,10 @@ const Index = () => {
       eventsApi.getAll().catch(() => []),
       productsApi.getAll().catch(() => []),
       resourcesApi.getAll().catch(() => []),
-    ]).then(([events, products, resources]) => {
+    ]).then(([eventsResponse, productsResponse, resourcesResponse]) => {
+      const events = Array.isArray(eventsResponse) ? eventsResponse : eventsResponse.data || [];
+      const products = Array.isArray(productsResponse) ? productsResponse : productsResponse.data || [];
+      const resources = Array.isArray(resourcesResponse) ? resourcesResponse : resourcesResponse.data || [];
       setFeatured({
         events: events[0]?.title,
         shop: products[0]?.name,

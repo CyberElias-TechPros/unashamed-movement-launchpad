@@ -10,6 +10,7 @@ interface MediaItem {
   id: string;
   url: string;
   publicId: string;
+  filename: string;
   createdAt: string;
 }
 
@@ -20,20 +21,31 @@ const AdminMedia = () => {
   const [items, setItems] = useState<MediaItem[]>([]);
   const [uploading, setUploading] = useState(false);
 
+  const loadItems = async () => {
+    try {
+      const data = await mediaApi.list();
+      setItems(data);
+    } catch (e) {
+      console.error('Failed to load media', e);
+    }
+  };
+
   const handleUpload = async () => {
-    if (!file && !urlInput) return;
+    if (!file) return;
     setUploading(true);
     try {
-      const result = await mediaApi.uploadToCloudinary(file, urlInput);
+      const result = await mediaApi.upload(file);
       const newItem: MediaItem = {
-        id: result.publicId,
+        id: result.filename,
         url: result.url,
-        publicId: result.publicId,
+        publicId: result.filename,
+        filename: result.filename,
         createdAt: new Date().toISOString(),
       };
       setItems([newItem, ...items]);
       setFile(null);
       setUrlInput("");
+      loadItems();
     } catch (error) {
       console.error(error);
       alert("Failed to upload media");
@@ -60,7 +72,7 @@ const AdminMedia = () => {
         <Card>
           <CardHeader>
             <CardTitle>Upload Media</CardTitle>
-            <CardDescription>Upload images or videos to Cloudinary</CardDescription>
+            <CardDescription>Upload images or videos to server storage</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
@@ -82,7 +94,7 @@ const AdminMedia = () => {
                 className="w-full p-2 border border-border rounded bg-background"
               />
             </div>
-            <Button onClick={handleUpload} disabled={uploading || (!file && !urlInput)}>
+            <Button onClick={handleUpload} disabled={uploading || !file}>
               <Upload className="w-4 h-4 mr-2" />
               {uploading ? "Uploading..." : "Upload"}
             </Button>
@@ -101,10 +113,10 @@ const AdminMedia = () => {
                 {items.map((item) => (
                   <div key={item.id} className="border border-border rounded-lg p-3">
                     <div className="aspect-square bg-muted rounded mb-2 overflow-hidden">
-                      {item.url.includes('.mp4') || item.url.includes('.webm') ? (
-                        <video src={item.url} className="w-full h-full object-cover" />
+                      {item.url.match(/\.(mp4|webm)$/i) ? (
+                        <video src={item.url} className="w-full h-full object-cover" controls />
                       ) : (
-                        <img src={item.url} alt="" className="w-full h-full object-cover" />
+                        <img src={item.url} alt={item.filename} className="w-full h-full object-cover" />
                       )}
                     </div>
                     <div className="flex gap-1">

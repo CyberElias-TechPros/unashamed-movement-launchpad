@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { VideoIcon, Plus, Trash2, Search, Eye, ExternalLink, Image as ImageIcon, Edit, CheckSquare, Square } from "lucide-react";
+import { VideoIcon, Plus, Trash2, Search, Eye, ExternalLink, Image as ImageIcon, Edit, CheckSquare, Square, Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -65,8 +65,9 @@ const AdminVideoManager = () => {
     mutationFn: () =>
       videosApi.create({
         title,
-        url,
+        youtubeUrl: url,
         description,
+        thumbnailUrl: thumbnail,
         isPublished: true,
       }),
     onSuccess: () => {
@@ -117,27 +118,28 @@ const AdminVideoManager = () => {
     thumbnail: "",
     isPublished: true,
   });
+  const [videoFile, setVideoFile] = useState<File | null>(null);
 
   const handleEdit = useCallback((v: Video) => {
     setEditingId(v._id || v.id || null);
     setEditingFields({
       title: v.title || "",
-      url: v.url || "",
+      url: v.youtubeUrl || v.url || "",
       description: v.description || "",
-      thumbnail: v.thumbnail || "",
+      thumbnail: v.thumbnailUrl || v.thumbnail || "",
       isPublished: v.isPublished ?? true,
     });
     setTitle(v.title || "");
-    setUrl(v.url || "");
+    setUrl(v.youtubeUrl || v.url || "");
     setDescription(v.description || "");
-    setThumbnail(v.thumbnail || "");
+    setThumbnail(v.thumbnailUrl || v.thumbnail || "");
   }, [setTitle, setUrl, setDescription, setThumbnail]);
 
   const handleUpdate = useCallback(async () => {
     if (!editingId || !title.trim() || !url.trim()) return;
     await updateMutation.mutateAsync({
       id: editingId,
-      data: { title, url, description, thumbnail, isPublished: true },
+      data: { title, youtubeUrl: url, description, thumbnailUrl: thumbnail, isPublished: editingFields.isPublished },
     });
     setEditingId(null);
     setTitle("");
@@ -145,7 +147,7 @@ const AdminVideoManager = () => {
     setDescription("");
     setThumbnail("");
     setVideoType("youtube");
-  }, [editingId, title, url, description, thumbnail, updateMutation]);
+  }, [editingId, editingFields, title, url, description, thumbnail, updateMutation]);
 
   const handleCancelEdit = useCallback(() => {
     setEditingId(null);
@@ -157,14 +159,33 @@ const AdminVideoManager = () => {
   }, []);
 
   const handleAdd = useCallback(async () => {
-    if (!title.trim() || !url.trim()) return;
+    if (!title.trim()) return;
+    if (videoType === "upload" && videoFile) {
+      try {
+        await videosApi.upload(videoFile);
+        setTitle("");
+        setUrl("");
+        setDescription("");
+        setThumbnail("");
+        setVideoFile(null);
+        setVideoType("youtube");
+        refresh();
+        return;
+      } catch (e) {
+        console.error(e);
+        alert("Failed to upload video");
+        return;
+      }
+    }
+    if (!url.trim()) return;
     await addMutation.mutateAsync();
     setTitle("");
     setUrl("");
     setDescription("");
+    setVideoFile(null);
     setVideoType("youtube");
     setThumbnail("");
-  }, [title, url, description, videoType, addMutation]);
+  }, [title, url, videoType, videoFile, addMutation, refresh]);
 
   const getYouTubeId = (url: string) => {
     const match = url.match(/(?:youtube\.com\/(?:watch\?v=|shorts\/)|youtu\.be\/)([A-Za-z0-9_-]{11})/);
@@ -179,10 +200,11 @@ const AdminVideoManager = () => {
   };
 
   const getThumbnailUrl = (video: Video) => {
-    if (video.thumbnail) return video.thumbnail;
-    const ytId = getYouTubeId(video.url);
+    const videoUrl = video.youtubeUrl || video.url || "";
+    if (video.thumbnailUrl || video.thumbnail) return video.thumbnailUrl || video.thumbnail || "";
+    const ytId = getYouTubeId(videoUrl);
     if (ytId) return `https://img.youtube.com/vi/${ytId}/hqdefault.jpg`;
-    return video.url;
+    return videoUrl;
   };
 
   const currentPreset =
@@ -248,20 +270,33 @@ const AdminVideoManager = () => {
             </div>
             <div className="space-y-2">
               <Label>URL</Label>
-              <Input
-                value={url}
-                onChange={(e) => {
-                  setUrl(e.target.value);
-                  if (e.target.value) {
-                    const detected = getVideoType(e.target.value);
-                    setVideoType(detected);
-                  }
-                }}
-                placeholder={currentPreset}
-              />
-              {url && (
+              {videoType === "upload" ? (
+                <Input
+                  type="file"
+                  accept="video/*"
+                  onChange={(e) => setVideoFile(e.target.files?.[0] || null)}
+                />
+              ) : (
+                <Input
+                  value={url}
+                  onChange={(e) => {
+                    setUrl(e.target.value);
+                    if (e.target.value) {
+                      const detected = getVideoType(e.target.value);
+                      setVideoType(detected);
+                    }
+                  }}
+                  placeholder={currentPreset}
+                />
+              )}
+              {url && videoType !== "upload" && (
                 <p className="text-xs text-muted-foreground">
                   Detected type: <Badge variant="secondary" className="text-xs">{videoType}</Badge>
+                </p>
+              )}
+              {videoType === "upload" && (
+                <p className="text-xs text-muted-foreground">
+                  Detected type: <Badge variant="secondary" className="text-xs">upload</Badge>
                 </p>
               )}
             </div>
@@ -301,7 +336,7 @@ const AdminVideoManager = () => {
               )}
               <Button
                 onClick={editingId ? handleUpdate : handleAdd}
-                disabled={addMutation.isPending || updateMutation.isPending || !title.trim() || !url.trim()}
+                disabled={addMutation.isPending || updateMutation.isPending || !title.trim() || (videoType !== "upload" && !url.trim())}
                 className="w-full sm:w-auto"
               >
                 <Plus className="mr-2 h-4 w-4" />
@@ -453,14 +488,14 @@ const AdminVideoManager = () => {
                         variant="secondary"
                         size="icon"
                         className="absolute top-3 right-3 h-8 w-8 bg-black/40 hover:bg-black/60 text-white opacity-0 group-hover:opacity-100 transition-opacity"
-                        onClick={() => window.open(v.url, "_blank")}
+                        onClick={() => window.open(v.youtubeUrl || v.url, "_blank")}
                       >
                         <ExternalLink className="h-4 w-4" />
                       </Button>
                     </div>
                     <CardHeader className="pb-2">
                       <CardTitle className="text-sm truncate">{v.title}</CardTitle>
-                      <CardDescription className="line-clamp-1 text-xs">{v.url}</CardDescription>
+                      <CardDescription className="line-clamp-1 text-xs">{v.youtubeUrl || v.url}</CardDescription>
                     </CardHeader>
                     <CardContent>
                       <div className="flex items-center justify-between">

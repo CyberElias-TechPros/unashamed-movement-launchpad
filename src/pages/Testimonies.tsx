@@ -62,7 +62,7 @@ const Testimonies = () => {
       setLoading(true);
       try {
         const data = await testimonialsApi.getAll();
-        const approved = data.filter(t => t.isApproved !== false);
+        const approved = (Array.isArray(data) ? data : data.data || []).filter(t => t.isApproved !== false);
         setTestimonials(approved);
       } catch (err) {
         setError("Failed to load testimonials");

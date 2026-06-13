@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useCallback, useEffect } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import Layout from "@/components/Layout";
 import { Button } from "@/components/ui/button";
@@ -11,10 +11,12 @@ const OrderSuccess = () => {
   const { clearCart } = useCart();
   const orderId = searchParams.get("order") || searchParams.get("demo") || "confirmed";
 
+  const clear = useCallback(() => clearCart(), [clearCart]);
+
   useEffect(() => {
-    clearCart();
+    clear();
     trackPurchase(orderId, 0);
-  }, [clearCart, orderId]);
+  }, [clear, orderId]);
 
   return (
     <Layout>

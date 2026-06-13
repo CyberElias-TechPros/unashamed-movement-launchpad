@@ -90,7 +90,9 @@ const Unashamed = () => {
   const [apiVideos, setApiVideos] = useState<Video[]>([]);
 
   useEffect(() => {
-    videosApi.getAll().then(setApiVideos).catch(() => setApiVideos([]));
+    videosApi.getAll()
+      .then((data) => setApiVideos(Array.isArray(data) ? data : data.data || []))
+      .catch(() => setApiVideos([]));
   }, []);
 
   const displayVideos = apiVideos.length
@@ -100,8 +102,8 @@ const Unashamed = () => {
         description: v.description,
         duration: v.duration ? `${v.duration} min` : "—",
         episode: `EP ${String(i + 1).padStart(2, "0")}`,
-        youtubeUrl: v.url,
-        youtubeEmbedId: v.url.includes("embed") ? v.url.split("/").pop() : undefined,
+        youtubeUrl: v.youtubeUrl || v.url,
+        youtubeEmbedId: (v.youtubeUrl || v.url || '').includes("embed") ? (v.youtubeUrl || v.url || '').split("/").pop() : undefined,
       }))
     : videos;
 

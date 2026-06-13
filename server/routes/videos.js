@@ -3,7 +3,24 @@ const c = require('../controllers/videoController');
 const { protect, admin } = require('../middleware/auth');
 const { body, validationResult, param } = require('express-validator');
 const multer = require('multer');
-const upload = multer();
+const upload = multer({ storage: multer.diskStorage({
+  destination: async (req, file, cb) => {
+    try {
+      const fs = require('fs').promises;
+      const path = require('path');
+      await fs.mkdir(path.join(__dirname, '../../public/uploads'), { recursive: true });
+      cb(null, path.join(__dirname, '../../public/uploads'));
+    } catch (e) {
+      cb(e);
+    }
+  },
+  filename: (req, file, cb) => {
+    const path = require('path');
+    const ext = path.extname(file.originalname);
+    const base = path.basename(file.originalname, ext).replace(/[^a-zA-Z0-9_-]/g, '');
+    cb(null, `${base}-${Date.now()}${ext}`);
+  },
+})});
 
 const validate = (req, res, next) => {
   const errors = validationResult(req);
@@ -39,6 +56,6 @@ router.put('/:id', protect, admin, [
   body('youtubeUrl').optional().isURL(),
 ], validate, c.update);
 router.delete('/:id', protect, admin, c.remove);
-router.post('/upload', protect, admin, upload.single('file'), c.upload);
+router.post('/upload', protect, admin, upload.fields([{ name: 'file', maxCount: 1 }, { name: 'video', maxCount: 1 }]), c.upload);
 
 module.exports = router;

@@ -35,7 +35,13 @@ export const eventsApi = {
   
   delete: (id: string) => api.delete(`/events/${id}`),
   
-  register: (data: EventRegistration) => api.post<{ success: boolean; message: string }>(`/events/register`, data),
+  register: (data: EventRegistration) => api.post<{ success: boolean; message: string }>('/events/register', {
+    eventId: data.eventId,
+    attendeeEmail: data.attendeeEmail || '',
+    attendeeName: data.attendeeName || '',
+    email: data.attendeeEmail || '',
+    name: data.attendeeName || data.attendeeEmail?.split('@')[0] || 'Attendee',
+  }),
   
   getRegistrationCount: (eventId: string) => api.get<{ count: number }>(`/events/${eventId}/registrations`),
 };

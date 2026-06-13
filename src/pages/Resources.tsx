@@ -61,8 +61,8 @@ const Resources = () => {
     const fetchResources = async () => {
       setLoading(true);
       try {
-        const data = await resourcesApi.getAll(filter !== "All" ? filter : undefined);
-        setResources(data);
+        const data = await resourcesApi.getAll(filter !== "All" ? { category: filter } : undefined);
+        setResources(Array.isArray(data) ? data : data.data || []);
       } catch (err) {
         setError("Failed to load resources");
         console.error(err);

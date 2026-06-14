@@ -91,6 +91,9 @@ export const ordersApi = {
 
   checkout: (payload: CreateOrderPayload) =>
     api.post<{ orderId: string; sessionId: string; url: string }>('/orders/checkout', payload),
+
+  bulkUpdateStatus: (ids: string[], status: string) =>
+    api.post<{ message: string; modifiedCount: number }>('/orders/bulk-update-status', { ids, status }),
 };
 
 export default ordersApi;

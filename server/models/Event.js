@@ -19,7 +19,6 @@ const eventSchema = new mongoose.Schema({
 eventSchema.index({ date: 1 }); // Sort by date
 eventSchema.index({ isActive: 1, date: 1 }); // Active events by date
 eventSchema.index({ type: 1, isActive: 1 }); // Type filtering
-eventSchema.index({ date: { $gte: new Date() }, isActive: 1 }); // Upcoming events
 eventSchema.index({ createdAt: -1 }); // Newest events
 eventSchema.index({ title: 'text', description: 'text', location: 'text' }); // Search
 

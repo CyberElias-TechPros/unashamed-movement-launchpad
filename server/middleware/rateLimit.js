@@ -10,6 +10,13 @@ try {
 
 const inMemoryBuckets = new Map();
 
+setInterval(() => {
+  const now = Date.now();
+  for (const [key, entry] of inMemoryBuckets) {
+    if (now > entry.resetAt) inMemoryBuckets.delete(key);
+  }
+}, 60_000);
+
 const rateLimit = (windowMs = 15 * 60 * 1000, max = 100) => async (req, res, next) => {
   const key = `ratelimit:${req.ip}:${req.baseUrl}${req.path}`;
   const now = Date.now();

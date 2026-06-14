@@ -19,7 +19,12 @@ router.get('/my-orders', protect, c.getUserOrders);
 
 // Checkout and order creation
 router.post('/checkout', c.checkout);
-router.post('/', validate, c.create);
+router.post('/', [
+  body('customerName').trim().notEmpty().withMessage('Name is required'),
+  body('customerEmail').isEmail().withMessage('Valid email is required'),
+  body('items').isArray({ min: 1 }).withMessage('At least one item is required'),
+  body('totalAmount').isNumeric().withMessage('Total amount is required'),
+], validate, c.create);
 router.post('/checkout-session', protect, c.createCheckoutSession);
 
 // Bulk operations
@@ -27,8 +32,12 @@ router.post('/bulk-update-status', protect, admin, c.bulkUpdateStatus);
 
 // Individual operations
 router.get('/:id', protect, c.getById);
-router.put('/:id/status', protect, admin, validate, c.updateStatus);
-router.patch('/:id/status', protect, admin, validate, c.updateStatus);
+router.put('/:id/status', protect, admin, [
+  body('status').isIn(['pending', 'processing', 'shipped', 'delivered', 'completed', 'cancelled']).withMessage('Invalid status'),
+], validate, c.updateStatus);
+router.patch('/:id/status', protect, admin, [
+  body('status').isIn(['pending', 'processing', 'shipped', 'delivered', 'completed', 'cancelled']).withMessage('Invalid status'),
+], validate, c.updateStatus);
 router.patch('/:id/stock', protect, admin, c.updateStock);
 
 module.exports = router;

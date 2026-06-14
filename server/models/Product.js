@@ -27,6 +27,5 @@ productSchema.index({ stock: 1 }); // Inventory queries
 productSchema.index({ tag: 1 }); // Tag filtering
 productSchema.index({ category: 1, price: 1 }); // Category + price sorting
 productSchema.index({ category: 1, createdAt: -1 }); // Category + newest
-productSchema.index({ isActive: 1, stock: { $gt: 0 } }); // In-stock products
 
 module.exports = mongoose.model('Product', productSchema);

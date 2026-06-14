@@ -114,7 +114,7 @@ const Checkout = () => {
 
       const response = await ordersApi.checkout(orderPayload);
       const orderId = response.orderId;
-      const successUrl = `${window.location.origin}/order-success?order=${orderId}`;
+      const successUrl = `${window.location.origin}/order-success?order=${orderId}&total=${total}`;
       const cancelUrl = `${window.location.origin}/payment-cancelled?order=${orderId}`;
 
       const customerInfo = {
@@ -126,20 +126,20 @@ const Checkout = () => {
       };
 
       if (paymentMethod === "paystack") {
-        const response = await paystackApi.initialize({
+        const paystackRes = await paystackApi.initialize({
           ...customerInfo,
           orderId,
           callback_url: successUrl,
         });
 
-        if (!response.status || !response.data?.authorization_url) {
-          throw new Error(response.message || 'Paystack initialization failed');
+        if (!paystackRes.status || !paystackRes.data?.authorization_url) {
+          throw new Error(paystackRes.message || 'Paystack initialization failed');
         }
 
-        window.location.href = response.data.authorization_url;
+        window.location.href = paystackRes.data.authorization_url;
         return;
       } else if (paymentMethod === "flutterwave") {
-        const response = await flutterwaveApi.initialize({
+        const flutterwaveRes = await flutterwaveApi.initialize({
           email: customerInfo.email,
           amount: customerInfo.amount / 100,
           name: customerInfo.name,
@@ -149,15 +149,15 @@ const Checkout = () => {
           orderId,
         });
 
-        if (!response.status || !response.data?.authorization_url) {
-          throw new Error(response.message || 'Flutterwave initialization failed');
+        if (!flutterwaveRes.status || !flutterwaveRes.data?.authorization_url) {
+          throw new Error(flutterwaveRes.message || 'Flutterwave initialization failed');
         }
 
-        window.location.href = response.data.authorization_url;
+        window.location.href = flutterwaveRes.data.authorization_url;
         return;
       } else if (paymentMethod === "stripe") {
         const cartItems = items.map((item) => ({ productId: item.productId, quantity: item.quantity }));
-        const response = await stripeApi.createSession({
+        const stripeRes = await stripeApi.createSession({
           email: customerInfo.email,
           items: cartItems,
           successUrl,
@@ -166,11 +166,11 @@ const Checkout = () => {
           orderId,
         });
 
-        if (!response.url) {
-          throw new Error(response.message || 'Stripe session creation failed');
+        if (!stripeRes.url) {
+          throw new Error(stripeRes.message || 'Stripe session creation failed');
         }
 
-        window.location.href = response.url;
+        window.location.href = stripeRes.url;
         return;
       }
 
@@ -277,7 +277,7 @@ const Checkout = () => {
                 />
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="font-body text-sm mb-2 block">City</label>
                   <Input
@@ -302,6 +302,15 @@ const Checkout = () => {
                     placeholder="10001"
                     value={formData.zipCode}
                     onChange={(e) => setFormData({ ...formData, zipCode: e.target.value })}
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="font-body text-sm mb-2 block">Country</label>
+                  <Input
+                    placeholder="United States"
+                    value={formData.country}
+                    onChange={(e) => setFormData({ ...formData, country: e.target.value })}
                     required
                   />
                 </div>

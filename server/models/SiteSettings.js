@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 
-const settingSchema = mongoose.Schema({
+const settingSchema = new mongoose.Schema({
   siteName: { type: String, default: 'The Time Is Now' },
   tagline: { type: String, default: 'Bold faith for today\'s generation' },
   siteUrl: { type: String, default: 'https://thetimeisnow.org' },

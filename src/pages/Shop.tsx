@@ -18,6 +18,22 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 const APPAREL_SIZES = ["S", "M", "L", "XL", "XXL"];
 
+const SubscribeForm = ({ onSubscribe }: { onSubscribe: (email: string) => void }) => {
+  return (
+    <form className="flex gap-2" onSubmit={(e) => {
+      e.preventDefault();
+      const f = e.target as HTMLFormElement;
+      const email = (f.elements.namedItem('notifyEmail') as HTMLInputElement).value;
+      if (!email) return;
+      onSubscribe(email);
+      f.reset();
+    }}>
+      <input name="notifyEmail" placeholder="Email" className="p-2 border border-border rounded w-full" />
+      <button className="btn btn-primary" type="submit">Notify me</button>
+    </form>
+  );
+};
+
 const Shop = () => {
   const location = useLocation();
   const navigate = useNavigate();
@@ -84,11 +100,12 @@ const Shop = () => {
   // Reviews + subscribe logic
   const queryClient = useQueryClient();
   const productKey = selectedProduct?._id || selectedProduct?.id || '';
-  const { data: reviews } = useQuery<Review[] | undefined>({
+  const { data: reviewsResponse } = useQuery<PaginatedResponse<Review> | undefined>({
     queryKey: ['reviews', productKey],
-    queryFn: () => (productKey ? reviewsApi.getByProduct(productKey) : Promise.resolve([])),
+    queryFn: () => productKey ? reviewsApi.getByProduct(productKey) : Promise.resolve({ success: true, data: [], pagination: { page: 1, limit: 10, totalCount: 0, totalPages: 0, hasNextPage: false, hasPrevPage: false, nextPage: null, prevPage: null } }),
     enabled: !!productKey,
   });
+  const reviews = reviewsResponse?.data || [];
 
   const submitReview = useMutation({
     mutationFn: (payload: { productId: string; data: Partial<Review> }) =>
@@ -99,22 +116,6 @@ const Shop = () => {
   const subscribeStock = useMutation({
     mutationFn: (email: string) => productsApi.subscribeStock(productKey, email),
   });
-
-  const SubscribeForm = ({ onSubscribe }: { onSubscribe: (email: string) => void }) => {
-    return (
-      <form className="flex gap-2" onSubmit={(e) => {
-        e.preventDefault();
-        const f = e.target as HTMLFormElement;
-        const email = (f.elements.namedItem('notifyEmail') as HTMLInputElement).value;
-        if (!email) return;
-        onSubscribe(email);
-        f.reset();
-      }}>
-        <input name="notifyEmail" placeholder="Email" className="p-2 border border-border rounded w-full" />
-        <button className="btn btn-primary" type="submit">Notify me</button>
-      </form>
-    );
-  };
 
   const toggleWishlist = (product: Product, e: React.MouseEvent) => {
     e.stopPropagation();

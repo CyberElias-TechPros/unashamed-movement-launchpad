@@ -44,14 +44,7 @@ const AdminDashboard = () => {
     { label: "View Analytics", icon: TrendingUp, path: "/admin/analytics", color: "bg-green-500/10 text-green-600" },
   ];
 
-  const recentActivity: RecentActivity[] = [
-    { action: "New subscriber joined", time: "2 minutes ago", icon: "mail", type: "success" },
-    { action: "Product purchased: Unashamed T-Shirt", time: "15 minutes ago", icon: "shopping", type: "info" },
-    { action: "Testimonial submitted by Sarah M.", time: "1 hour ago", icon: "star", type: "success" },
-    { action: "Resource downloaded: Prayer Guide", time: "2 hours ago", icon: "file", type: "info" },
-    { action: "Video watched: Episode 12", time: "3 hours ago", icon: "eye", type: "info" },
-    { action: "New order received #2847", time: "5 hours ago", icon: "shopping", type: "warning" },
-  ];
+  const recentActivity: RecentActivity[] = [];
 
   const iconMap: Record<string, React.ElementType> = {
     mail: Mail,
@@ -128,6 +121,9 @@ const AdminDashboard = () => {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
+              {recentActivity.length === 0 && (
+                <p className="text-sm text-muted-foreground">Activity feed will appear here as site activity is tracked.</p>
+              )}
               {recentActivity.map((item, idx) => {
                 const IconComponent = iconMap[item.icon] || Eye;
                 return (

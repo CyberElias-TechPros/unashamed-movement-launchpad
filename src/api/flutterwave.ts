@@ -7,6 +7,7 @@ export interface FlutterwavePaymentData {
   tx_ref?: string;
   redirect_url?: string;
   orderId?: string;
+  currency?: string;
 }
 
 export interface FlutterwaveResult {

@@ -10,13 +10,14 @@ const OrderSuccess = () => {
   const [searchParams] = useSearchParams();
   const { clearCart } = useCart();
   const orderId = searchParams.get("order") || searchParams.get("demo") || "confirmed";
+  const totalParam = searchParams.get("total") || "0";
 
   const clear = useCallback(() => clearCart(), [clearCart]);
 
   useEffect(() => {
     clear();
-    trackPurchase(orderId, 0);
-  }, [clear, orderId]);
+    trackPurchase(orderId, Number(totalParam));
+  }, [clear, orderId, totalParam]);
 
   return (
     <Layout>

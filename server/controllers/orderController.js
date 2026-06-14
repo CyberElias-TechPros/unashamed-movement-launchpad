@@ -75,16 +75,16 @@ exports.create = async (req, res) => {
     try {
       for (const item of items) {
         const updated = await Product.findOneAndUpdate(
-          { _id: item.productId, stock: { $gte: item.quantity } },
+          { _id: item.product, stock: { $gte: item.quantity } },
           { $inc: { stock: -item.quantity } },
           { new: true }
         );
         if (!updated) throw new Error(item.name + ' only has insufficient stock');
-        reserved.push({ productId: item.productId, quantity: item.quantity });
+        reserved.push({ product: item.product, quantity: item.quantity });
       }
     } catch (err) {
       for (const r of reserved) {
-        await Product.findByIdAndUpdate(r.productId, { $inc: { stock: r.quantity } });
+        await Product.findByIdAndUpdate(r.product, { $inc: { stock: r.quantity } });
       }
       return res.status(400).json({ message: err.message });
     }
@@ -121,16 +121,16 @@ exports.checkout = async (req, res) => {
     try {
       for (const item of items) {
         const updated = await Product.findOneAndUpdate(
-          { _id: item.productId, stock: { $gte: item.quantity } },
+          { _id: item.product, stock: { $gte: item.quantity } },
           { $inc: { stock: -item.quantity } },
           { new: true }
         );
         if (!updated) throw new Error(item.name + ' only has insufficient stock');
-        reserved.push({ productId: item.productId, quantity: item.quantity });
+        reserved.push({ product: item.product, quantity: item.quantity });
       }
     } catch (err) {
       for (const r of reserved) {
-        await Product.findByIdAndUpdate(r.productId, { $inc: { stock: r.quantity } });
+        await Product.findByIdAndUpdate(r.product, { $inc: { stock: r.quantity } });
       }
       return res.status(400).json({ message: err.message });
     }
@@ -187,7 +187,7 @@ exports.updateStatus = async (req, res) => {
       if (status === 'cancelled') {
         try {
           for (const item of order.items) {
-            await Product.findByIdAndUpdate(item.productId, { $inc: { stock: item.quantity } });
+            await Product.findByIdAndUpdate(item.product, { $inc: { stock: item.quantity } });
           }
         } catch (e) {
           console.warn('Failed to release stock on cancellation', e);
@@ -297,6 +297,16 @@ exports.bulkUpdateStatus = async (req, res) => {
             : status === 'delivered'
             ? `Your order ${order._id} has been delivered`
             : `Your order ${order._id} has been cancelled`;
+
+        if (status === 'cancelled') {
+          try {
+            for (const item of order.items) {
+              await Product.findByIdAndUpdate(item.product, { $inc: { stock: item.quantity } });
+            }
+          } catch (e) {
+            console.warn('Failed to release stock on bulk cancellation for order', order._id, e);
+          }
+        }
         
         const html = `<p>Hi ${order.customerName},</p><p>Your order <strong>${order._id}</strong> status has been updated to <strong>${status}</strong>.</p>`;
         const text = `Hi ${order.customerName},\n\nYour order ${order._id} status has been updated to ${status}.`;

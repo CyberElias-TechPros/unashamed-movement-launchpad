@@ -2,6 +2,7 @@ const router = require('express').Router();
 const multer = require('multer');
 const fs = require('fs').promises;
 const path = require('path');
+const { protect, admin } = require('../middleware/auth');
 
 const UPLOAD_DIR = path.join(__dirname, '../../public/uploads');
 
@@ -38,7 +39,7 @@ router.post('/cloudinary', upload.single('file'), async (req, res) => {
   }
 });
 
-router.get('/cloudinary', async (req, res) => {
+router.get('/cloudinary', protect, admin, async (req, res) => {
   try {
     let files = [];
     try { files = await fs.readdir(UPLOAD_DIR); } catch { files = []; }

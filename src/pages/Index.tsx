@@ -40,8 +40,6 @@ const itemVariant = {
   visible: { opacity: 1, y: 0, transition: { duration: 0.6 } },
 };
 
-export { heroVariants, itemVariant };
-
 const Index = () => {
   const { toast } = useToast();
   const [email, setEmail] = useState("");

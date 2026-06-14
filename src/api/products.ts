@@ -27,21 +27,6 @@ export interface ProductVariant {
   stock: number;
 }
 
-export interface CartItem {
-  product: Product;
-  quantity: number;
-  variantId?: string;
-}
-
-export interface Order {
-  id?: string;
-  items: CartItem[];
-  total: number;
-  customerEmail: string;
-  customerName: string;
-  status: 'pending' | 'completed' | 'failed';
-}
-
 export interface ProductFilters extends PaginationParams {
   category?: string;
   search?: string;
@@ -77,24 +62,6 @@ export const productsApi = {
   
   getStock: (id: string) => api.get<{ stock: number }>(`/products/${id}/stock`),
   subscribeStock: (id: string, email: string) => api.post(`/products/${id}/subscribe-stock`, { email }),
-};
-
-export const ordersApi = {
-  create: (data: {
-    items: { productId: string; quantity: number; variantId?: string }[];
-    customerEmail: string;
-    customerName: string;
-  }) => api.post<{ sessionId: string; url: string }>('/orders/create-checkout-session', data),
-  
-  // Paginated endpoints
-  getAll: (params?: PaginationParams) => api.getPaginated<Order>('/orders', params || {}),
-  getMyOrders: (params?: PaginationParams) => api.getPaginated<Order>('/orders/my-orders', params || {}),
-  
-  getById: (id: string) => api.get<Order>(`/orders/${id}`),
-  
-  // Bulk operations
-  bulkUpdateStatus: (ids: string[], status: string) => 
-    api.post('/orders/bulk-update-status', { ids, status }),
 };
 
 export default productsApi;

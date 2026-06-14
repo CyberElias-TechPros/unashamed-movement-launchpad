@@ -55,7 +55,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
   const tax = subtotal * TAX_RATE;
   const total = subtotal + tax;
 
-  const addItem = (product: Product, quantity: number = 1, variant: CartItem['variant'] = null) => {
+  const addItem = (product: Product, quantity: number = 1, variant?: CartItem['variant']) => {
     setItems(prevItems => {
       // Check if item already exists in cart with same variant
       const existingItemIndex = prevItems.findIndex(

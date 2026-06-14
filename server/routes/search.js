@@ -10,7 +10,8 @@ router.get('/', async (req, res) => {
       return res.json({ products: [], resources: [], testimonies: [] });
     }
 
-    const regex = new RegExp(q, 'i');
+    const escaped = q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const regex = new RegExp(escaped, 'i');
     const [products, resources, testimonies] = await Promise.all([
       Product.find({ isActive: true, $or: [{ name: regex }, { description: regex }] }).limit(10),
       Resource.find({ isActive: true, $or: [{ title: regex }, { description: regex }] }).limit(10),

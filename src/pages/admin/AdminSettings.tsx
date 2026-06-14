@@ -21,7 +21,7 @@ import {
 } from "@/components/ui/select";
 import { useAuth } from "@/context/AuthContext";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { settingsApi } from "@/api/settings";
+import { settingsApi, SiteSettings } from "@/api/settings";
 import MediaPicker from "@/components/MediaPicker";
 
 const AdminSettings = () => {

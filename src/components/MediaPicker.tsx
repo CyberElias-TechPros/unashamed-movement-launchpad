@@ -26,7 +26,7 @@ const MediaPicker = ({ open, onOpenChange, onSelect }: MediaPickerProps) => {
   useEffect(() => {
     if (open) {
       setLoading(true);
-      mediaApi.getAll?.()
+      mediaApi.list()
         .then((data) => setItems(data || []))
         .catch(() => setItems([]))
         .finally(() => setLoading(false));

@@ -80,7 +80,8 @@ const Events = () => {
         title: "Registration successful!",
         description: `You've been registered for "${registerModal.title}".`,
       });
-    } catch {
+    } catch (err) {
+      console.error('Registration failed', err);
       toast({
         title: "Registration failed",
         description: "Please try again later.",

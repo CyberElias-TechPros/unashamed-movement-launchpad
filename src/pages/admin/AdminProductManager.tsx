@@ -170,8 +170,9 @@ const AdminProductManager = () => {
       images: editing.images,
     };
 
-    if (editing._id || editing._id) {
-      await updateMutation.mutateAsync({ id: editing._id || editing._id!, data: productData });
+    const productId = (editing as any)._id || (editing as any).id;
+    if (productId) {
+      await updateMutation.mutateAsync({ id: productId, data: productData });
     } else {
       await createMutation.mutateAsync(productData as Omit<Product, "id">);
     }

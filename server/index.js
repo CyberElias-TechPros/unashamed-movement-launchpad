@@ -12,7 +12,10 @@ const path = require('path');
 
 dotenv.config();
 
-connectDB();
+require('./utils/redis').connectRedis();
+
+(async () => {
+  await connectDB();
 
 const app = express();
 
@@ -145,6 +148,7 @@ app.get('*', (req, res) => {
 });
 
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
-  console.log(`TTIN Server running on port ${PORT}`);
-});
+  app.listen(PORT, () => {
+    console.log(`TTIN Server running on port ${PORT}`);
+  });
+})();

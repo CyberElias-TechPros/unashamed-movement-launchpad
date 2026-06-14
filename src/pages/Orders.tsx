@@ -59,7 +59,7 @@ const Orders = () => {
                   </div>
                   <div>
                     <p className="text-sm text-muted-foreground">Total</p>
-                    <p className="font-semibold">${order.totalAmount?.toFixed(2) ?? order.totalAmount}</p>
+                    <p className="font-semibold">${order.totalAmount?.toFixed(2) ?? '0.00'}</p>
                   </div>
                 </div>
 <div className="grid gap-2 sm:grid-cols-2">

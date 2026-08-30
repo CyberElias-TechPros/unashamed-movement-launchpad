@@ -50,9 +50,11 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 
-type ProductCategory = "merch" | "digital" | "book" | "apparel" | "accessories";
+type ProductCategory = "merch" | "digital";
 
 interface ProductFormData {
+  id?: string;
+  _id?: string;
   name: string;
   description: string;
   price: number;
@@ -168,9 +170,9 @@ const AdminProductManager = () => {
       category: editing.category,
       tag: editing.tag,
       images: editing.images,
-    };
+    } as Partial<Product>;
 
-    const productId = (editing as any)._id || (editing as any).id;
+    const productId = editing._id || editing.id;
     if (productId) {
       await updateMutation.mutateAsync({ id: productId, data: productData });
     } else {

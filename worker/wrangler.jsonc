@@ -1,0 +1,48 @@
+{
+  // Cloudflare Worker backend for TTIN (The Time Is Now).
+  // Database: Cloudflare D1 · Cache/rate-limit: Workers KV · Media: R2
+  //
+  // First-time setup:
+  //   npx wrangler d1 create ttin-db            -> paste the returned database_id below
+  //   npx wrangler kv namespace create CACHE    -> paste id below
+  //   npx wrangler r2 bucket create ttin-media
+  //   npx wrangler d1 execute ttin-db --remote --file=./schema.sql
+  //   npx wrangler d1 execute ttin-db --remote --file=./seed.sql   (optional sample data)
+  //   npx wrangler secret put JWT_SECRET        (and the other secrets — see .dev.vars.example)
+  //   npx wrangler deploy
+  "name": "ttin-api",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-08-01",
+  "workers_dev": true,
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "ttin-db",
+      // Placeholder — replace with the id printed by `wrangler d1 create ttin-db`.
+      "database_id": "00000000-0000-0000-0000-000000000000"
+    }
+  ],
+  "kv_namespaces": [
+    {
+      "binding": "CACHE",
+      // Placeholder — replace with the id printed by `wrangler kv namespace create CACHE`.
+      "id": "00000000000000000000000000000000"
+    }
+  ],
+  "r2_buckets": [
+    {
+      "binding": "MEDIA",
+      "bucket_name": "ttin-media"
+    }
+  ],
+  "vars": {
+    // Non-secret configuration. Secrets (JWT_SECRET, CSRF_SECRET, payment keys…)
+    // are set with `wrangler secret put` or in .dev.vars for local dev.
+    "CLIENT_URL": "http://localhost:8080",
+    "ALLOWED_ORIGINS": "http://localhost:8080,http://localhost:4173",
+    "EMAIL_FROM": "TTIN <no-reply@thetimeisnow.org>"
+  },
+  "observability": {
+    "enabled": true
+  }
+}

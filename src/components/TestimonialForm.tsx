@@ -60,7 +60,8 @@ export const TestimonialForm = ({ className }: TestimonialFormProps) => {
     setStatus("loading");
 
     try {
-      await testimonialsApi.submit(formData);
+      // API contract: testimony body is `text` (+ optional category enum).
+      await testimonialsApi.submit({ ...formData, text: formData.content, category: "Other" });
       setStatus("success");
       setFormData({ name: "", location: "", content: "" });
     } catch (error: unknown) {

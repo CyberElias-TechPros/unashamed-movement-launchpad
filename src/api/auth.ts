@@ -19,7 +19,15 @@ export interface User {
   email: string;
   name?: string;
   role: string;
+  avatar?: string;
+  emailVerified?: boolean;
 }
+
+/** Some endpoints return `_id` (legacy shape) — normalize to `id`. */
+const normalizeUser = <T extends { id?: string; _id?: string }>(user: T): T & { id: string } => ({
+  ...user,
+  id: user.id || user._id || '',
+});
 
 const getCsrf = async () => {
   const response = await api.get<{ csrfToken: string }>('/auth/csrf-token');
@@ -34,16 +42,19 @@ const postWithCsrf = async <T>(endpoint: string, body: unknown) => {
 
 export const authApi = {
   login: async (data: LoginData): Promise<AuthResponse> => {
-    return postWithCsrf<AuthResponse>('/auth/login', data);
+    const res = await postWithCsrf<AuthResponse>('/auth/login', data);
+    return { ...res, user: normalizeUser(res.user) };
   },
   
   register: async (data: LoginData & { name: string }): Promise<AuthResponse> => {
-    return postWithCsrf<AuthResponse>('/auth/register', data);
+    const res = await postWithCsrf<AuthResponse>('/auth/register', data);
+    return { ...res, user: normalizeUser(res.user) };
   },
   
-  getProfile: () => api.get<User>('/auth/profile'),
+  getProfile: async () => normalizeUser(await api.get<User>('/auth/profile')),
   
-  updateProfile: (data: Partial<User>) => postWithCsrf<User>('/auth/profile', data),
+  // Fixed: was POST, but the API only implements PUT /auth/profile.
+  updateProfile: (data: Partial<User>) => api.put<{ user: User }>('/auth/profile', data).then(res => normalizeUser(res.user ?? (res as unknown as User))),
   
   logout: () => postWithCsrf('/auth/logout', {}),
 
@@ -53,17 +64,12 @@ export const authApi = {
   forgotPassword: (email: { email: string }) => postWithCsrf<{ resetUrl?: string }>('/auth/forgot-password', email),
   resetPassword: (payload: { token: string; password: string }) => postWithCsrf<{ message: string }>('/auth/reset-password', payload),
   
-  refreshToken: () => api.post<{ accessToken: string; user: User }>('/auth/refresh'),
+  refreshToken: async () => {
+    const res = await api.post<{ accessToken: string; user: User }>('/auth/refresh', {});
+    return { ...res, user: normalizeUser(res.user) };
+  },
   
   getCsrfToken: () => api.get<{ csrfToken: string }>('/auth/csrf-token'),
-  
-  getCurrentUser: (): User | null => {
-    return null;
-  },
-  
-  isAuthenticated: (): boolean => {
-    return true;
-  },
 };
 
 export default authApi;

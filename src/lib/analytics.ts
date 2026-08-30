@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import { API_BASE_URL } from './api-client';
 
 export interface AnalyticsEvent {
   category: string;
@@ -7,11 +8,10 @@ export interface AnalyticsEvent {
   value?: number;
 }
 
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
 export const trackEvent = async (event: AnalyticsEvent): Promise<void> => {
   try {
-    await fetch(`${API_BASE}/analytics`, {
+    await fetch(`${API_BASE_URL}/analytics`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

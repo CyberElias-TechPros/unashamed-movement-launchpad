@@ -1,6 +1,8 @@
-const API_BASE_URL = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? '/api' : 'http://localhost:5000/api');
+const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
 
-interface RequestOptions {
+export { API_BASE_URL };
+
+export interface RequestOptions {
   method?: 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH';
   body?: unknown;
   headers?: Record<string, string>;
@@ -18,6 +20,41 @@ class ApiError extends Error {
 }
 
 const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
+/* ------------------------------------------------------------------ */
+/* CSRF — fetched lazily once per session and attached automatically   */
+/* to every mutating request (the Worker requires it on auth/contact). */
+/* ------------------------------------------------------------------ */
+
+let cachedCsrfToken: string | null = null;
+let csrfFetch: Promise<string | null> | null = null;
+
+export const fetchCsrfToken = async (force = false): Promise<string | null> => {
+  if (force) {
+    cachedCsrfToken = null;
+    csrfFetch = null;
+  }
+  if (cachedCsrfToken) return cachedCsrfToken;
+  if (!csrfFetch) {
+    csrfFetch = (async () => {
+      try {
+        const res = await fetch(`${API_BASE_URL}/auth/csrf-token`, {
+          credentials: 'include',
+          headers: { Accept: 'application/json' },
+        });
+        if (!res.ok) return null;
+        const data = (await res.json()) as { csrfToken?: string };
+        cachedCsrfToken = data.csrfToken || null;
+        return cachedCsrfToken;
+      } catch {
+        return null;
+      }
+    })();
+  }
+  return csrfFetch;
+};
+
+const MUTATING_METHODS = new Set(['POST', 'PUT', 'PATCH', 'DELETE']);
 
 const apiClient = async <T>(endpoint: string, options: RequestOptions = {}): Promise<T> => {
   const {
@@ -41,11 +78,12 @@ const apiClient = async <T>(endpoint: string, options: RequestOptions = {}): Pro
     credentials: 'include',
   };
 
-  if (csrfToken) {
-    config.headers = {
-      ...config.headers,
-      'X-CSRF-Token': csrfToken,
-    };
+  // Attach CSRF token automatically on mutating calls unless one was supplied.
+  if (MUTATING_METHODS.has(method)) {
+    const token = csrfToken ?? (await fetchCsrfToken());
+    if (token) {
+      config.headers = { ...config.headers, 'X-CSRF-Token': token };
+    }
   }
 
   if (body) {
@@ -56,9 +94,10 @@ const apiClient = async <T>(endpoint: string, options: RequestOptions = {}): Pro
     config.signal = signal;
   }
 
-  const { url } = { url: `${API_BASE_URL}${endpoint}` };
+  const url = `${API_BASE_URL}${endpoint}`;
 
   let lastError: Error | null = null;
+  let csrfRefreshed = false;
   const controller = signal ? undefined : new AbortController();
   const timeoutId = setTimeout(() => controller?.abort(), timeoutMs);
 
@@ -76,11 +115,19 @@ const apiClient = async <T>(endpoint: string, options: RequestOptions = {}): Pro
           throw new Error('Unauthorized');
         }
 
+        // CSRF token can go stale (1h cookie) — refresh once and retry.
+        if (response.status === 403 && MUTATING_METHODS.has(method) && !csrfRefreshed && !csrfToken) {
+          csrfRefreshed = true;
+          const fresh = await fetchCsrfToken(true);
+          if (fresh) {
+            config.headers = { ...config.headers, 'X-CSRF-Token': fresh };
+            attempt--; // don't consume a retry slot
+            continue;
+          }
+        }
+
         if (!response.ok) {
           const errorData = await response.json().catch(() => ({ message: 'Request failed' }));
-          if (response.status >= 500 || response.status === 429) {
-            throw new ApiError(response.status, errorData.message || 'Server error', errorData.code);
-          }
           throw new ApiError(response.status, errorData.message || 'Request failed', errorData.code);
         }
 
@@ -162,7 +209,7 @@ export const api = {
     apiClient<T>(endpoint, { ...options, method: 'PATCH', body }),
   delete: <T>(endpoint: string, options?: Omit<RequestOptions, 'method' | 'body'>) =>
     apiClient<T>(endpoint, { ...options, method: 'DELETE' }),
-  
+
   // Paginated GET with query parameters
   getPaginated: <T>(endpoint: string, params: PaginationParams, options?: Omit<RequestOptions, 'method' | 'body'>) =>
     apiClient<PaginatedResponse<T>>(`${endpoint}${buildQueryString(params)}`, { ...options, method: 'GET' }),

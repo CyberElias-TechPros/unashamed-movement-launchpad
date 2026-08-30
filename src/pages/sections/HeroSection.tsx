@@ -39,12 +39,14 @@ const HeroSection = () => {
       title: 'UNASHAMED',
       content: '"Is your timidity worth someone else\'s eternity?"',
       type: 'hero' as const,
+      metadata: {} as Record<string, unknown>,
     })),
   });
 
+  const heroMeta = (hero?.metadata ?? {}) as Record<string, string | undefined>;
   const heading = hero?.title || 'UNASHAMED';
   const subheading = hero?.content || '"Is your timidity worth someone else\'s eternity?"';
-  const blurb = hero?.metadata?.blurb || 'A movement for Christians who refuse to stay silent. Be bold. Be unapologetic. Be unashamed.';
+  const blurb = heroMeta.blurb || 'A movement for Christians who refuse to stay silent. Be bold. Be unapologetic. Be unashamed.';
 
   const [emblaRef, emblaApi] = useEmblaCarousel({ loop: true, duration: 30 });
   const [selectedIndex, setSelectedIndex] = useState(0);
@@ -107,12 +109,24 @@ const HeroSection = () => {
       <div ref={emblaRef} className="overflow-hidden h-screen">
         <div className="flex h-full">
           <div className="relative min-w-0 shrink-0 grow-0 basis-full flex items-center justify-center bg-primary">
+            {/* Poster is always rendered as the backdrop; the (optional) hero
+                video layers on top when present — fixes the broken/blank hero
+                when the video file is missing. */}
+            <div
+              className="absolute inset-0 bg-cover bg-center opacity-30"
+              style={{ backgroundImage: "url('/videos/hero-poster.jpg')" }}
+              aria-hidden="true"
+            />
             <video
               autoPlay
               muted
               loop
               playsInline
+              poster="/videos/hero-poster.jpg"
               className="absolute inset-0 w-full h-full object-cover opacity-20"
+              onError={(e) => {
+                (e.target as HTMLVideoElement).style.display = 'none';
+              }}
             >
               <source src="/videos/hero-preaching.mp4" type="video/mp4" />
             </video>
@@ -133,7 +147,7 @@ const HeroSection = () => {
               className="container-custom text-center relative z-10 pt-20"
             >
               <motion.p variants={itemVariant} className="font-body text-accent text-sm tracking-[0.3em] uppercase mb-6">
-                {hero?.metadata?.kicker || 'The Time Is Now'}
+                {heroMeta.kicker || 'The Time Is Now'}
               </motion.p>
 
               <TextReveal

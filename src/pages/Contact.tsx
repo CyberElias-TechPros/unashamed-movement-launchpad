@@ -13,7 +13,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { trackFormSubmit, trackEvent } from "@/lib/analytics";
-import { contactApi } from "@/api/contact";
+import { contactApi, type ContactData } from "@/api/contact";
 
 const contactSchema = z.object({
   name: z.string().min(1, "Name is required").max(100, "Name must be under 100 characters"),
@@ -46,7 +46,8 @@ const Contact = () => {
   const onSubmit = async (data: ContactFormValues) => {
     setIsSubmitting(true);
     try {
-      await contactApi.submit(data);
+      // Includes the honeypot `website` (optional); zod already validated.
+      await contactApi.submit(data as ContactData);
       trackFormSubmit("contact_form");
       toast({
         title: "Message sent!",

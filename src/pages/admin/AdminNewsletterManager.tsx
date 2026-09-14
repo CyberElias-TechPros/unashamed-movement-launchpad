@@ -48,7 +48,8 @@ const AdminNewsletterManager = () => {
     setLimit,
     refresh,
   } = usePaginatedQuery<Subscriber>({
-    endpoint: "/newsletter/subscribers",
+    // Fixed: was "/newsletter/subscribers" — an endpoint that never existed.
+    endpoint: "/newsletter",
     queryKey: ["newsletter", "subscribers"],
   });
 

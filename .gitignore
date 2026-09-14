@@ -24,3 +24,7 @@ server/.env
 *.njsproj
 *.sln
 *.sw?
+
+# Cloudflare Worker local state & secrets
+worker/.dev.vars
+worker/.wrangler/

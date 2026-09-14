@@ -1,9 +1,10 @@
-const CACHE_NAME = 'ttin-v3';
+const CACHE_NAME = 'ttin-v4';
 const STATIC_CACHE = [
   '/',
   '/index.html',
   '/manifest.json',
   '/techpros.png',
+  '/videos/hero-poster.jpg',
 ];
 
 self.addEventListener('install', (event) => {

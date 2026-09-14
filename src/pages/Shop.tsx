@@ -10,6 +10,7 @@ import { useCart } from "@/context/CartContext";
 import { trackAddToCart } from "@/lib/analytics";
 import { useToast } from "@/hooks/use-toast";
 import { productsApi, Product } from "@/api/products";
+import type { PaginatedResponse } from "@/lib/api-client";
 import { reviewsApi, Review } from "@/api/reviews";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useWishlist } from "@/context/WishlistContext";
@@ -46,6 +47,7 @@ const Shop = () => {
   const [error, setError] = useState<string | null>(null);
   const { addItem } = useCart();
   const { addItem: addWishlist, removeItem: removeWishlist, isInWishlist } = useWishlist();
+  const { toast } = useToast();
 
   useEffect(() => {
     const cat = new URLSearchParams(location.search).get("category");

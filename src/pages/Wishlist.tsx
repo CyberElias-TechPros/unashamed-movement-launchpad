@@ -37,23 +37,25 @@ const Wishlist = () => {
           )}
 
           <div className="grid gap-4">
-            {items.map((item) => (
-              <div key={item.productId} className="rounded-3xl border border-border p-5 bg-card flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                <div>
-                  <p className="font-semibold">{item.name}</p>
-                  <p className="text-sm text-muted-foreground">Qty: {item.quantity}</p>
-                  <p className="text-sm text-muted-foreground">${item.price}</p>
+            {items.map((item) => {
+              const productId = item._id || item.id || "";
+              return (
+                <div key={productId} className="rounded-3xl border border-border p-5 bg-card flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                  <div>
+                    <p className="font-semibold">{item.name}</p>
+                    <p className="text-sm text-muted-foreground">${item.price}</p>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button variant="secondary" onClick={() => addItem(item)}>
+                      Add to cart
+                    </Button>
+                    <Button variant="ghost" onClick={() => removeItem(productId)}>
+                      Remove
+                    </Button>
+                  </div>
                 </div>
-                <div className="flex gap-2">
-                  <Button variant="secondary" onClick={() => addItem(item, item.quantity)}>
-                    Add to cart
-                  </Button>
-                  <Button variant="ghost" onClick={() => removeItem(item.productId)}>
-                    Remove
-                  </Button>
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       </section>

@@ -52,13 +52,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const fetchCsrfToken = async (): Promise<string | null> => {
     try {
-      const response = await fetch('/api/auth/csrf-token', { credentials: 'include' });
-      if (response.ok) {
-        const data = await response.json();
-        setCsrfToken(data.csrfToken);
-        return data.csrfToken;
-      }
-      return null;
+      // Fixed: use the shared API client base so this works when the API is
+      // proxied or served from another origin.
+      const { fetchCsrfToken: refreshSharedToken } = await import('@/lib/api-client');
+      const token = await refreshSharedToken(true);
+      setCsrfToken(token);
+      return token;
     } catch {
       return null;
     }

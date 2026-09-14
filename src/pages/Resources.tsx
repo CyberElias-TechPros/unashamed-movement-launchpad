@@ -42,11 +42,14 @@ const Resources = () => {
   const handlePreview = async (resource: Resource) => {
     setPreview(resource);
     if (resource.type === 'book') {
-      const base = (import.meta.env.VITE_API_URL || 'http://localhost:5000/api').replace(/\/$/, '');
-      const previewUrl = resource.downloadUrl && !resource.downloadUrl.startsWith('http')
-        ? `${base}${resource.downloadUrl}`
-        : resource.downloadUrl;
-      setPdfUrl(previewUrl || '');
+      // Absolute paths ("/resources/...", "/api/uploads/...") are same-origin —
+      // don't prefix them with the API base (that produced broken URLs).
+      let previewUrl = resource.downloadUrl || '';
+      if (previewUrl && !/^https?:\/\//i.test(previewUrl) && !previewUrl.startsWith('/')) {
+        const base = (import.meta.env.VITE_API_URL || '/api').replace(/\/$/, '');
+        previewUrl = `${base}/${previewUrl}`;
+      }
+      setPdfUrl(previewUrl);
     } else {
       setPdfUrl(null);
     }

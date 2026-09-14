@@ -50,9 +50,12 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 
-type ProductCategory = "merch" | "digital" | "book" | "apparel" | "accessories";
+// Must stay in sync with the Product model enum on the server.
+type ProductCategory = "merch" | "digital";
 
 interface ProductFormData {
+  _id?: string;
+  id?: string;
   name: string;
   description: string;
   price: number;
@@ -170,7 +173,7 @@ const AdminProductManager = () => {
       images: editing.images,
     };
 
-    const productId = (editing as any)._id || (editing as any).id;
+    const productId = editing._id || editing.id;
     if (productId) {
       await updateMutation.mutateAsync({ id: productId, data: productData });
     } else {
@@ -224,9 +227,6 @@ const AdminProductManager = () => {
             <SelectItem value="all">All Categories</SelectItem>
             <SelectItem value="merch">Merch</SelectItem>
             <SelectItem value="digital">Digital</SelectItem>
-            <SelectItem value="book">Book</SelectItem>
-            <SelectItem value="apparel">Apparel</SelectItem>
-            <SelectItem value="accessories">Accessories</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -410,9 +410,6 @@ const AdminProductManager = () => {
                     <SelectContent>
                       <SelectItem value="merch">Merch</SelectItem>
                       <SelectItem value="digital">Digital</SelectItem>
-                      <SelectItem value="book">Book</SelectItem>
-                      <SelectItem value="apparel">Apparel</SelectItem>
-                      <SelectItem value="accessories">Accessories</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>

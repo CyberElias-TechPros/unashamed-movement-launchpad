@@ -48,6 +48,7 @@ export const testimonialsApi = {
   // Bulk operations
   bulkApprove: (ids: string[]) => api.post('/testimonies/bulk-approve', { ids }),
   bulkReject: (ids: string[]) => api.post('/testimonies/bulk-reject', { ids }),
+  bulkDelete: (ids: string[]) => api.post('/testimonies/bulk-delete', { ids }),
 };
 
 export default testimonialsApi;

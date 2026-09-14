@@ -2,20 +2,18 @@ import { useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import Layout from "@/components/Layout";
-import SectionWrapper from "@/components/SectionWrapper";
-import FloatingParticles from "@/components/FloatingParticles";
+import PageHero from "@/components/cinematic/PageHero";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Download, BookOpen, FileText, Headphones, ExternalLink, Eye } from "lucide-react";
-import LazyImage from "@/components/LazyImage";
+import { Download, BookOpen, FileText, Headphones, ExternalLink, Eye, ArrowRight } from "lucide-react";
 import PdfViewer from "@/components/PdfViewer";
 import { resourcesApi, Resource } from "@/api/resources";
 import { trackDownload } from "@/lib/analytics";
 
 const categories = ["All", "Church History & Martyrs for Christ", "Other Inspiration", "TTIN Resources"];
 
-const typeIcons = {
+const typeIcons: Record<string, React.ReactNode> = {
   book: <BookOpen size={20} />,
   devotional: <BookOpen size={20} />,
   guide: <FileText size={20} />,
@@ -41,12 +39,13 @@ const Resources = () => {
 
   const handlePreview = async (resource: Resource) => {
     setPreview(resource);
-    if (resource.type === 'book') {
-      const base = (import.meta.env.VITE_API_URL || 'http://localhost:5000/api').replace(/\/$/, '');
-      const previewUrl = resource.downloadUrl && !resource.downloadUrl.startsWith('http')
-        ? `${base}${resource.downloadUrl}`
-        : resource.downloadUrl;
-      setPdfUrl(previewUrl || '');
+    if (resource.type === "book") {
+      const base = (import.meta.env.VITE_API_URL || "http://localhost:5000/api").replace(/\/$/, "");
+      const previewUrl =
+        resource.downloadUrl && !resource.downloadUrl.startsWith("http")
+          ? `${base}${resource.downloadUrl}`
+          : resource.downloadUrl;
+      setPdfUrl(previewUrl || "");
     } else {
       setPdfUrl(null);
     }
@@ -59,6 +58,7 @@ const Resources = () => {
   useEffect(() => {
     const fetchResources = async () => {
       setLoading(true);
+      setError(null);
       try {
         const data = await resourcesApi.getAll(filter !== "All" ? { category: filter } : undefined);
         setResources(Array.isArray(data) ? data : data.data || []);
@@ -75,70 +75,27 @@ const Resources = () => {
 
   const filtered = resources;
 
-  if (loading) {
-    return (
-      <Layout>
-        <section className="section-padding bg-background pt-20">
-          <div className="container-custom">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {[1, 2, 3, 4, 5, 6].map((i) => (
-                <div key={i} className="bg-card rounded-2xl p-8 border border-border flex flex-col">
-                  <Skeleton className="w-full h-32 rounded-lg mb-4" />
-                  <Skeleton className="w-10 h-10 mb-4" />
-                  <Skeleton className="h-3 w-16 mb-4" />
-                  <Skeleton className="h-5 w-3/4 mb-2" />
-                  <Skeleton className="h-3 w-1/2 mb-2" />
-                  <Skeleton className="h-10 flex-1 mb-4" />
-                  <Skeleton className="h-8 w-full" />
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-      </Layout>
-    );
-  }
-
-  if (error) {
-    return (
-      <Layout>
-        <section className="section-padding bg-primary pt-20">
-          <div className="container-custom text-center">
-            <p className="text-primary-foreground/70">{error}</p>
-          </div>
-        </section>
-      </Layout>
-    );
-  }
-
   return (
     <Layout>
-      {/* Hero */}
-      <section className="relative min-h-[50vh] flex items-center bg-primary pt-20 overflow-hidden">
-        <div className="absolute inset-0">
-          <div className="absolute bottom-10 left-10 w-48 h-48 sm:w-72 sm:h-72 bg-secondary/15 rounded-full blur-3xl" />
-        </div>
-        <FloatingParticles count={12} color="hsl(43 78% 56%)" />
-        <div className="container-custom relative z-10 text-center">
-          <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7 }}>
-            <p className="font-body text-accent text-sm tracking-[0.3em] uppercase mb-4">Grow Your Faith</p>
-            <h1 className="font-heading text-4xl sm:text-6xl md:text-7xl lg:text-8xl tracking-wider text-primary-foreground mb-6">Resources</h1>
-            <p className="font-body text-primary-foreground/70 text-xl max-w-xl mx-auto">
-              Tools, guides, and content to equip you for bold, unashamed living.
-            </p>
-          </motion.div>
-        </div>
-      </section>
+      <PageHero
+        kicker="Equip Yourself"
+        title="RESOURCES"
+        italic="sharpen your witness"
+        description="Tools, guides, and content to equip you for bold, unashamed living."
+        align="center"
+      />
 
       {/* Filter */}
-      <section className="py-8 bg-background border-b border-border">
-        <div className="container-custom flex flex-wrap gap-3 justify-center">
+      <section className="sticky top-16 z-40 border-b border-border bg-background/80 backdrop-blur-md sm:top-20">
+        <div className="container-custom flex flex-wrap justify-center gap-2 py-4">
           {categories.map((t) => (
             <button
               key={t}
               onClick={() => setCategory(t)}
-              className={`font-heading text-sm tracking-wider px-5 py-2 rounded-full transition-all duration-300 ${
-                filter === t ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground hover:bg-primary/10"
+              className={`rounded-full px-5 py-2 font-heading text-sm tracking-wider transition-all duration-300 ${
+                filter === t
+                  ? "bg-accent text-accent-foreground"
+                  : "border border-border text-muted-foreground hover:border-accent/50 hover:text-accent"
               }`}
             >
               {t === "All" ? "All Resources" : t}
@@ -147,140 +104,169 @@ const Resources = () => {
         </div>
       </section>
 
-      {/* Community Link */}
-      <section className="section-padding bg-muted">
-        <div className="container-custom">
-          <div className="max-w-2xl mx-auto text-center">
-            <div className="bg-card rounded-2xl p-8 lg:p-12 shadow-lg border border-border">
-              <h3 className="font-heading text-2xl tracking-wider text-card-foreground mb-4">
-                Join Our Community
+      {/* Community band */}
+      <section className="border-b border-border bg-card/20">
+        <div className="container-custom py-10">
+          <div className="flex flex-col items-center justify-between gap-6 text-center sm:flex-row sm:text-left">
+            <div>
+              <h3 className="mb-1 font-heading text-2xl tracking-wider text-foreground">
+                Want it straight from the source?
               </h3>
-              <p className="font-body text-muted-foreground text-lg mb-6">
-                Connect with other bold believers and get access to exclusive resources, discussions, and encouragement.
+              <p className="font-body text-muted-foreground">
+                Connect with bold believers and get exclusive resources, discussions, and encouragement.
               </p>
-              <a
-                href="https://chat.whatsapp.com/DhzT4HxSnzFHftlnLIyJna"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 bg-accent text-accent-foreground px-6 py-3 rounded-full font-heading tracking-wider hover:bg-accent/90 transition-colors"
-              >
-                Join Our Community Here!
-              </a>
             </div>
+            <a
+              href="https://chat.whatsapp.com/DhzT4HxSnzFHftlnLIyJna"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="group inline-flex shrink-0 items-center gap-2 rounded-full bg-accent px-7 py-3.5 font-heading tracking-wider text-accent-foreground transition-all duration-300 hover:glow-accent"
+            >
+              Join The Community
+              <ArrowRight size={16} className="transition-transform duration-300 group-hover:translate-x-1" />
+            </a>
           </div>
         </div>
       </section>
 
-      {/* Resources Grid */}
-      <section className="section-padding bg-background">
-        <div className="container-custom">
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={filter}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
-            >
-              {filtered.map((resource, i) => (
-                <motion.div
-                  key={resource.id || resource._id}
-                  initial={{ opacity: 0, y: 30 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: i * 0.08 }}
-                  className="bg-card rounded-2xl p-8 border border-border hover:border-accent transition-all duration-500 hover:shadow-xl hover:-translate-y-1 flex flex-col overflow-hidden"
-                >
-                  <LazyImage
-                    src="/techpros.png"
-                    alt=""
-                    className="w-full h-32 object-cover rounded-lg mb-4 opacity-80"
-                  />
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="w-10 h-10 rounded-lg bg-primary text-primary-foreground flex items-center justify-center">
-                      {typeIcons[resource.type]}
-                    </div>
-                    <div>
-                      <span className="text-xs font-body text-muted-foreground uppercase tracking-wider">
-                        {resource.type}
-                      </span>
-                      {resource.free && (
-                        <span className="ml-2 text-xs bg-accent text-accent-foreground px-2 py-0.5 rounded-full font-heading tracking-wider">
-                          Free
-                        </span>
-                      )}
-                    </div>
+      {/* Resources grid */}
+      <section className="relative overflow-hidden bg-background">
+        <div className="section-padding">
+          <div className="container-custom">
+            {loading ? (
+              <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+                {[1, 2, 3, 4, 5, 6].map((i) => (
+                  <div key={i} className="flex flex-col rounded-2xl border border-border bg-card p-8">
+                    <Skeleton className="mb-4 h-10 w-10" />
+                    <Skeleton className="mb-4 h-3 w-16" />
+                    <Skeleton className="mb-2 h-5 w-3/4" />
+                    <Skeleton className="mb-2 h-3 w-1/2" />
+                    <Skeleton className="mb-4 h-16 flex-1" />
+                    <Skeleton className="h-8 w-full" />
                   </div>
-                  <h3 className="font-heading text-xl tracking-wider text-card-foreground mb-2">
-                    {resource.title}
-                  </h3>
-                  <p className="font-body text-muted-foreground text-sm mb-1">
-                    by {resource.author}
-                  </p>
-                  <p className="font-body text-muted-foreground text-sm mb-2 flex-1">
-                    {resource.description}
-                  </p>
-                  {resource.downloadCount != null && resource.downloadCount > 0 && (
-                    <p className="text-xs text-muted-foreground mb-4">{resource.downloadCount} downloads</p>
-                  )}
-                  {resource.type === 'book' ? (
-                    <Button variant="outline" size="sm" className="w-full gap-2 mb-2" onClick={() => handlePreview(resource)}>
-                      <Eye size={14} /> Read
-                    </Button>
-                  ) : (
-                    <Button variant="outline" size="sm" className="w-full gap-2 mb-2" onClick={() => setPreview(resource)}>
-                      <Eye size={14} /> Preview
-                    </Button>
-                  )}
-                  <a
-                      href={resource.downloadUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="w-full"
-                      onClick={async (e) => {
-                        const resourceId = resource._id || resource.id;
-                        trackDownload(resourceId?.toString() || '', resource.title);
-                        if (resourceId) {
-                          try {
-                            await resourcesApi.download(resourceId.toString());
-                          } catch {
-                            /* still open link */
-                          }
-                        }
-                      }}
+                ))}
+              </div>
+            ) : error ? (
+              <p className="text-center font-body text-muted-foreground">{error}</p>
+            ) : filtered.length === 0 ? (
+              <p className="text-center font-body text-muted-foreground">
+                Nothing in this category yet — check back soon.
+              </p>
+            ) : (
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={filter}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3"
+                >
+                  {filtered.map((resource, i) => (
+                    <motion.div
+                      key={resource.id || resource._id}
+                      initial={{ opacity: 0, y: 30 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: i * 0.06 }}
+                      className="group relative flex flex-col overflow-hidden rounded-2xl border border-border bg-card/60 p-7 transition-all duration-500 hover:-translate-y-1 hover:border-accent/60 hover:bg-card"
                     >
-                      <Button variant="default" size="sm" className="w-full gap-2">
-                        {resource.type === "podcast" ? (
-                          <>Listen <ExternalLink size={14} /></>
-                        ) : (
-                          <>Download <Download size={14} /></>
-                        )}
-                      </Button>
-                    </a>
+                      <span className="pointer-events-none absolute -right-4 -top-6 select-none font-heading text-8xl leading-none text-foreground/[0.04]" aria-hidden="true">
+                        {String(i + 1).padStart(2, "0")}
+                      </span>
+                      <div className="mb-5 flex items-center gap-3">
+                        <div className="flex h-11 w-11 items-center justify-center rounded-xl border border-accent/40 bg-accent/10 text-accent transition-all duration-500 group-hover:bg-accent group-hover:text-accent-foreground">
+                          {typeIcons[resource.type] || <FileText size={20} />}
+                        </div>
+                        <div>
+                          <span className="font-body text-xs uppercase tracking-[0.2em] text-muted-foreground">
+                            {resource.type}
+                          </span>
+                          {(resource.free ?? (resource as { isFree?: boolean }).isFree) && (
+                            <span className="ml-2 rounded-full bg-accent px-2.5 py-0.5 font-heading text-xs tracking-wider text-accent-foreground">
+                              Free
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                      <h3 className="mb-1.5 font-heading text-xl tracking-wider text-card-foreground">
+                        {resource.title}
+                      </h3>
+                      <p className="mb-2 font-body text-xs uppercase tracking-[0.15em] text-accent">
+                        by {resource.author}
+                      </p>
+                      <p className="mb-4 flex-1 font-body text-sm text-muted-foreground line-clamp-3">
+                        {resource.description}
+                      </p>
+                      {resource.downloadCount != null && resource.downloadCount > 0 && (
+                        <p className="mb-4 font-body text-xs text-muted-foreground">
+                          {resource.downloadCount} downloads
+                        </p>
+                      )}
+                      <div className="grid grid-cols-2 gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="gap-2"
+                          onClick={() => handlePreview(resource)}
+                        >
+                          <Eye size={14} /> {resource.type === "book" ? "Read" : "Preview"}
+                        </Button>
+                        <a
+                          href={resource.downloadUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="w-full"
+                          onClick={async () => {
+                            const resourceId = resource._id || resource.id;
+                            trackDownload(resourceId?.toString() || "", resource.title);
+                            if (resourceId) {
+                              try {
+                                await resourcesApi.download(resourceId.toString());
+                              } catch {
+                                /* still open link */
+                              }
+                            }
+                          }}
+                        >
+                          <Button size="sm" className="w-full gap-2">
+                            {resource.type === "podcast" ? (
+                              <>Listen <ExternalLink size={14} /></>
+                            ) : (
+                              <>Get <Download size={14} /></>
+                            )}
+                          </Button>
+                        </a>
+                      </div>
+                    </motion.div>
+                  ))}
                 </motion.div>
-              ))}
-            </motion.div>
-          </AnimatePresence>
+              </AnimatePresence>
+            )}
+          </div>
         </div>
       </section>
 
       <Dialog open={!!preview} onOpenChange={() => setPreview(null)}>
-        <DialogContent>
+        <DialogContent className="border-border bg-background">
           <DialogHeader>
-            <DialogTitle>{preview?.title}</DialogTitle>
+            <DialogTitle className="font-heading tracking-wider">{preview?.title}</DialogTitle>
           </DialogHeader>
           {preview && (
             <div className="space-y-4">
-              <p className="text-sm text-muted-foreground">by {preview.author}</p>
-              <p className="font-body">{preview.description}</p>
+              <p className="font-body text-xs uppercase tracking-[0.2em] text-accent">
+                by {preview.author}
+              </p>
+              <p className="font-body text-muted-foreground">{preview.description}</p>
               {preview.downloadCount != null && (
-                <p className="text-sm text-muted-foreground">{preview.downloadCount} downloads</p>
+                <p className="font-body text-sm text-muted-foreground">
+                  {preview.downloadCount} downloads
+                </p>
               )}
             </div>
           )}
         </DialogContent>
       </Dialog>
 
-      <PdfViewer url={pdfUrl || ''} title={preview?.title || 'PDF'} open={!!pdfUrl} onClose={handleClosePdf} />
+      <PdfViewer url={pdfUrl || ""} title={preview?.title || "PDF"} open={!!pdfUrl} onClose={handleClosePdf} />
     </Layout>
   );
 };

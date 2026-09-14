@@ -6,6 +6,8 @@ interface UsePaginatedQueryOptions<T> extends Omit<UseQueryOptions<PaginatedResp
   endpoint: string;
   initialPage?: number;
   initialLimit?: number;
+  /** Optional extra query-key parts appended to the built-in key (useful for cache namespacing). */
+  queryKey?: readonly unknown[];
 }
 
 interface UsePaginatedQueryResult<T> {
@@ -38,18 +40,18 @@ interface UsePaginatedQueryResult<T> {
 export function usePaginatedQuery<T>(
   options: UsePaginatedQueryOptions<T>
 ): UsePaginatedQueryResult<T> {
-  const { endpoint, initialPage = 1, initialLimit = 10, ...queryOptions } = options;
+  const { endpoint, initialPage = 1, initialLimit = 10, queryKey: customKey, ...queryOptions } = options;
   const queryClient = useQueryClient();
-  
+
   const [page, setPage] = useState(initialPage);
   const [limit, setLimit] = useState(initialLimit);
-  
+
   const params: PaginationParams = {
     page,
     limit,
   };
-  
-  const queryKey = [endpoint, params];
+
+  const queryKey = customKey ? [...customKey, endpoint, params] : [endpoint, params];
   
   const { data, isLoading, isError, error } = useQuery<PaginatedResponse<T>, Error>({
     queryKey,

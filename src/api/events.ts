@@ -12,6 +12,10 @@ export interface Event {
   upcoming?: boolean;
   imageUrl?: string;
   registrationUrl?: string;
+  capacity?: number;
+  registeredCount?: number;
+  image?: string;
+  isActive?: boolean;
   createdAt?: string;
 }
 

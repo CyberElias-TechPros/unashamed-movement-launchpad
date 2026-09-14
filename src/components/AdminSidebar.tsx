@@ -46,7 +46,15 @@ interface AdminSidebarProps {
   };
 }
 
-const menuItems = [
+interface AdminMenuItem {
+  title: string;
+  icon: React.ElementType;
+  path: string;
+  description: string;
+  badge?: (stats?: AdminSidebarProps["stats"]) => string | undefined;
+}
+
+const menuItems: AdminMenuItem[] = [
   {
     title: "Dashboard",
     icon: LayoutDashboard,

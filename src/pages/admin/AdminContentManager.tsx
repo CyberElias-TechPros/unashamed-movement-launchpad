@@ -44,7 +44,7 @@ const SectionEditor = ({
     extensions: [StarterKit],
     content: content,
     onUpdate: ({ editor }) => onUpdate(editor.getHTML()),
-    enabled: enabled,
+    editable: enabled,
   });
 
   if (!enabled || !editor) {
@@ -102,7 +102,7 @@ const AdminContentManager = () => {
     mutationFn: async () => {
       const section = sections.find((s) => s.key === activeTab);
       if (!section) return;
-      await contentApi.upsert({ key: activeTab, title: section.title, content: section.content, type: activeTab, imageUrl: section.imageUrl });
+      await contentApi.upsert({ key: activeTab, title: section.title, content: section.content, type: activeTab as "hero" | "about" | "values" | "stats" | "cta", imageUrl: section.imageUrl });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["content"] });

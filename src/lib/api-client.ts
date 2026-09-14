@@ -1,6 +1,9 @@
-const API_BASE_URL = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? '/api' : 'http://localhost:5000/api');
+// Default to a same-origin relative base so the app works both behind the
+// Vite dev proxy and the Express static server in production. Override with
+// VITE_API_URL only when the API genuinely lives on a different origin.
+const API_BASE_URL = (import.meta.env.VITE_API_URL || '/api').replace(/\/$/, '');
 
-interface RequestOptions {
+export interface RequestOptions {
   method?: 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH';
   body?: unknown;
   headers?: Record<string, string>;
@@ -152,13 +155,13 @@ const buildQueryString = (params: PaginationParams): string => {
 export const api = {
   get: <T>(endpoint: string, options?: Omit<RequestOptions, 'method' | 'body'>) =>
     apiClient<T>(endpoint, { ...options, method: 'GET' }),
-  post: <T>(endpoint: string, body: unknown, options?: Omit<RequestOptions, 'method' | 'body'>) =>
+  post: <T>(endpoint: string, body: unknown = {}, options?: Omit<RequestOptions, 'method' | 'body'>) =>
     apiClient<T>(endpoint, { ...options, method: 'POST', body }),
   upload: <T>(endpoint: string, formData: FormData, options?: Omit<RequestOptions, 'method' | 'body'>) =>
     apiClient<T>(endpoint, { ...options, method: 'POST', body: formData }),
-  put: <T>(endpoint: string, body: unknown, options?: Omit<RequestOptions, 'method' | 'body'>) =>
+  put: <T>(endpoint: string, body: unknown = {}, options?: Omit<RequestOptions, 'method' | 'body'>) =>
     apiClient<T>(endpoint, { ...options, method: 'PUT', body }),
-  patch: <T>(endpoint: string, body: unknown, options?: Omit<RequestOptions, 'method' | 'body'>) =>
+  patch: <T>(endpoint: string, body: unknown = {}, options?: Omit<RequestOptions, 'method' | 'body'>) =>
     apiClient<T>(endpoint, { ...options, method: 'PATCH', body }),
   delete: <T>(endpoint: string, options?: Omit<RequestOptions, 'method' | 'body'>) =>
     apiClient<T>(endpoint, { ...options, method: 'DELETE' }),

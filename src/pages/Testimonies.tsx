@@ -3,11 +3,13 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import Layout from "@/components/Layout";
 import SectionWrapper from "@/components/SectionWrapper";
-import FloatingParticles from "@/components/FloatingParticles";
+import PageHero from "@/components/cinematic/PageHero";
+import KineticText from "@/components/cinematic/KineticText";
+import EmberGlow from "@/components/cinematic/EmberGlow";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Quote, ArrowRight, Users, Globe, Download, Play, Book, Share2, MapPin } from "lucide-react";
+import { Quote, Users, Globe, Download, Play, Book, Share2, MapPin } from "lucide-react";
 import { TestimonySubmissionForm } from "@/components/TestimonySubmissionForm";
 import WorldMap from "@/components/WorldMap";
 import { testimonialsApi, Testimonial } from "@/api/testimonials";
@@ -36,6 +38,13 @@ const bookTestimonials = [
   { id: 3, quote: "The most practical guide to evangelism I've ever read. Highly recommend!", reader: "David L.", location: "United States" },
 ];
 
+const stats = [
+  { number: "100+", label: "People Preached Open Air", icon: <Users size={20} /> },
+  { number: "16", label: "Countries Reached", icon: <Globe size={20} /> },
+  { number: "158", label: "Books Downloaded", icon: <Download size={20} /> },
+  { number: "7", label: "Types of Locations", icon: <MapPin size={20} /> },
+];
+
 const Testimonies = () => {
   const location = useLocation();
   const navigate = useNavigate();
@@ -50,8 +59,8 @@ const Testimonies = () => {
 
   useEffect(() => {
     const params = new URLSearchParams(location.search);
-    const category = params.get('category');
-    const country = params.get('country');
+    const category = params.get("category");
+    const country = params.get("country");
     if (category) setActiveCategory(category);
     setCountryFilter(country);
     setPage(1);
@@ -62,10 +71,10 @@ const Testimonies = () => {
       setLoading(true);
       try {
         const data = await testimonialsApi.getAll();
-        const approved = (Array.isArray(data) ? data : data.data || []).filter(t => t.isApproved !== false);
+        const approved = (Array.isArray(data) ? data : data.data || []).filter((t) => t.isApproved !== false);
         setTestimonials(approved);
       } catch (err) {
-        setError("Failed to load testimonials");
+        setError("Failed to load testimonies");
         console.error(err);
       } finally {
         setLoading(false);
@@ -77,11 +86,11 @@ const Testimonies = () => {
 
   const handleCategoryChange = (category: string) => {
     setActiveCategory(category);
-    const newUrl = category === 'All' ? '/testimonies' : `/testimonies?category=${category}`;
+    const newUrl = category === "All" ? "/testimonies" : `/testimonies?category=${category}`;
     navigate(newUrl, { replace: true });
     trackEvent({
-      category: 'engagement',
-      action: 'filter',
+      category: "engagement",
+      action: "filter",
       label: `testimony_${category}`,
     });
   };
@@ -95,327 +104,284 @@ const Testimonies = () => {
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const paginated = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
-  if (loading) {
-    return (
-      <Layout>
-        <section className="section-padding bg-background pt-20">
-          <div className="container-custom">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {[1, 2, 3, 4, 5, 6].map((i) => (
-                <div key={i} className="bg-card rounded-2xl p-8 border border-border">
-                  <Skeleton className="w-10 h-10 mb-4" />
-                  <Skeleton className="h-5 w-3/4 mb-2" />
-                  <Skeleton className="h-4 w-1/2 mb-4" />
-                  <Skeleton className="h-20 w-full mb-4" />
-                  <Skeleton className="h-4 w-1/4" />
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-      </Layout>
-    );
-  }
-
-  if (error) {
-    return (
-      <Layout>
-        <section className="section-padding bg-primary pt-20">
-          <div className="container-custom text-center">
-            <p className="text-primary-foreground/70">{error}</p>
-          </div>
-        </section>
-      </Layout>
-    );
-  }
-
   return (
     <Layout>
-      {/* Hero */}
-      <section className="relative min-h-[60vh] flex items-center bg-primary pt-20 overflow-hidden">
-        <div className="absolute inset-0">
-          <div className="absolute top-20 left-20 w-48 h-48 sm:w-72 sm:h-72 bg-accent/10 rounded-full blur-3xl" />
-        </div>
-        <FloatingParticles count={15} color="hsl(43 78% 56%)" />
-        <div className="container-custom relative z-10">
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7 }}
-            className="text-center"
-          >
-            <p className="font-body text-accent text-sm tracking-[0.3em] uppercase mb-4">
-              Real Stories, Real Faith
-            </p>
-            <h1 className="font-heading text-4xl sm:text-6xl md:text-7xl lg:text-8xl tracking-wider text-primary-foreground mb-6">
-              Testimonies
-            </h1>
-            <p className="font-body text-primary-foreground/70 text-xl max-w-2xl mx-auto">
-              Lives transformed by the courage to be unashamed. These are stories 
-              from our community of bold believers.
-            </p>
-          </motion.div>
+      <PageHero
+        kicker="Real Stories, Real Faith"
+        title="TESTIMONIES"
+        italic="fire can't be faked"
+        description="Lives transformed by the courage to be unashamed — straight from the community of bold believers."
+      />
+
+      {/* Sticky filter bar */}
+      <section className="sticky top-16 z-40 border-b border-border bg-background/80 backdrop-blur-md sm:top-20">
+        <div className="container-custom flex flex-wrap justify-center gap-2 py-4">
+          {categories.map((cat) => (
+            <button
+              key={cat}
+              onClick={() => handleCategoryChange(cat)}
+              className={`rounded-full px-5 py-2 font-heading text-sm tracking-wider transition-all duration-300 ${
+                activeCategory === cat
+                  ? "bg-accent text-accent-foreground"
+                  : "border border-border text-muted-foreground hover:border-accent/50 hover:text-accent"
+              }`}
+            >
+              {cat}
+            </button>
+          ))}
         </div>
       </section>
 
-      {/* Filter */}
-      <section className="py-8 bg-background sticky top-0 z-40 border-b border-border">
-        <div className="container-custom">
-          <div className="flex flex-wrap gap-3 justify-center">
-            {categories.map((cat) => (
-              <button
-                key={cat}
-                onClick={() => handleCategoryChange(cat)}
-                className={`font-heading text-sm tracking-wider px-5 py-2 rounded-full transition-all duration-300 ${
-                  activeCategory === cat
-                    ? "bg-primary text-primary-foreground"
-                    : "bg-muted text-muted-foreground hover:bg-primary/10"
-                }`}
-              >
-                {cat}
-              </button>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Impact Statistics */}
-      <section className="section-padding bg-muted">
-        <div className="container-custom">
-          <SectionWrapper>
-            <div className="text-center mb-12">
-              <p className="font-body text-accent text-sm tracking-[0.3em] uppercase mb-4">
-                By The Numbers
-              </p>
-              <h2 className="font-heading text-3xl sm:text-5xl lg:text-6xl tracking-wider text-foreground mb-6">
-                Our Impact
+      {/* Impact numbers */}
+      <section className="relative overflow-hidden bg-background">
+        <EmberGlow intensity="low" />
+        <div className="section-padding">
+          <div className="container-custom">
+            <SectionWrapper className="text-center">
+              <div className="mb-5 flex items-center justify-center gap-4">
+                <span className="h-px w-12 bg-accent/70" />
+                <p className="kicker">By The Numbers</p>
+                <span className="h-px w-12 bg-accent/70" />
+              </div>
+              <h2 className="mb-14 font-heading tracking-wide text-foreground">
+                <KineticText text="OUR IMPACT" className="text-5xl sm:text-7xl" />
               </h2>
-            </div>
-          </SectionWrapper>
+            </SectionWrapper>
 
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-            {[
-              { number: "100+", label: "People Preached Open Air", icon: <Users className="w-6 h-6" /> },
-              { number: "16", label: "Countries Reached", icon: <Globe className="w-6 h-6" /> },
-              { number: "158", label: "Books Downloaded", icon: <Download className="w-6 h-6" /> },
-              { number: "7", label: "Types of Locations", icon: <MapPin className="w-6 h-6" /> },
-            ].map((stat, index) => (
-              <SectionWrapper key={stat.label} delay={index * 0.1}>
-                <div className="text-center">
-                  <div className="w-16 h-16 bg-accent rounded-full flex items-center justify-center text-white mb-4 mx-auto">
+            <div className="grid grid-cols-2 gap-px overflow-hidden rounded-2xl border border-border bg-border md:grid-cols-4">
+              {stats.map((stat) => (
+                <div key={stat.label} className="group flex flex-col items-center bg-background p-8 text-center transition-colors duration-500 hover:bg-card sm:p-10">
+                  <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full border border-accent/40 bg-accent/10 text-accent transition-all duration-500 group-hover:bg-accent group-hover:text-accent-foreground">
                     {stat.icon}
                   </div>
-                  <div className="font-heading text-4xl lg:text-5xl text-accent mb-2">
-                    {stat.number}
-                  </div>
-                  <div className="font-body text-muted-foreground">
-                    {stat.label}
-                  </div>
+                  <div className="font-heading text-4xl text-gradient-gold lg:text-5xl">{stat.number}</div>
+                  <div className="mt-2 font-body text-xs uppercase tracking-[0.2em] text-muted-foreground">{stat.label}</div>
                 </div>
-              </SectionWrapper>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Interactive Map Section */}
-      <section className="section-padding bg-primary">
-        <div className="container-custom">
-          <SectionWrapper>
-            <div className="text-center mb-12">
-              <p className="font-body text-accent text-sm tracking-[0.3em] uppercase mb-4">
-                Global Reach
-              </p>
-              <h2 className="font-heading text-3xl sm:text-5xl lg:text-6xl tracking-wider text-primary-foreground mb-6">
-                Interactive World Map
-              </h2>
-              <p className="font-body text-primary-foreground/70 text-xl max-w-3xl mx-auto">
-                See where people are preaching around the world
-              </p>
-            </div>
-          </SectionWrapper>
-
-          <SectionWrapper delay={0.2}>
-            <div className="bg-card rounded-2xl p-8 lg:p-12 shadow-lg border border-primary-foreground/20">
-              <WorldMap
-                onCountrySelect={(_code, name) => {
-                  navigate(`/testimonies?country=${encodeURIComponent(name)}`);
-                }}
-              />
-              {countryFilter && (
-                <p className="text-center mt-4 text-primary-foreground/80">
-                  Filtering by: <strong>{countryFilter}</strong>
-                  <Button variant="link" className="ml-2 text-accent" onClick={() => navigate("/testimonies")}>
-                    Clear
-                  </Button>
-                </p>
-              )}
-            </div>
-          </SectionWrapper>
-        </div>
-      </section>
-
-      {/* Preaching Locations */}
-      <section className="section-padding bg-background">
-        <div className="container-custom">
-          <SectionWrapper>
-            <div className="text-center mb-12">
-              <p className="font-body text-accent text-sm tracking-[0.3em] uppercase mb-4">
-                Where We Preach
-              </p>
-              <h2 className="font-heading text-3xl sm:text-5xl lg:text-6xl tracking-wider text-foreground mb-6">
-                Different Places People Have Preached
-              </h2>
-            </div>
-          </SectionWrapper>
-
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-7 gap-4">
-            {preachingLocations.map((location, index) => (
-              <SectionWrapper key={location} delay={index * 0.05}>
-                <div className="bg-card rounded-xl p-6 text-center border border-border hover:border-accent transition-colors">
-                  <MapPin className="w-8 h-8 text-accent mb-3 mx-auto" />
-                  <p className="font-heading text-foreground">{location}</p>
-                </div>
-              </SectionWrapper>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Video Testimonials */}
-      <section className="section-padding bg-muted">
-        <div className="container-custom">
-          <SectionWrapper>
-            <div className="text-center mb-12">
-              <p className="font-body text-accent text-sm tracking-[0.3em] uppercase mb-4">
-                Watch & Learn
-              </p>
-              <h2 className="font-heading text-3xl sm:text-5xl lg:text-6xl tracking-wider text-foreground mb-6">
-                Professionally Recorded Testimonials
-              </h2>
-              <p className="font-body text-muted-foreground text-xl max-w-3xl mx-auto">
-                Hear directly from people impacted by TTIN
-              </p>
-            </div>
-          </SectionWrapper>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {videoTestimonials.map((video, index) => (
-              <SectionWrapper key={video.id} delay={index * 0.1}>
-                <div className="bg-card rounded-2xl overflow-hidden border border-border hover:border-accent transition-all duration-500 hover:shadow-xl hover:-translate-y-1 group">
-                  <div className="relative aspect-video bg-black/20">
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      <button
-                        type="button"
-                        aria-label={`Play ${video.title}`}
-                        onClick={() => setActiveVideo(video)}
-                        className="w-16 h-16 bg-accent rounded-full flex items-center justify-center group-hover:bg-accent/90 transition-colors cursor-pointer"
-                      >
-                        <Play className="w-6 h-6 text-white ml-1" />
-                      </button>
-                    </div>
-                    <div className="absolute bottom-4 left-4 right-4">
-                      <p className="text-white font-heading text-lg">{video.title}</p>
-                    </div>
-                  </div>
-                  <div className="p-6">
-                    <p className="font-heading text-foreground mb-2">{video.speaker}</p>
-                    <p className="font-body text-muted-foreground text-sm">{video.location}</p>
-                  </div>
-                </div>
-              </SectionWrapper>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Written Testimonies */}
-      <section className="section-padding bg-background">
-        <div className="container-custom">
-          <SectionWrapper>
-            <div className="text-center mb-12">
-              <p className="font-body text-accent text-sm tracking-[0.3em] uppercase mb-4">
-                Real Stories
-              </p>
-              <h2 className="font-heading text-3xl sm:text-5xl lg:text-6xl tracking-wider text-foreground mb-6">
-                Written Testimonies Of TTIN Impact
-              </h2>
-            </div>
-          </SectionWrapper>
-
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={activeCategory}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              transition={{ duration: 0.3 }}
-              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
-            >
-              {paginated.map((t, i) => (
-                <motion.div
-                  key={t.id || t._id}
-                  initial={{ opacity: 0, y: 30 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: i * 0.1 }}
-                  className="bg-card rounded-2xl p-8 border border-border hover:border-accent transition-all duration-500 hover:shadow-xl hover:-translate-y-1 group"
-                >
-                  <Quote className="text-accent mb-4" size={28} />
-                  <p className="font-body text-card-foreground/80 leading-relaxed mb-6">
-                    "{t.text}"
-                  </p>
-                  <div className="border-t border-border pt-4 flex items-center justify-between">
-                    <div>
-                      <p className="font-heading text-lg tracking-wider text-card-foreground">
-                        {t.name}
-                      </p>
-                      <p className="font-body text-sm text-muted-foreground">
-                        {t.location}
-                      </p>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs font-body bg-muted text-muted-foreground px-3 py-1 rounded-full">
-                        {t.category}
-                      </span>
-                      <button
-                        onClick={() => {
-                          navigator.clipboard.writeText(window.location.href);
-                          trackEvent({
-                            category: 'engagement',
-                            action: 'share',
-                            label: 'testimony_copy_link',
-                          });
-                        }}
-                        className="text-xs font-body text-accent hover:text-accent/80 px-2 py-1 rounded"
-                        aria-label="Share this testimony"
-                      >
-                        <Share2 size={14} />
-                      </button>
-                    </div>
-                  </div>
-                </motion.div>
               ))}
-            </motion.div>
-          </AnimatePresence>
-
-          {totalPages > 1 && (
-            <div className="flex justify-center gap-2 mt-10">
-              <Button variant="outline" disabled={page <= 1} onClick={() => setPage((p) => p - 1)}>
-                Previous
-              </Button>
-              <span className="font-body text-muted-foreground self-center px-4">
-                Page {page} of {totalPages}
-              </span>
-              <Button variant="outline" disabled={page >= totalPages} onClick={() => setPage((p) => p + 1)}>
-                Next
-              </Button>
             </div>
-          )}
+          </div>
+        </div>
+      </section>
+
+      {/* Interactive map */}
+      <section className="relative overflow-hidden border-y border-border bg-card/20">
+        <div className="section-padding">
+          <div className="container-custom">
+            <SectionWrapper>
+              <div className="mb-5 flex items-center gap-4">
+                <span className="h-px w-12 bg-accent/70" />
+                <p className="kicker">Global Reach</p>
+              </div>
+              <h2 className="mb-4 font-heading tracking-wide text-foreground">
+                <KineticText text="WHERE THE FIRE BURNED" className="text-5xl sm:text-7xl" />
+              </h2>
+              <p className="mb-10 max-w-2xl font-body text-muted-foreground">
+                Tap a country to filter the stories from that part of the world.
+              </p>
+            </SectionWrapper>
+
+            <SectionWrapper delay={0.15}>
+              <div className="rounded-2xl border border-border bg-background p-6 sm:p-10">
+                <WorldMap
+                  onCountrySelect={(_code, name) => {
+                    navigate(`/testimonies?country=${encodeURIComponent(name)}`);
+                  }}
+                />
+                {countryFilter && (
+                  <p className="mt-4 text-center font-body text-muted-foreground">
+                    Filtering by: <strong className="text-accent">{countryFilter}</strong>
+                    <Button variant="link" className="ml-2 text-accent" onClick={() => navigate("/testimonies")}>
+                      Clear
+                    </Button>
+                  </p>
+                )}
+              </div>
+            </SectionWrapper>
+          </div>
+        </div>
+      </section>
+
+      {/* Where we preach */}
+      <section className="relative overflow-hidden bg-background">
+        <div className="section-padding">
+          <div className="container-custom">
+            <SectionWrapper className="text-center">
+              <div className="mb-5 flex items-center justify-center gap-4">
+                <span className="h-px w-12 bg-accent/70" />
+                <p className="kicker">Where We Preach</p>
+                <span className="h-px w-12 bg-accent/70" />
+              </div>
+              <h2 className="mb-12 font-heading tracking-wide text-foreground">
+                <KineticText text="EVERYWHERE COUNTS" className="text-5xl sm:text-7xl" />
+              </h2>
+            </SectionWrapper>
+
+            <div className="flex flex-wrap justify-center gap-3">
+              {preachingLocations.map((loc, index) => (
+                <SectionWrapper key={loc} delay={index * 0.05}>
+                  <div className="group flex items-center gap-2.5 rounded-full border border-border bg-card/50 px-6 py-3.5 transition-all duration-300 hover:border-accent/60 hover:bg-accent/10">
+                    <MapPin size={16} className="text-accent" />
+                    <p className="font-heading text-lg tracking-wider text-foreground">{loc}</p>
+                  </div>
+                </SectionWrapper>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Recorded stories */}
+      <section className="relative overflow-hidden border-y border-border bg-card/20">
+        <EmberGlow intensity="low" />
+        <div className="section-padding">
+          <div className="container-custom">
+            <SectionWrapper>
+              <div className="mb-5 flex items-center gap-4">
+                <span className="h-px w-12 bg-accent/70" />
+                <p className="kicker">Watch &amp; Learn</p>
+              </div>
+              <h2 className="mb-12 font-heading tracking-wide text-foreground">
+                <KineticText text="RECORDED STORIES" className="text-5xl sm:text-7xl" />
+              </h2>
+            </SectionWrapper>
+
+            <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+              {videoTestimonials.map((video, index) => (
+                <SectionWrapper key={video.id} delay={index * 0.1}>
+                  <button
+                    type="button"
+                    onClick={() => setActiveVideo(video)}
+                    className="group block w-full overflow-hidden rounded-2xl border border-border bg-card text-left transition-all duration-500 hover:-translate-y-1 hover:border-accent/60"
+                  >
+                    <div className="vignette relative aspect-video bg-black">
+                      <img
+                        src={`https://i.ytimg.com/vi/${video.videoId}/hqdefault.jpg`}
+                        alt={video.title}
+                        className="absolute inset-0 h-full w-full object-cover opacity-70 transition-all duration-700 group-hover:scale-105 group-hover:opacity-90"
+                        loading="lazy"
+                      />
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <span className="flex h-16 w-16 items-center justify-center rounded-full bg-accent text-accent-foreground transition-transform duration-300 group-hover:scale-110">
+                          <Play size={22} className="ml-1" fill="currentColor" />
+                        </span>
+                      </div>
+                    </div>
+                    <div className="p-5">
+                      <p className="mb-1 font-heading text-lg tracking-wider text-card-foreground line-clamp-1">{video.title}</p>
+                      <p className="font-body text-sm text-muted-foreground">
+                        {video.speaker} · {video.location}
+                      </p>
+                    </div>
+                  </button>
+                </SectionWrapper>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Written testimonies */}
+      <section className="relative overflow-hidden bg-background">
+        <div className="section-padding">
+          <div className="container-custom">
+            <SectionWrapper className="text-center">
+              <div className="mb-5 flex items-center justify-center gap-4">
+                <span className="h-px w-12 bg-accent/70" />
+                <p className="kicker">In Their Words</p>
+                <span className="h-px w-12 bg-accent/70" />
+              </div>
+              <h2 className="mb-14 font-heading tracking-wide text-foreground">
+                <KineticText text="WRITTEN TESTIMONIES" className="text-5xl sm:text-7xl" />
+              </h2>
+            </SectionWrapper>
+
+            {loading ? (
+              <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+                {[1, 2, 3, 4, 5, 6].map((i) => (
+                  <div key={i} className="rounded-2xl border border-border bg-card p-8">
+                    <Skeleton className="mb-4 h-10 w-10" />
+                    <Skeleton className="mb-2 h-5 w-3/4" />
+                    <Skeleton className="mb-4 h-4 w-1/2" />
+                    <Skeleton className="h-20 w-full" />
+                  </div>
+                ))}
+              </div>
+            ) : error ? (
+              <p className="text-center font-body text-muted-foreground">{error}</p>
+            ) : paginated.length === 0 ? (
+              <p className="text-center font-body text-muted-foreground">
+                No testimonies in this filter yet — be the first to share below.
+              </p>
+            ) : (
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={`${activeCategory}-${countryFilter}-${page}`}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                  transition={{ duration: 0.3 }}
+                  className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3"
+                >
+                  {paginated.map((t, i) => (
+                    <motion.article
+                      key={t.id || t._id}
+                      initial={{ opacity: 0, y: 30 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: i * 0.08 }}
+                      className="group relative flex h-full flex-col overflow-hidden rounded-2xl border border-border bg-card/60 p-8 transition-all duration-500 hover:-translate-y-1 hover:border-accent/60 hover:bg-card"
+                    >
+                      <Quote size={26} className="mb-4 text-accent" />
+                      <p className="mb-6 flex-1 font-body leading-relaxed text-card-foreground/85">
+                        "{t.text}"
+                      </p>
+                      <div className="flex items-center justify-between border-t border-border pt-4">
+                        <div>
+                          <p className="font-heading text-lg tracking-wider text-card-foreground">{t.name}</p>
+                          <p className="font-body text-sm text-muted-foreground">{t.location}</p>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          {t.category && (
+                            <span className="rounded-full bg-accent/10 px-3 py-1 font-body text-xs text-accent">
+                              {t.category}
+                            </span>
+                          )}
+                          <button
+                            onClick={() => {
+                              navigator.clipboard.writeText(window.location.href);
+                              trackEvent({ category: "engagement", action: "share", label: "testimony_copy_link" });
+                            }}
+                            className="p-2 text-muted-foreground transition-colors hover:text-accent"
+                            aria-label="Share this testimony"
+                          >
+                            <Share2 size={15} />
+                          </button>
+                        </div>
+                      </div>
+                    </motion.article>
+                  ))}
+                </motion.div>
+              </AnimatePresence>
+            )}
+
+            {totalPages > 1 && !loading && !error && (
+              <div className="mt-12 flex items-center justify-center gap-2">
+                <Button variant="outline" disabled={page <= 1} onClick={() => setPage((p) => p - 1)}>
+                  Previous
+                </Button>
+                <span className="self-center px-4 font-body text-sm text-muted-foreground">
+                  Page {page} of {totalPages}
+                </span>
+                <Button variant="outline" disabled={page >= totalPages} onClick={() => setPage((p) => p + 1)}>
+                  Next
+                </Button>
+              </div>
+            )}
+          </div>
         </div>
       </section>
 
       <Dialog open={!!activeVideo} onOpenChange={() => setActiveVideo(null)}>
-        <DialogContent className="max-w-4xl p-0">
+        <DialogContent className="max-w-4xl border-border bg-background p-0">
           <DialogHeader className="p-4 pb-0">
             <DialogTitle>{activeVideo?.title}</DialogTitle>
           </DialogHeader>
@@ -423,7 +389,7 @@ const Testimonies = () => {
             <div className="aspect-video bg-black">
               <iframe
                 src={`https://www.youtube.com/embed/${activeVideo.videoId}?autoplay=1&modestbranding=1&rel=0&showinfo=0`}
-                className="w-full h-full"
+                className="h-full w-full"
                 allowFullScreen
                 allow="autoplay; encrypted-media"
                 title={activeVideo.title}
@@ -433,56 +399,61 @@ const Testimonies = () => {
         </DialogContent>
       </Dialog>
 
-      {/* Book Testimonials */}
-      <section className="section-padding bg-muted">
-        <div className="container-custom">
-          <SectionWrapper>
-            <div className="text-center mb-12">
-              <p className="font-body text-accent text-sm tracking-[0.3em] uppercase mb-4">
-                Book Reviews
-              </p>
-              <h2 className="font-heading text-3xl sm:text-5xl lg:text-6xl tracking-wider text-foreground mb-6">
-                Testimonials Of The Book
+      {/* Book reviews */}
+      <section className="relative overflow-hidden border-t border-border bg-card/20">
+        <div className="section-padding">
+          <div className="container-custom">
+            <SectionWrapper className="text-center">
+              <div className="mb-5 flex items-center justify-center gap-4">
+                <span className="h-px w-12 bg-accent/70" />
+                <p className="kicker">Book Reviews</p>
+                <span className="h-px w-12 bg-accent/70" />
+              </div>
+              <h2 className="mb-14 font-heading tracking-wide text-foreground">
+                <KineticText text="WHAT READERS SAY" className="text-5xl sm:text-7xl" />
               </h2>
-              <p className="font-body text-muted-foreground text-xl max-w-3xl mx-auto">
-                See what readers are saying about our book
-              </p>
-            </div>
-          </SectionWrapper>
+            </SectionWrapper>
 
-          <div className="max-w-4xl mx-auto">
-            <div className="bg-card rounded-2xl p-8 lg:p-12 shadow-lg border border-border">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                {bookTestimonials.map((review, index) => (
-                  <div key={review.id} className="text-center">
-                    <Book className="w-12 h-12 text-accent mx-auto mb-4" />
-                    <p className="font-body text-card-foreground italic leading-relaxed mb-4">
+            <div className="mx-auto grid max-w-5xl grid-cols-1 gap-6 md:grid-cols-3">
+              {bookTestimonials.map((review, i) => (
+                <SectionWrapper key={review.id} delay={i * 0.1}>
+                  <div className="h-full rounded-2xl border border-border bg-background p-8 text-center transition-all duration-500 hover:border-accent/50">
+                    <Book size={32} className="mx-auto mb-5 text-accent" />
+                    <p className="mb-5 font-body italic leading-relaxed text-card-foreground/85">
                       "{review.quote}"
                     </p>
-                    <p className="font-heading text-accent">
+                    <p className="font-heading tracking-wider text-accent">
                       — {review.reader}, {review.location}
                     </p>
                   </div>
-                ))}
-              </div>
+                </SectionWrapper>
+              ))}
             </div>
           </div>
         </div>
       </section>
 
-      {/* Join Community CTA */}
-      <section className="section-padding bg-primary">
-        <div className="container-custom text-center">
-          <SectionWrapper>
-            <h2 className="font-heading text-3xl sm:text-5xl lg:text-6xl tracking-wider text-primary-foreground mb-6">
-              Have A Story To Share?
-            </h2>
-            <p className="font-body text-primary-foreground/70 text-xl max-w-2xl mx-auto mb-10">
-              Your testimony could inspire someone else to be bold. Join our community 
-              and share how God has moved in your life.
-            </p>
-            <TestimonySubmissionForm />
-          </SectionWrapper>
+      {/* Share yours */}
+      <section className="relative overflow-hidden bg-primary vignette">
+        <EmberGlow intensity="medium" />
+        <div className="section-padding">
+          <div className="container-custom text-center">
+            <SectionWrapper>
+              <div className="mb-5 flex items-center justify-center gap-4">
+                <span className="h-px w-12 bg-accent/70" />
+                <p className="kicker">Your Chapter Next</p>
+                <span className="h-px w-12 bg-accent/70" />
+              </div>
+              <h2 className="mb-6 font-heading tracking-wide text-primary-foreground">
+                <KineticText text="SHARE YOUR STORY" className="text-5xl sm:text-7xl" />
+              </h2>
+              <p className="mx-auto mb-10 max-w-2xl font-body text-lg text-muted-foreground">
+                Your testimony could be the spark someone else needs. Join the community
+                and tell us how God has moved in your life.
+              </p>
+              <TestimonySubmissionForm />
+            </SectionWrapper>
+          </div>
         </div>
       </section>
     </Layout>

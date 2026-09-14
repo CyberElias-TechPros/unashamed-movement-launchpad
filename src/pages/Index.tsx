@@ -1,44 +1,22 @@
-import { motion } from "framer-motion";
-import { Link } from "react-router-dom";
 import { useState, useEffect } from "react";
-import { ArrowRight, Calendar, ShoppingBag, BookOpen, Play, MapPin, Users, Globe, MessageSquare } from "lucide-react";
 import Layout from "@/components/Layout";
-import SectionWrapper from "@/components/SectionWrapper";
-import FloatingParticles from "@/components/FloatingParticles";
-import MagneticButton from "@/components/MagneticButton";
-import TextReveal from "@/components/TextReveal";
-import TiltCard from "@/components/TiltCard";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { newsletterApi } from "@/api/newsletter";
 import { eventsApi } from "@/api/events";
 import { productsApi } from "@/api/products";
 import { resourcesApi } from "@/api/resources";
-import { trackEvent } from "@/lib/analytics";
 import HeroSection from "./sections/HeroSection";
+import RibbonSection from "./sections/RibbonSection";
+import ManifestoSection from "./sections/ManifestoSection";
 import MissionSection from "./sections/MissionSection";
 import VideoSection from "./sections/VideoSection";
 import TestimonialsSection from "./sections/TestimonialsSection";
 import ImpactSection from "./sections/ImpactSection";
-import LocationsSection from "./sections/LocationsSection";
-import CountriesSection from "./sections/CountriesSection";
+import GlobalSection from "./sections/GlobalSection";
 import NewsletterSection from "./sections/NewsletterSection";
 import FeaturedSection from "./sections/FeaturedSection";
 import CTASection from "./sections/CTASection";
-
-const heroVariants = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: { staggerChildren: 0.2, delayChildren: 0.3 },
-  },
-};
-
-const itemVariant = {
-  hidden: { opacity: 0, y: 30 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.6 } },
-};
+import Preloader from "@/components/cinematic/Preloader";
 
 const Index = () => {
   const { toast } = useToast();
@@ -47,18 +25,17 @@ const Index = () => {
   const [featured, setFeatured] = useState<{ events?: string; shop?: string; resources?: string }>({});
 
   useEffect(() => {
+    const unwrap = <T,>(res: { data?: T[] } | T[] | null | undefined): T[] =>
+      Array.isArray(res) ? res : res?.data ?? [];
     Promise.all([
-      eventsApi.getAll().catch(() => []),
-      productsApi.getAll().catch(() => []),
-      resourcesApi.getAll().catch(() => []),
-    ]).then(([eventsResponse, productsResponse, resourcesResponse]) => {
-      const events = Array.isArray(eventsResponse) ? eventsResponse : eventsResponse.data || [];
-      const products = Array.isArray(productsResponse) ? productsResponse : productsResponse.data || [];
-      const resources = Array.isArray(resourcesResponse) ? resourcesResponse : resourcesResponse.data || [];
+      eventsApi.getAll().catch(() => [] as import("@/api/events").Event[]),
+      productsApi.getAll().catch(() => null),
+      resourcesApi.getAll().catch(() => null),
+    ]).then(([events, products, resources]) => {
       setFeatured({
-        events: events[0]?.title,
-        shop: products[0]?.name,
-        resources: resources[0]?.title,
+        events: unwrap(events)[0]?.title,
+        shop: unwrap<{ name: string }>(products)[0]?.name,
+        resources: unwrap<{ title: string }>(resources)[0]?.title,
       });
     });
   }, []);
@@ -110,22 +87,24 @@ const Index = () => {
 
   return (
     <Layout>
+      <Preloader />
       <HeroSection />
+      <RibbonSection />
+      <ManifestoSection />
       <MissionSection />
+      <ImpactSection />
       <VideoSection />
-        <TestimonialsSection />
-        <ImpactSection />
-        <CountriesSection />
-        <LocationsSection />
-        <NewsletterSection
-          email={email}
-          isSubscribing={isSubscribing}
-          onSubscribe={handleSubscribe}
-          onEmailChange={onEmailChange}
-        />
-        <FeaturedSection featured={featured} />
-        <CTASection />
-      </Layout>
+      <TestimonialsSection />
+      <GlobalSection />
+      <FeaturedSection featured={featured} />
+      <NewsletterSection
+        email={email}
+        isSubscribing={isSubscribing}
+        onSubscribe={handleSubscribe}
+        onEmailChange={onEmailChange}
+      />
+      <CTASection />
+    </Layout>
   );
 };
 

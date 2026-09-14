@@ -12,6 +12,7 @@ export interface Video {
   duration?: string;
   episode?: string;
   category?: string;
+  type?: 'sermon' | 'podcast' | 'teaching' | 'testimony' | string;
   isActive?: boolean;
   isPublished?: boolean;
   order?: number;
@@ -54,8 +55,11 @@ export const videosApi = {
   
   // Bulk operations
   bulkDelete: (ids: string[]) => api.post('/videos/bulk-delete', { ids }),
-  bulkUpdateStatus: (ids: string[], isActive: boolean) => 
+  bulkUpdateStatus: (ids: string[], isActive: boolean) =>
     api.post('/videos/bulk-update-status', { ids, isActive }),
+  /** Applies arbitrary field updates to many videos at once. */
+  bulkUpdate: (ids: string[], data: Partial<Video>) =>
+    api.post('/videos/bulk-update', { ids, data }),
 };
 
 export default videosApi;

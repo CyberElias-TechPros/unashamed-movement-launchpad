@@ -24,3 +24,7 @@ server/.env
 *.njsproj
 *.sln
 *.sw?
+
+# Dev in-memory mongo snapshot
+server/.devdb.json
+*.tsbuildinfo

@@ -60,7 +60,12 @@ export const TestimonialForm = ({ className }: TestimonialFormProps) => {
     setStatus("loading");
 
     try {
-      await testimonialsApi.submit(formData);
+      await testimonialsApi.submit({
+        name: formData.name,
+        location: formData.location,
+        text: formData.content,
+        category: "General",
+      });
       setStatus("success");
       setFormData({ name: "", location: "", content: "" });
     } catch (error: unknown) {

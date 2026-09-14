@@ -143,6 +143,35 @@ exports.bulkDelete = async (req, res) => {
   }
 };
 
+// Applies arbitrary whitelisted field updates to many videos at once.
+exports.bulkUpdate = async (req, res) => {
+  try {
+    const { ids, data } = req.body;
+    if (!Array.isArray(ids) || ids.length === 0) {
+      return res.status(400).json({ message: 'Array of IDs required' });
+    }
+    if (!data || typeof data !== 'object' || Array.isArray(data)) {
+      return res.status(400).json({ message: 'data object required' });
+    }
+    const allowed = ['title', 'description', 'category', 'type', 'isActive', 'isPublished', 'order', 'episode', 'duration'];
+    const update = {};
+    for (const key of allowed) {
+      if (Object.prototype.hasOwnProperty.call(data, key)) update[key] = data[key];
+    }
+    if (Object.keys(update).length === 0) {
+      return res.status(400).json({ message: 'No updatable fields provided' });
+    }
+
+    const result = await Video.updateMany({ _id: { $in: ids } }, { $set: update });
+    res.json({
+      message: 'Videos updated',
+      modifiedCount: result.modifiedCount,
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 exports.bulkUpdateStatus = async (req, res) => {
   try {
     const { ids, isActive } = req.body;
@@ -152,7 +181,7 @@ exports.bulkUpdateStatus = async (req, res) => {
     if (typeof isActive !== 'boolean') {
       return res.status(400).json({ message: 'isActive boolean required' });
     }
-    
+
     const result = await Video.updateMany(
       { _id: { $in: ids } },
       { isActive }

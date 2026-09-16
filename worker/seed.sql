@@ -85,5 +85,4 @@ INSERT INTO site_content (id, key, title, content, type, metadata, created_at, u
   ('690e1f2a3b4c5d6e7f8a9b04', 'featured', 'Featured', 'Highlighted content and calls to action.', 'featured', '{}', '2026-01-01T00:00:00.000Z', '2026-01-01T00:00:00.000Z')
 ON CONFLICT(key) DO NOTHING;
 
-INSERT INTO site_settings (id, updated_at) VALUES (1, '2026-01-01T00:00:00.000Z')
-ON CONFLICT(id) DO NOTHING;
+INSERT INTO site_settings (id, allow_registration, updated_at) VALUES (1, 1, '2026-01-01T00:00:00.000Z') ON CONFLICT(id) DO UPDATE SET allow_registration = excluded.allow_registration, updated_at = excluded.updated_at;

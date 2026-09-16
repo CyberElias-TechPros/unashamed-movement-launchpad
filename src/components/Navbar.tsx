@@ -1,10 +1,19 @@
 import { useState, useEffect, FormEvent } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { Menu, X, ShoppingCart } from "lucide-react";
+import { Menu, X, ShoppingCart, Heart, User, LogOut, Package, Settings, ChevronDown } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { useCart } from "@/context/CartContext";
+import { useWishlist } from "@/context/WishlistContext";
+import { useAuth } from "@/context/AuthContext";
 import { useLayout } from "@/context/LayoutContext";
 import { motion, AnimatePresence } from "framer-motion";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 const navLinks = [
   { name: "Home", path: "/" },
@@ -24,6 +33,8 @@ const Navbar = () => {
   const location = useLocation();
   const { layoutMode, colorMode } = useLayout();
   const { totalItems } = useCart();
+  const { items: wishlistItems } = useWishlist();
+  const { user, isAuthenticated, isAdmin, logout } = useAuth();
   const navigate = useNavigate();
   const [searchQ, setSearchQ] = useState("");
 
@@ -145,6 +156,80 @@ const Navbar = () => {
           </form>
           
           <Link
+            to="/wishlist"
+            className={`relative p-2 rounded-full transition-colors hover:text-accent ${getTextColor()}`}
+            aria-label={`Wishlist, ${wishlistItems.length} items`}
+          >
+            <Heart size={22} />
+            {wishlistItems.length > 0 && (
+              <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] flex items-center justify-center rounded-full bg-accent text-accent-foreground text-[10px] font-bold px-1">
+                {wishlistItems.length > 99 ? "99+" : wishlistItems.length}
+              </span>
+            )}
+          </Link>
+
+          {isAuthenticated ? (
+            <DropdownMenu>
+              <DropdownMenuTrigger
+                className={`flex items-center gap-1.5 p-2 rounded-full transition-colors hover:text-accent ${getTextColor()}`}
+                aria-label="Account menu"
+              >
+                <User size={22} />
+                <ChevronDown size={14} className="hidden sm:block" />
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-52">
+                <div className="px-3 py-2">
+                  <p className="text-sm font-medium truncate">{user?.name || "Account"}</p>
+                  <p className="text-xs text-muted-foreground truncate">{user?.email}</p>
+                </div>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem asChild>
+                  <Link to="/account" className="w-full cursor-pointer">My Account</Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link to="/orders" className="w-full cursor-pointer">
+                    <Package className="w-4 h-4 mr-2" /> My Orders
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link to="/wishlist" className="w-full cursor-pointer">
+                    <Heart className="w-4 h-4 mr-2" /> Wishlist
+                  </Link>
+                </DropdownMenuItem>
+                {isAdmin && (
+                  <DropdownMenuItem asChild>
+                    <Link to="/admin/dashboard" className="w-full cursor-pointer">
+                      <Settings className="w-4 h-4 mr-2" /> Admin Panel
+                    </Link>
+                  </DropdownMenuItem>
+                )}
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  className="cursor-pointer text-destructive focus:text-destructive"
+                  onClick={() => logout()}
+                >
+                  <LogOut className="w-4 h-4 mr-2" /> Sign Out
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          ) : (
+            <div className="flex items-center gap-2">
+              <Link
+                to="/login"
+                className={`font-body text-sm font-medium tracking-wide transition-colors hover:text-accent ${getTextColor()}`}
+              >
+                Sign In
+              </Link>
+              <Link
+                to="/register"
+                className="font-body text-sm font-medium tracking-wide bg-accent text-accent-foreground px-3 py-1.5 rounded-md hover:bg-accent/90 transition-colors"
+              >
+                Join
+              </Link>
+            </div>
+          )}
+
+          <Link
             to="/cart"
             className={`relative p-2 rounded-full transition-colors hover:text-accent ${getTextColor()}`}
             aria-label={`Cart, ${totalItems} items`}
@@ -196,7 +281,38 @@ const Navbar = () => {
                   </Link>
                 </motion.div>
               ))}
-              
+               <div className="pt-4 mt-2 border-t border-primary-foreground/10 space-y-3">
+                {isAuthenticated ? (
+                  <>
+                    <Link to="/account" className={`font-heading text-xl tracking-wider block ${getMobileTextColor()}`}>
+                      My Account
+                    </Link>
+                    <Link to="/orders" className={`font-heading text-xl tracking-wider block ${getMobileTextColor()}`}>
+                      My Orders
+                    </Link>
+                    {isAdmin && (
+                      <Link to="/admin/dashboard" className={`font-heading text-xl tracking-wider block ${getMobileTextColor()}`}>
+                        Admin Panel
+                      </Link>
+                    )}
+                    <button
+                      onClick={() => logout()}
+                      className={`font-heading text-xl tracking-wider block text-left ${getMobileTextColor()}`}
+                    >
+                      Sign Out
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <Link to="/login" className="font-heading text-xl tracking-wider block text-accent">
+                      Sign In
+                    </Link>
+                    <Link to="/register" className="font-heading text-xl tracking-wider block text-accent">
+                      Create Account
+                    </Link>
+                  </>
+                )}
+              </div>
             </div>
           </motion.div>
         )}

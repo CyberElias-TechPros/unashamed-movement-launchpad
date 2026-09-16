@@ -13,14 +13,24 @@ import {
   csrfTokenFor,
   generateSessionId,
   parseCookiesSafe,
+  requireAdmin,
   requireAuth,
   setCsrfCookie,
   SESSION_COOKIE,
 } from '../middleware';
-import { hashPassword, isEmail, nowIso, oid, randomHex, verifyPassword } from '../util';
-import { sendEmail } from '../email';
+import { orderBy, paginateQuery, parsePageParams, searchGroup, updateRow } from '../db';
+import { hashPassword, isEmail, nowIso, oid, randomHex, verifyJwt, verifyPassword } from '../util';
+import { sendEmail, wrapHtml } from '../email';
 
 type App = Hono<{ Bindings: Env }>;
+
+/**
+ * Security: verification/reset URLs are only ever returned in the HTTP
+ * response when no real mail provider is configured (local dev). In
+ * production they go out by email only — otherwise anyone could reset
+ * any account by reading the response.
+ */
+const isDevMode = (env: Env): boolean => !env.RESEND_API_KEY;
 
 const publicUser = (row: Record<string, unknown>) => ({
   id: row.id,
@@ -34,6 +44,15 @@ const publicUser = (row: Record<string, unknown>) => ({
   createdAt: row.created_at,
 });
 
+const getSettingBool = async (env: Env, column: string): Promise<boolean> => {
+  try {
+    const row = await env.DB.prepare(`SELECT ${column} AS v FROM site_settings WHERE id = 1`).first<{ v: number }>();
+    return Number(row?.v ?? 0) === 1;
+  } catch {
+    return true; // fail open on schema issues — never lock everyone out
+  }
+};
+
 export const authRoutes = (/* app: App */) => {
   const router = new Hono<{ Bindings: Env }>();
 
@@ -45,6 +64,11 @@ export const authRoutes = (/* app: App */) => {
   });
 
   router.post('/register', authLimiter, csrfProtection, async (c) => {
+    // Respect the "allow registration" site setting (admin can close signups).
+    if (!(await getSettingBool(c.env, 'allow_registration'))) {
+      return c.json({ message: 'Registration is currently closed. Please check back soon.' }, 403);
+    }
+
     const body = await readJson(c);
     const name = String(body.name || '').trim();
     const email = String(body.email || '').trim().toLowerCase();
@@ -68,20 +92,24 @@ export const authRoutes = (/* app: App */) => {
     const row = (await c.env.DB.prepare('SELECT * FROM users WHERE id = ?').bind(id).first())!;
     await awaitSetAuthCookies(c, { id, role: 'user' });
 
-    const clientUrl = c.env.CLIENT_URL;
-    const verificationUrl = `${clientUrl}/verify-email?token=${verificationToken}`;
+    const verificationUrl = `${c.env.CLIENT_URL}/verify-email?token=${verificationToken}`;
     void sendEmail(c.env, {
       to: email,
       subject: 'Verify your email',
-      text: `Please verify your email by visiting: ${verificationUrl}`,
-      html: `<p>Please verify your email by clicking <a href="${verificationUrl}">this link</a>.</p>`,
+      text: `Welcome to TTIN! Please verify your email by visiting: ${verificationUrl}`,
+      html: wrapHtml(
+        'Welcome to the movement',
+        `<p>Hi <strong>${name}</strong>,</p>
+         <p>Welcome to <strong>The Time Is Now</strong>. Confirm your email address to unlock your account, order history and more.</p>
+         <p>This link expires in 24 hours.</p>`,
+        { label: 'Verify my email', url: verificationUrl }
+      ),
     });
 
     return c.json(
       {
         user: publicUser(row),
-        verificationUrl,
-        devNote: 'Email verification message sent (or logged)',
+        ...(isDevMode(c.env) ? { verificationUrl, devNote: 'Dev mode: email provider not configured, URL returned inline' } : {}),
       },
       201
     );
@@ -120,10 +148,19 @@ export const authRoutes = (/* app: App */) => {
     void sendEmail(c.env, {
       to: email,
       subject: 'Reset your password',
-      text: `Reset your password here: ${resetUrl}`,
-      html: `<p>Reset your password by clicking <a href="${resetUrl}">this link</a>.</p>`,
+      text: `Reset your TTIN password here (valid for 1 hour): ${resetUrl}`,
+      html: wrapHtml(
+        'Reset your password',
+        `<p>Hi,</p>
+         <p>Someone (hopefully you) requested a password reset for your TTIN account.</p>
+         <p>This link expires in <strong>1 hour</strong>. If you didn’t request it, you can safely ignore this email.</p>`,
+        { label: 'Reset password', url: resetUrl }
+      ),
     });
-    return c.json({ ...generic, resetUrl, devNote: 'Password reset email sent (or logged)' });
+    return c.json({
+      ...generic,
+      ...(isDevMode(c.env) ? { resetUrl, devNote: 'Dev mode: email provider not configured, URL returned inline' } : {}),
+    });
   });
 
   router.post('/send-verification', authLimiter, async (c) => {
@@ -145,9 +182,17 @@ export const authRoutes = (/* app: App */) => {
       to: email,
       subject: 'Verify your email',
       text: `Please verify your email by visiting: ${verificationUrl}`,
-      html: `<p>Please verify your email by clicking <a href="${verificationUrl}">this link</a>.</p>`,
+      html: wrapHtml(
+        'Verify your email',
+        `<p>Please confirm your email address for <strong>The Time Is Now</strong>.</p>
+         <p>This link expires in 24 hours.</p>`,
+        { label: 'Verify my email', url: verificationUrl }
+      ),
     });
-    return c.json({ message: 'Verification email sent.', verificationUrl, devNote: 'Email verification attempted (sent or logged)' });
+    return c.json({
+      message: 'Verification email sent.',
+      ...(isDevMode(c.env) ? { verificationUrl, devNote: 'Dev mode: email provider not configured, URL returned inline' } : {}),
+    });
   });
 
   router.post('/verify-email', authLimiter, async (c) => {
@@ -258,11 +303,139 @@ export const authRoutes = (/* app: App */) => {
     return c.json({ user: publicUser(updated) });
   });
 
+  /* ---------------------------------------------------------------- */
+  /* Change password (authenticated user, with current password)        */
+  /* ---------------------------------------------------------------- */
+  router.post('/change-password', requireAuth, csrfProtection, async (c) => {
+    const user = c.get('user')!;
+    const body = await readJson(c);
+    const currentPassword = String(body.currentPassword || '');
+    const newPassword = String(body.newPassword || '');
+    if (!currentPassword || newPassword.length < 8) {
+      return c.json({ message: 'Current password and a new password of at least 8 characters are required' }, 400);
+    }
+    const row = await c.env.DB.prepare('SELECT * FROM users WHERE id = ?').bind(user.id).first();
+    if (!row) return c.json({ message: 'User not found' }, 404);
+    const ok = await verifyPassword(currentPassword, String(row.password_hash));
+    if (!ok) return c.json({ message: 'Current password is incorrect' }, 401);
+
+    const passwordHash = await hashPassword(newPassword);
+    await c.env.DB.prepare('UPDATE users SET password_hash = ?, updated_at = ? WHERE id = ?')
+      .bind(passwordHash, nowIso(), user.id)
+      .run();
+    void sendEmail(c.env, {
+      to: String(row.email),
+      subject: 'Your TTIN password was changed',
+      text: 'Your password was changed successfully. If this was not you, please reset it immediately or contact support.',
+      html: wrapHtml(
+        'Password changed',
+        `<p>Hi <strong>${row.name}</strong>,</p>
+         <p>Your password was just changed. If this was <strong>not you</strong>, reset it immediately from the “Forgot password” page or contact us.</p>`
+      ),
+    });
+    return c.json({ message: 'Password updated successfully' });
+  });
+
+  /* ---------------------------------------------------------------- */
+  /* Admin: user management                                            */
+  /* ---------------------------------------------------------------- */
+  router.get('/admin/users', requireAdmin, async (c) => {
+    const q = new URL(c.req.url).searchParams;
+    const { page, limit, offset } = parsePageParams(q);
+    const clauses: string[] = [];
+    const params: unknown[] = [];
+    const role = q.get('role');
+    if (role === 'admin' || role === 'user') {
+      clauses.push('role = ?');
+      params.push(role);
+    }
+    const active = q.get('active');
+    if (active !== null && active !== '') {
+      clauses.push('is_active = ?');
+      params.push(active === 'true' ? 1 : 0);
+    }
+    const verified = q.get('verified');
+    if (verified !== null && verified !== '') {
+      clauses.push('email_verified = ?');
+      params.push(verified === 'true' ? 1 : 0);
+    }
+    const search = searchGroup(q.get('search') || '', ['name', 'email']);
+    if (search.sql) {
+      clauses.push(search.sql);
+      params.push(...search.params);
+    }
+    const order = orderBy(q, { createdAt: 'created_at' }, 'created_at DESC');
+    const result = await paginateQuery(
+      c.env.DB,
+      { sql: clauses.join(' AND '), params },
+      'SELECT id, name, email, role, avatar, is_active, email_verified, created_at, updated_at FROM users',
+      order,
+      page,
+      limit,
+      offset
+    );
+    return c.json({ success: true, data: result.data.map(publicUser), pagination: result.pagination });
+  });
+
+  router.patch('/admin/users/:id', requireAdmin, csrfProtection, async (c) => {
+    const targetId = c.req.param('id');
+    const admin = c.get('user')!;
+    const body = await readJson(c);
+    const row = await c.env.DB.prepare('SELECT * FROM users WHERE id = ?').bind(targetId).first();
+    if (!row) return c.json({ message: 'User not found' }, 404);
+
+    // Guardrails: an admin can never deactivate or demote themselves.
+    if (targetId === admin.id) {
+      if (body.role !== undefined && body.role !== 'admin') return c.json({ message: 'You cannot demote your own account' }, 400);
+      if (body.isActive === false) return c.json({ message: 'You cannot deactivate your own account' }, 400);
+    }
+    if (body.role !== undefined && !['user', 'admin'].includes(String(body.role))) {
+      return c.json({ message: 'Invalid role' }, 400);
+    }
+
+    const fields: Record<string, unknown> = {};
+    if (body.role !== undefined) fields.role = String(body.role);
+    if (body.isActive !== undefined) fields.is_active = body.isActive === true ? 1 : 0;
+    const upd = updateRow('users', fields, 'id = ?', [targetId]);
+    if (upd) await c.env.DB.prepare(upd.sql).bind(...upd.params).run();
+
+    const updated = await c.env.DB.prepare('SELECT * FROM users WHERE id = ?').bind(targetId).first();
+    return c.json({ user: publicUser(updated!) });
+  });
+
+  router.post('/admin/users/:id/resend-verification', requireAdmin, async (c) => {
+    const row = await c.env.DB.prepare('SELECT * FROM users WHERE id = ?').bind(c.req.param('id')).first();
+    if (!row) return c.json({ message: 'User not found' }, 404);
+    if (row.email_verified === 1) return c.json({ message: 'Email already verified' }, 400);
+
+    const token = randomHex(32);
+    await c.env.DB.prepare(
+      'UPDATE users SET email_verification_token = ?, email_verification_expires = ?, updated_at = ? WHERE id = ?'
+    )
+      .bind(token, Date.now() + 24 * 3600 * 1000, nowIso(), row.id)
+      .run();
+
+    const verificationUrl = `${c.env.CLIENT_URL}/verify-email?token=${token}`;
+    void sendEmail(c.env, {
+      to: String(row.email),
+      subject: 'Verify your email',
+      text: `Please verify your email by visiting: ${verificationUrl}`,
+      html: wrapHtml(
+        'Verify your email',
+        `<p>Please confirm your email address for <strong>The Time Is Now</strong>.</p>`,
+        { label: 'Verify my email', url: verificationUrl }
+      ),
+    });
+    return c.json({
+      message: 'Verification email sent',
+      ...(isDevMode(c.env) ? { verificationUrl, devNote: 'Dev mode: URL returned inline' } : {}),
+    });
+  });
+
   router.post('/refresh', async (c) => {
     const cookies = parseCookiesSafe(c);
     const refresh = cookies['refreshToken'];
     if (!refresh) return c.json({ message: 'No refresh token' }, 401);
-    const { verifyJwt } = await import('../util');
     const payload = await verifyJwt(refresh, c.env.JWT_REFRESH_SECRET || c.env.JWT_SECRET);
     if (!payload) return c.json({ message: 'Invalid refresh token' }, 401);
 

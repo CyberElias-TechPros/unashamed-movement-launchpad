@@ -1,5 +1,8 @@
 # TTIN — Complete Gap Analysis: What's Missing To Fully Work
 
+> ✅ **STATUS: IMPLEMENTED** — every item below was addressed on 2026-09-16.
+> See [`IMPLEMENTATION-REPORT.md`](./IMPLEMENTATION-REPORT.md) for what was built and how it was verified.
+
 **Verified:** September 16, 2026 — by actually building the app, booting the Cloudflare Worker with local D1 + seed data, and exercising every major flow (auth, orders, checkout, payments, donations, uploads, analytics, admin).
 **Scope:** every area — visitors, members, admins, commerce, content, communications, compliance, ops, testing.
 

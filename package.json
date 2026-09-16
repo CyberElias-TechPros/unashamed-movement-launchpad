@@ -4,16 +4,19 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "concurrently \"npm run dev:server\" \"npm run dev:client\"",
-    "dev:server": "cd server && node index.js",
+    "dev": "concurrently -n api,web -c blue,green \"npm run dev:api\" \"npm run dev:client\"",
+    "dev:api": "cd worker && npx wrangler dev --port 8787",
     "dev:client": "vite",
+    "setup:db": "cd worker && npx wrangler d1 execute ttin-db --local --file=./schema.sql && npx wrangler d1 execute ttin-db --local --file=./seed.sql",
     "build": "vite build",
     "build:dev": "vite build --mode development",
-    "start": "node server/index.js",
-    "lint": "eslint .",
     "preview": "vite preview",
+    "lint": "eslint .",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "test:e2e": "playwright test",
+    "test:worker": "cd worker && npm test",
+    "typecheck": "tsc --noEmit -p tsconfig.app.json && cd worker && npx tsc --noEmit"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",

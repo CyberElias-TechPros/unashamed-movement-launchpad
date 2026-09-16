@@ -41,6 +41,11 @@
     "CLIENT_URL": "http://localhost:8080",
     "ALLOWED_ORIGINS": "http://localhost:8080,http://localhost:4173",
     "EMAIL_FROM": "TTIN <no-reply@thetimeisnow.org>"
+    // "CONTACT_NOTIFICATION_EMAIL": "team@thetimeisnow.org"  // where contact-form messages are sent
+  },
+  // Hourly: release stock held by abandoned (never-paid) checkouts.
+  "triggers": {
+    "crons": ["0 * * * *"]
   },
   "observability": {
     "enabled": true

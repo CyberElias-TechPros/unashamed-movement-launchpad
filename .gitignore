@@ -28,3 +28,11 @@ server/.env
 # Cloudflare Worker local state & secrets
 worker/.dev.vars
 worker/.wrangler/
+worker/.dev.vars
+
+# Test artifacts
+test-results/
+playwright-report/
+
+# TypeScript build info
+tsconfig.tsbuildinfo

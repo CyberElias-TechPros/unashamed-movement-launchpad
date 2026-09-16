@@ -77,7 +77,7 @@ const Footer = () => {
                 <Instagram size={20} />
               </a>
               <a
-                href="https://x.com"
+                href="https://x.com/thetimeisnow"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="w-12 h-12 rounded-full bg-primary-foreground/10 flex items-center justify-center hover:bg-accent hover:text-accent-foreground transition-all duration-300"
@@ -85,7 +85,7 @@ const Footer = () => {
                 <Twitter size={20} />
               </a>
               <a
-                href="mailto:hello@ttin.org"
+                href="mailto:hello@thetimeisnow.org"
                 className="w-12 h-12 rounded-full bg-primary-foreground/10 flex items-center justify-center hover:bg-accent hover:text-accent-foreground transition-all duration-300"
               >
                 <Mail size={20} />
@@ -99,6 +99,13 @@ const Footer = () => {
           <p className="text-primary-foreground/50 text-sm font-body">
             © {new Date().getFullYear()} TTIN — The Time Is Now. All rights reserved.
           </p>
+          <div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-sm font-body">
+            <Link to="/privacy" className="text-primary-foreground/50 hover:text-accent transition-colors">Privacy</Link>
+            <Link to="/terms" className="text-primary-foreground/50 hover:text-accent transition-colors">Terms</Link>
+            <Link to="/refunds" className="text-primary-foreground/50 hover:text-accent transition-colors">Refunds</Link>
+            <Link to="/cookies" className="text-primary-foreground/50 hover:text-accent transition-colors">Cookies</Link>
+            <Link to="/order-lookup" className="text-primary-foreground/50 hover:text-accent transition-colors">Track Order</Link>
+          </div>
           <button
             type="button"
             onClick={scrollToTop}

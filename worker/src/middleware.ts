@@ -4,7 +4,7 @@
 import type { Context, Next } from 'hono';
 import { getCookie, setCookie, deleteCookie } from 'hono/cookie';
 import type { Env, AuthUser } from './types';
-import { hmacSha256Hex, parseCookies, safeEqual, serializeCookie, randomHex, verifyJwt } from './util';
+import { hmacSha256Hex, parseCookies, safeEqual, serializeCookie, randomHex, signJwt, verifyJwt } from './util';
 
 /* ------------------------------------------------------------------ */
 /* Auth                                                                */
@@ -25,15 +25,12 @@ export const isSecureRequest = (c: Context<{ Bindings: Env }>): boolean => {
 };
 
 export const signToken = async (
-  c: Context<{ Bindings: Env }>,
+  _c: Context<{ Bindings: Env }>,
   id: string,
   role: string,
   secret: string,
   ttl: number
-): Promise<string> => {
-  const { signJwt } = await import('./util');
-  return signJwt({ id, role }, secret, ttl);
-};
+): Promise<string> => signJwt({ id, role }, secret, ttl);
 
 /** Signs access + refresh tokens, sets auth cookies, returns the tokens. */
 export const awaitSetAuthCookies = async (

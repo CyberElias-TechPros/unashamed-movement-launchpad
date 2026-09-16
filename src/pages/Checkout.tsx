@@ -14,6 +14,7 @@ import { ordersApi } from "@/api/orders";
 import { productsApi } from "@/api/products";
 import { useToast } from "@/hooks/use-toast";
 import { z } from "zod";
+import { formatCurrency } from "@/lib/format";
 
 const checkoutSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
@@ -102,6 +103,7 @@ const Checkout = () => {
           price: item.price,
         })),
         totalAmount: total,
+        currency,
         paymentMethod,
         shippingAddress: {
           street: formData.address,
@@ -352,7 +354,7 @@ const Checkout = () => {
                     Processing...
                   </>
                 ) : (
-                  `Pay with ${paymentMethod === "paystack" ? "Paystack" : paymentMethod === "flutterwave" ? "Flutterwave" : "Stripe"} $${total.toFixed(2)}`
+                  `Pay with ${paymentMethod === "paystack" ? "Paystack" : paymentMethod === "flutterwave" ? "Flutterwave" : "Stripe"} ${formatCurrency(total, currency)}`
                 )}
               </Button>
               <div className="text-xs text-muted-foreground mt-2">
@@ -374,21 +376,21 @@ const Checkout = () => {
                       <p className="font-body font-medium">{item.name}</p>
                       <p className="font-body text-sm text-muted-foreground">Qty: {item.quantity}</p>
                     </div>
-                    <p className="font-body">${(item.price * item.quantity).toFixed(2)}</p>
+                    <p className="font-body">{formatCurrency(item.price * item.quantity, currency)}</p>
                   </div>
                 ))}
                 <div className="border-t border-border pt-4 space-y-2">
                   <div className="flex justify-between">
                     <span className="font-body text-muted-foreground">Subtotal</span>
-                    <span className="font-body">${(total * 0.92).toFixed(2)}</span>
+                    <span className="font-body">{formatCurrency(total * 0.92, currency)}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="font-body text-muted-foreground">Tax</span>
-                    <span className="font-body">${(total * 0.08).toFixed(2)}</span>
+                    <span className="font-body">{formatCurrency(total * 0.08, currency)}</span>
                   </div>
                   <div className="flex justify-between font-heading text-lg pt-2 border-t border-border">
                     <span>Total</span>
-                    <span className="text-accent">${total.toFixed(2)}</span>
+                    <span className="text-accent">{formatCurrency(total, currency)}</span>
                   </div>
                 </div>
               </div>

@@ -29,6 +29,7 @@ import {
 } from './routes/content';
 import { paymentRoutes } from './routes/payments';
 import { uploadRoutes } from './routes/uploads';
+import { releaseStaleOrders } from './fulfillment';
 
 const app = new Hono<{ Bindings: Env }>();
 
@@ -100,4 +101,20 @@ app.onError((err, c) => {
   return c.json({ message: 'Something went wrong!' }, 500);
 });
 
-export default app;
+/**
+ * Scheduled handler (cron trigger, hourly): releases stock held by orders that
+ * were created but never paid, so abandoned checkouts don't drain inventory.
+ */
+export default {
+  fetch: app.fetch,
+  scheduled: async (_event: ScheduledController, env: Env, ctx: ExecutionContext) => {
+    const cutoffHours = 24;
+    ctx.waitUntil(
+      releaseStaleOrders(env.DB, cutoffHours * 3600 * 1000)
+        .then(({ released }) => {
+          if (released > 0) console.log(`[cron] released stock for ${released} stale order(s)`);
+        })
+        .catch((e) => console.warn('[cron] stale order release failed', e))
+    );
+  },
+};

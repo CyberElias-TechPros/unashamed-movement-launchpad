@@ -11,6 +11,7 @@ export interface Env {
   ALLOWED_ORIGINS?: string;
   EMAIL_FROM?: string;
   RESEND_API_KEY?: string;
+  CONTACT_NOTIFICATION_EMAIL?: string;
   STRIPE_SECRET_KEY?: string;
   STRIPE_WEBHOOK_SECRET?: string;
   PAYSTACK_SECRET_KEY?: string;

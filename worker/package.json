@@ -11,14 +11,18 @@
     "db:seed:local": "wrangler d1 execute ttin-db --local --file=./seed.sql",
     "db:schema:remote": "wrangler d1 execute ttin-db --remote --file=./schema.sql",
     "db:seed:remote": "wrangler d1 execute ttin-db --remote --file=./seed.sql",
-    "hash-password": "node scripts/hash-password.mjs"
+    "hash-password": "node scripts/hash-password.mjs",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "dependencies": {
     "hono": "^4.10.3"
   },
   "devDependencies": {
-    "@cloudflare/workers-types": "^4.20251110.0",
+    "@cloudflare/vitest-pool-workers": "^0.8.19",
+    "@cloudflare/workers-types": "^5.20260916.1",
     "typescript": "^5.8.3",
+    "vitest": "^3.2.7",
     "wrangler": "^4.50.0"
   }
 }

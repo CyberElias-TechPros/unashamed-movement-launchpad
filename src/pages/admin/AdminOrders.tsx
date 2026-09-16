@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useToast } from "@/hooks/use-toast";
 import { ordersApi, Order, OrderItem } from "@/api/orders";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -20,7 +21,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Package, Search, CheckSquare, Square, Trash2 } from "lucide-react";
+import { Package, Search, CheckSquare, Square, Trash2, RotateCcw } from "lucide-react";
 import { usePaginatedQuery } from "@/hooks/use-paginated-query";
 import { Pagination, PaginationInfo, PageSizeSelector } from "@/components/ui/pagination";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -383,6 +384,51 @@ const OrderRow = ({ order, isSelected, onSelect }: { order: Order; isSelected: b
   );
 };
 
+const RefundButton = ({ orderId, order }: { orderId: string; order: Order }) => {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+  const refundMutation = useMutation({
+    mutationFn: () => ordersApi.refund(orderId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin", "orders"] });
+      queryClient.invalidateQueries({ queryKey: ["orders"] });
+      toast({ title: "Refund issued", description: "Stock was restored and the customer was emailed." });
+    },
+    onError: (err) => {
+      toast({
+        title: "Refund failed",
+        description: (err as { message?: string })?.message || "Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  if (order.refundedAt) {
+    return (
+      <p className="text-sm text-muted-foreground pt-2 border-t border-border">
+        Refunded on {new Date(order.refundedAt).toLocaleDateString()} — stock restored.
+      </p>
+    );
+  }
+  if (order.status === "pending") return null;
+
+  return (
+    <Button
+      variant="outline"
+      className="w-full border-destructive/40 text-destructive hover:bg-destructive/10"
+      disabled={refundMutation.isPending}
+      onClick={() => {
+        if (confirm(`Refund order ${orderId.slice(0, 8).toUpperCase()}? Stock will be restored and the customer emailed.`)) {
+          refundMutation.mutate();
+        }
+      }}
+    >
+      <RotateCcw className="w-4 h-4 mr-2" />
+      {refundMutation.isPending ? "Refunding…" : "Refund order"}
+    </Button>
+  );
+};
+
 const OrderItemsDialog = ({ order }: { order: Order }) => {
   const orderId = order.id || order._id;
   return (
@@ -421,6 +467,7 @@ const OrderItemsDialog = ({ order }: { order: Order }) => {
             </Card>
           ))}
         </div>
+        <RefundButton orderId={orderId || ""} order={order} />
       </DialogContent>
     </Dialog>
   );

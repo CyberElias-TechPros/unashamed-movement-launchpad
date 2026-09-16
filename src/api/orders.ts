@@ -42,6 +42,8 @@ export interface Order {
     country: string;
   };
   status: 'pending' | 'processing' | 'shipped' | 'delivered' | 'completed' | 'cancelled';
+  refundedAt?: string | null;
+  currency?: string;
   paymentIntentId?: string;
   createdAt?: string;
   updatedAt?: string;
@@ -67,6 +69,7 @@ export interface CreateOrderPayload {
   }>;
   totalAmount: number;
   paymentMethod?: string;
+  currency?: string;
   shippingAddress?: {
     street?: string;
     city?: string;
@@ -94,6 +97,18 @@ export const ordersApi = {
 
   bulkUpdateStatus: (ids: string[], status: string) =>
     api.post<{ message: string; modifiedCount: number }>('/orders/bulk-update-status', { ids, status }),
+
+  /** Guest order lookup — email + order id, no account required. */
+  lookup: (email: string, orderId: string) =>
+    api.post<Order & { currency?: string; refundedAt?: string | null }>('/orders/lookup', { email, orderId }),
+
+  /** Admin: refund an order (Stripe refund when applicable + stock restore). */
+  refund: (id: string) =>
+    api.post<{ message: string; order: Order }>(`/orders/${id}/refund`, {}),
+
+  /** Admin: release stock held by abandoned pending orders. */
+  releaseStale: (maxAgeHours = 24) =>
+    api.post<{ message: string; released: number }>('/orders/admin/release-stale', { maxAgeHours }),
 };
 
 export default ordersApi;

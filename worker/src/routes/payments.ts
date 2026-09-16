@@ -7,6 +7,8 @@ import { Hono } from 'hono';
 import type { Env } from '../types';
 import { readJson } from '../types';
 import { hmacSha256Hex, hmacSha512Hex, safeEqual } from '../util';
+import { onOrderPaid } from '../fulfillment';
+import { settleDonation } from './community';
 
 type App = Hono<{ Bindings: Env }>;
 
@@ -262,6 +264,26 @@ const updateOrderStatus = async (
       isHexId ? '' : opts.orderId
     )
     .run();
-  return result.meta.changes > 0;
+
+  if (result.meta.changes > 0) {
+    // Find the actual order id (it may have matched by idempotency/payment id).
+    const row = await env.DB
+      .prepare(
+        "SELECT id FROM orders WHERE id = ?1 OR (?2 != '' AND idempotency_key = ?2) OR (?3 != '' AND payment_id = ?3) LIMIT 1"
+      )
+      .bind(opts.orderId, isHexId ? '' : opts.orderId, isHexId ? '' : opts.orderId)
+      .first<{ id: string }>();
+    if (row) await onOrderPaid(env, row.id);
+    return true;
+  }
+
+  // Not an order — maybe it's a donation reference (the donation id is used as
+  // the Paystack reference / Flutterwave tx_ref / Stripe client_reference_id).
+  const donated = await settleDonation(env, {
+    refId: opts.orderId,
+    status: 'completed',
+    paymentId: opts.paymentId,
+  });
+  return donated;
 };
 

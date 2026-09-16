@@ -1,5 +1,5 @@
 import { lazy, Suspense } from "react";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { QueryClient, QueryClientProvider, useQuery } from "@tanstack/react-query";
 import { BrowserRouter, Route, Routes, useLocation, Outlet } from "react-router-dom";
 import { useEffect } from "react";
 import { AnimatePresence } from "framer-motion";
@@ -10,11 +10,12 @@ import PageTransition from "@/components/PageTransition";
 import { LayoutProvider } from "@/context/LayoutContext";
 import { CartProvider } from "@/context/CartContext";
 import { WishlistProvider } from "@/context/WishlistContext";
-import { AuthProvider } from "@/context/AuthContext";
+import { AuthProvider, useAuth } from "@/context/AuthContext";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { Loader2 } from "lucide-react";
 import AdminLayout from "@/components/AdminLayout";
+import { settingsApi } from "@/api/settings";
 
 const Index = lazy(() => import("./pages/Index.tsx"));
 const About = lazy(() => import("./pages/About.tsx"));
@@ -49,6 +50,16 @@ const ForgotPassword = lazy(() => import("./pages/ForgotPassword.tsx"));
 const Orders = lazy(() => import("./pages/Orders.tsx"));
 const Wishlist = lazy(() => import("./pages/Wishlist.tsx"));
 const Donate = lazy(() => import("./pages/Donate.tsx"));
+const Login = lazy(() => import("./pages/Login.tsx"));
+const Register = lazy(() => import("./pages/Register.tsx"));
+const Account = lazy(() => import("./pages/Account.tsx"));
+const OrderLookup = lazy(() => import("./pages/OrderLookup.tsx"));
+const Maintenance = lazy(() => import("./pages/Maintenance.tsx"));
+const AdminContacts = lazy(() => import("./pages/admin/AdminContacts.tsx"));
+const AdminEvents = lazy(() => import("./pages/admin/AdminEvents.tsx"));
+const AdminDonations = lazy(() => import("./pages/admin/AdminDonations.tsx"));
+const AdminUsers = lazy(() => import("./pages/admin/AdminUsers.tsx"));
+import { PrivacyPolicy, TermsOfService, RefundPolicy, CookieNotice } from "./pages/Legal";
 
 const PageLoader = () => (
   <div className="min-h-[40vh] flex items-center justify-center">
@@ -87,6 +98,24 @@ const ThemeManager = () => {
   return null;
 };
 
+/**
+ * Full-site maintenance gate: when the admin enables maintenance mode only
+ * admins can pass through; everyone else sees a friendly "be right back".
+ */
+const MaintenanceGate = ({ children }: { children: React.ReactNode }) => {
+  const { isAdmin, isLoading: authLoading } = useAuth();
+  const { data: settings, isLoading: settingsLoading } = useQuery({
+    queryKey: ["settings", "maintenance"],
+    queryFn: settingsApi.getAll,
+    staleTime: 60 * 1000,
+    retry: false,
+  });
+
+  if (authLoading || settingsLoading) return <PageLoader />;
+  if (settings?.maintenanceMode && !isAdmin) return <Maintenance />;
+  return <>{children}</>;
+};
+
 const AnimatedRoutes = () => {
   const location = useLocation();
 
@@ -118,7 +147,19 @@ const AnimatedRoutes = () => {
             <Route path="/admin/settings" element={<AdminSettings />} />
             <Route path="/admin/orders" element={<AdminOrders />} />
             <Route path="/admin/media" element={<AdminMedia />} />
+            <Route path="/admin/contacts" element={<AdminContacts />} />
+            <Route path="/admin/events" element={<AdminEvents />} />
+            <Route path="/admin/donations" element={<AdminDonations />} />
+            <Route path="/admin/users" element={<AdminUsers />} />
           </Route>
+          <Route path="/login" element={<PageTransition><Login /></PageTransition>} />
+          <Route path="/register" element={<PageTransition><Register /></PageTransition>} />
+          <Route path="/account" element={<PageTransition><Account /></PageTransition>} />
+          <Route path="/order-lookup" element={<PageTransition><OrderLookup /></PageTransition>} />
+          <Route path="/privacy" element={<PageTransition><PrivacyPolicy /></PageTransition>} />
+          <Route path="/terms" element={<PageTransition><TermsOfService /></PageTransition>} />
+          <Route path="/refunds" element={<PageTransition><RefundPolicy /></PageTransition>} />
+          <Route path="/cookies" element={<PageTransition><CookieNotice /></PageTransition>} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/orders" element={<Orders />} />
           <Route path="/wishlist" element={<Wishlist />} />
@@ -148,8 +189,10 @@ const App = () => (
                   <ThemeManager />
                   <Toaster />
                   <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+                    <MaintenanceGate>
                     <ScrollToTop />
                     <AnimatedRoutes />
+                    </MaintenanceGate>
                   </BrowserRouter>
                 </ErrorBoundary>
               </HelmetProvider>

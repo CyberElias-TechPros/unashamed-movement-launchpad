@@ -39,6 +39,7 @@ router.get('/admin/all', protect, admin, c.getAllAdmin);
 
 // Bulk operations
 router.post('/bulk-delete', protect, admin, c.bulkDelete);
+router.post('/bulk-update', protect, admin, c.bulkUpdate);
 router.post('/bulk-update-status', protect, admin, c.bulkUpdateStatus);
 
 // Individual operations

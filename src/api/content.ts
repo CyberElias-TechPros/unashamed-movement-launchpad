@@ -5,7 +5,8 @@ export interface SiteContent {
   key: string;
   title: string;
   content: string;
-  type: 'hero' | 'about' | 'values' | 'cta' | 'stats';
+  type: 'hero' | 'about' | 'values' | 'cta' | 'stats' | 'mission' | 'featured';
+  imageUrl?: string;
   metadata?: Record<string, unknown>;
 }
 

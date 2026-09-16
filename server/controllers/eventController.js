@@ -44,6 +44,9 @@ exports.register = async (req, res) => {
     if (!eventId) {
       return res.status(400).json({ message: 'eventId is required' });
     }
+    if (!require('mongoose').isValidObjectId(eventId)) {
+      return res.status(400).json({ message: 'Invalid eventId' });
+    }
 
     const event = await Event.findById(eventId);
     if (!event) {

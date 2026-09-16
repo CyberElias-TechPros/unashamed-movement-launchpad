@@ -4,19 +4,26 @@ export interface Donation {
   id?: string;
   _id?: string;
   amount: number;
-  donor?: string;
-  email?: string;
+  donorName: string;
+  donorEmail: string;
+  currency?: string;
+  type?: 'one-time' | 'monthly';
   message?: string;
+  paymentMethod?: string;
   status: 'pending' | 'completed' | 'failed';
-  paymentIntentId?: string;
+  paymentId?: string;
+  isAnonymous?: boolean;
   createdAt?: string;
 }
 
 export interface DonationCreate {
   amount: number;
-  donor?: string;
-  email?: string;
+  donorName: string;
+  donorEmail: string;
+  type: 'one-time' | 'monthly';
   message?: string;
+  paymentMethod?: string;
+  isAnonymous?: boolean;
 }
 
 export const donationsApi = {

@@ -35,9 +35,11 @@ const updateOrderStatus = async ({ orderId, status, paymentId, paymentMethod }) 
   return Order.findOneAndUpdate(query, updates, { new: true });
 };
 
-router.get('/stripe/initialize', (req, res) => {
+const stripeInitializeInfo = (req, res) => {
   res.json({ configured: !!stripe, message: stripe ? 'Stripe configured' : 'Stripe dev mode' });
-});
+};
+router.get('/stripe/initialize', stripeInitializeInfo);
+router.post('/stripe/initialize', stripeInitializeInfo);
 
 router.get('/paystack/verify/:reference', async (req, res) => {
   try {

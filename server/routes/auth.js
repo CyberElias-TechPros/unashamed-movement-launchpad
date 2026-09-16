@@ -2,7 +2,7 @@ const router = require('express').Router();
 const { register, login, getProfile, updateProfile, forgotPassword, resetPassword, sendVerification, verifyEmail } = require('../controllers/authController');
 const { protect, setAuthCookies, refreshToken: issueRefreshToken, logout } = require('../middleware/auth');
 const { authLimiter } = require('../middleware/rateLimit');
-const { csrfProtection, setCsrfCookie, getCsrfToken, generateSessionId } = require('../middleware/csrf');
+const { csrfProtection, setCsrfCookie, getCsrfToken, generateCsrfToken, generateSessionId } = require('../middleware/csrf');
 const { body, validationResult } = require('express-validator');
 
 const validate = (req, res, next) => {
@@ -16,7 +16,9 @@ const validate = (req, res, next) => {
 router.get('/csrf-token', (req, res) => {
   const sessionId = req.cookies?.sessionId || generateSessionId();
   setCsrfCookie(res, sessionId);
-  res.json({ csrfToken: getCsrfToken(req) });
+  // Derive the token from the session id we just issued — reading it back
+  // from req.cookies would return null on a visitor's very first request.
+  res.json({ csrfToken: generateCsrfToken(sessionId) });
 });
 
 router.post('/register', authLimiter, csrfProtection, [

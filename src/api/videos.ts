@@ -12,6 +12,7 @@ export interface Video {
   duration?: string;
   episode?: string;
   category?: string;
+  type?: 'sermon' | 'podcast' | 'teaching' | 'testimony' | string;
   isActive?: boolean;
   isPublished?: boolean;
   order?: number;
@@ -54,7 +55,7 @@ export const videosApi = {
   
   // Bulk operations
   bulkDelete: (ids: string[]) => api.post('/videos/bulk-delete', { ids }),
-  bulkUpdateStatus: (ids: string[], isActive: boolean) => 
+  bulkUpdateStatus: (ids: string[], isActive: boolean) =>
     api.post('/videos/bulk-update-status', { ids, isActive }),
   // The admin page calls bulkUpdate with partial data — only status toggles
   // exist server-side, so honour isActive and ignore other fields.

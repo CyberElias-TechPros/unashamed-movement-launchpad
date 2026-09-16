@@ -1,9 +1,12 @@
-
 import Layout from "@/components/Layout";
+import PageHero from "@/components/cinematic/PageHero";
+import EmberGlow from "@/components/cinematic/EmberGlow";
 import { Button } from "@/components/ui/button";
 import { useCart } from "@/context/CartContext";
 import { useWishlist } from "@/context/WishlistContext";
 import { Link } from "react-router-dom";
+import { motion } from "framer-motion";
+import { Heart, ShoppingCart, Trash2, ArrowRight } from "lucide-react";
 
 const Wishlist = () => {
   const { items, removeItem, clearWishlist } = useWishlist();
@@ -13,28 +16,23 @@ const Wishlist = () => {
 
   return (
     <Layout>
-      <section className="section-padding bg-background min-h-[60vh]">
-        <div className="container-custom">
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between mb-6">
-            <div>
-              <h1 className="font-heading text-3xl">Wishlist</h1>
-              <p className="text-muted-foreground">Your saved items ready for later.</p>
-            </div>
-            {hasItems && (
-              <Button variant="outline" onClick={clearWishlist}>
-                Clear wishlist
-              </Button>
-            )}
-          </div>
+      <PageHero
+        kicker="Saved For Later"
+        title="WISHLIST"
+        italic={hasItems ? `${items.length} item${items.length === 1 ? "" : "s"} you love` : "nothing saved yet"}
+      />
 
-          {!hasItems && (
-            <div className="rounded-3xl border border-border p-8 text-center">
-              <p className="mb-4">Your wishlist is empty.</p>
-              <Link to="/shop" className="btn btn-primary">
-                Browse products
-              </Link>
-            </div>
-          )}
+      <section className="relative overflow-hidden bg-background">
+        {hasItems && <EmberGlow intensity="low" />}
+        <div className="section-padding">
+          <div className="container-custom max-w-3xl">
+            {hasItems && (
+              <div className="mb-6 flex justify-end">
+                <Button variant="outline" size="sm" onClick={clearWishlist}>
+                  Clear wishlist
+                </Button>
+              </div>
+            )}
 
           <div className="grid gap-4">
             {items.map((item) => {

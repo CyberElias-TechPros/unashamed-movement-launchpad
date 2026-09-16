@@ -226,9 +226,6 @@ const AdminProductManager = () => {
             <SelectItem value="all">All Categories</SelectItem>
             <SelectItem value="merch">Merch</SelectItem>
             <SelectItem value="digital">Digital</SelectItem>
-            <SelectItem value="book">Book</SelectItem>
-            <SelectItem value="apparel">Apparel</SelectItem>
-            <SelectItem value="accessories">Accessories</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -412,9 +409,6 @@ const AdminProductManager = () => {
                     <SelectContent>
                       <SelectItem value="merch">Merch</SelectItem>
                       <SelectItem value="digital">Digital</SelectItem>
-                      <SelectItem value="book">Book</SelectItem>
-                      <SelectItem value="apparel">Apparel</SelectItem>
-                      <SelectItem value="accessories">Accessories</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>

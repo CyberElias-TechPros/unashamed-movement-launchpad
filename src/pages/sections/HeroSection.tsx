@@ -1,35 +1,21 @@
-import { motion } from "framer-motion";
+import { useRef } from "react";
+import { motion, useScroll, useTransform } from "framer-motion";
 import { Link } from "react-router-dom";
-import { ArrowRight, ChevronLeft, ChevronRight } from "lucide-react";
+import { ArrowRight, Play } from "lucide-react";
 import MagneticButton from "@/components/MagneticButton";
-import { Button } from "@/components/ui/button";
-import TextReveal from "@/components/TextReveal";
-import FloatingParticles from "@/components/FloatingParticles";
+import KineticText from "@/components/cinematic/KineticText";
+import EmberGlow from "@/components/cinematic/EmberGlow";
 import { trackEvent } from "@/lib/analytics";
-import { useQuery } from '@tanstack/react-query';
-import { contentApi } from '@/api/content';
-import useEmblaCarousel from "embla-carousel-react";
-import { useCallback, useEffect, useState, useRef } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { contentApi, SiteContent } from "@/api/content";
 
-const heroVariants = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: { staggerChildren: 0.2, delayChildren: 0.3 },
-  },
+const fallbackHero: SiteContent = {
+  key: "hero",
+  title: "UNASHAMED",
+  content: '"Is your timidity worth someone else\'s eternity?"',
+  type: "hero",
+  metadata: {},
 };
-
-const itemVariant = {
-  hidden: { opacity: 0, y: 30 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.6 } },
-};
-
-const youtubeVideos = [
-  { id: "pFyf6yPBr9A", title: "Being Ambitious for Christ" },
-  { id: "ndP307bxp4k", title: "The Gospel Simplified" },
-  { id: "ahIbBSvVoQs", title: "The Ministry of the Holy Spirit in Evangelism" },
-  { id: "oxGmlhJDUq0", title: "Unashamed Webinar 3.0" },
-];
 
 const HeroSection = () => {
   const { data: hero } = useQuery({
@@ -96,9 +82,11 @@ const HeroSection = () => {
     emblaApi?.scrollPrev();
   }, [emblaApi]);
 
-  const scrollNext = useCallback(() => {
-    emblaApi?.scrollNext();
-  }, [emblaApi]);
+  const ref = useRef<HTMLElement>(null);
+  const { scrollYProgress } = useScroll({ target: ref, offset: ["start start", "end start"] });
+  const videoY = useTransform(scrollYProgress, [0, 1], ["0%", "22%"]);
+  const contentY = useTransform(scrollYProgress, [0, 1], ["0%", "60%"]);
+  const contentOpacity = useTransform(scrollYProgress, [0, 0.75], [1, 0]);
 
   return (
     <section 
@@ -194,72 +182,33 @@ const HeroSection = () => {
               transition={{ delay: 2 }}
               className="absolute bottom-8 left-1/2 -translate-x-1/2"
             >
-              <motion.div
-                animate={{ y: [0, 10, 0] }}
-                transition={{ repeat: Infinity, duration: 1.5 }}
-                className="w-6 h-10 border-2 border-primary-foreground/30 rounded-full flex justify-center pt-2"
-              >
-                <div className="w-1.5 h-1.5 bg-accent rounded-full" />
-              </motion.div>
-            </motion.div>
-          </div>
+              <span className="flex h-8 w-8 items-center justify-center rounded-full bg-accent/15 text-accent transition-colors group-hover:bg-accent group-hover:text-accent-foreground">
+                <Play size={14} className="ml-0.5" />
+              </span>
+              Watch the Fire
+            </a>
+          </MagneticButton>
+        </motion.div>
+      </motion.div>
 
-          {youtubeVideos.map((video) => (
-            <div key={video.id} className="min-w-0 shrink-0 grow-0 basis-full bg-black">
-              <div className="relative h-full w-full">
-                <iframe
-                  src={`https://www.youtube.com/embed/${video.id}?modestbranding=1&rel=0&showinfo=0`}
-                  className="absolute inset-0 w-full h-full"
-                  allow="accelerometer; encrypted-media; gyroscope; picture-in-picture"
-                  allowFullScreen
-                  title={video.title}
-                  loading="lazy"
-                />
-              </div>
-            </div>
-          ))}
+      {/* Scroll cue */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 2.2, duration: 1 }}
+        className="absolute bottom-8 left-1/2 z-10 -translate-x-1/2"
+        aria-hidden="true"
+      >
+        <div className="flex flex-col items-center gap-3">
+          <span className="font-body text-[10px] tracking-[0.4em] uppercase text-foreground/50">Scroll</span>
+          <motion.div
+            animate={{ y: [0, 8, 0] }}
+            transition={{ duration: 1.8, repeat: Infinity, ease: "easeInOut" }}
+            className="h-10 w-px bg-gradient-to-b from-accent/80 to-transparent"
+          />
         </div>
-      </div>
-
-      <button
-        onClick={scrollPrev}
-        className="absolute left-4 top-1/2 -translate-y-1/2 z-20 w-11 h-11 rounded-full bg-black/50 hover:bg-black/70 flex items-center justify-center transition-all duration-300"
-        aria-label="Previous slide"
-      >
-        <ChevronLeft className="w-6 h-6 text-white" />
-      </button>
-      <button
-        onClick={scrollNext}
-        className="absolute right-4 top-1/2 -translate-y-1/2 z-20 w-11 h-11 rounded-full bg-black/50 hover:bg-black/70 flex items-center justify-center transition-all duration-300"
-        aria-label="Next slide"
-      >
-        <ChevronRight className="w-6 h-6 text-white" />
-      </button>
-
-<div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-3 z-20">
-           <button
-             onClick={() => scrollTo(0)}
-             className={`w-11 h-11 rounded-full flex items-center justify-center transition-all duration-300 ${
-               selectedIndex === 0 ? 'bg-accent w-12' : 'bg-white/30 hover:bg-white/50'
-             }`}
-             aria-label="Go to hero slide"
-           >
-             <div className="w-2 h-2 rounded-full bg-white" />
-           </button>
-           {youtubeVideos.map((_, i) => (
-             <button
-               key={i}
-               onClick={() => scrollTo(i + 1)}
-               className={`w-11 h-11 rounded-full flex items-center justify-center transition-all duration-300 ${
-                 selectedIndex === i + 1 ? 'bg-accent w-12' : 'bg-white/30 hover:bg-white/50'
-               }`}
-               aria-label={`Go to video slide ${i + 1}`}
-             >
-               <div className="w-2 h-2 rounded-full bg-white" />
-             </button>
-           ))}
-         </div>
-       </section>
+      </motion.div>
+    </section>
   );
 };
 

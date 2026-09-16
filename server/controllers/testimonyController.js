@@ -99,6 +99,24 @@ exports.remove = async (req, res) => {
 };
 
 // Bulk operations
+exports.bulkDelete = async (req, res) => {
+  try {
+    const { ids } = req.body;
+    if (!Array.isArray(ids) || ids.length === 0) {
+      return res.status(400).json({ message: 'Array of IDs required' });
+    }
+
+    const result = await Testimony.deleteMany({ _id: { $in: ids } });
+
+    res.json({
+      message: 'Testimonies deleted',
+      deletedCount: result.deletedCount,
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 exports.bulkApprove = async (req, res) => {
   try {
     const { ids } = req.body;

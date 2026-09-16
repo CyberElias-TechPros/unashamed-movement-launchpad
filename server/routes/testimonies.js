@@ -20,6 +20,7 @@ router.get('/manage/all', protect, admin, c.getAllForAdmin);
 // Bulk operations
 router.post('/bulk-approve', protect, admin, c.bulkApprove);
 router.post('/bulk-reject', protect, admin, c.bulkReject);
+router.post('/bulk-delete', protect, admin, c.bulkDelete);
 
 // Individual operations
 router.get('/:id', c.getById);

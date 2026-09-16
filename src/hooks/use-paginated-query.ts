@@ -39,12 +39,12 @@ interface UsePaginatedQueryResult<T> {
 export function usePaginatedQuery<T>(
   options: UsePaginatedQueryOptions<T>
 ): UsePaginatedQueryResult<T> {
-  const { endpoint, initialPage = 1, initialLimit = 10, ...queryOptions } = options;
+  const { endpoint, initialPage = 1, initialLimit = 10, queryKey: customKey, ...queryOptions } = options;
   const queryClient = useQueryClient();
-  
+
   const [page, setPage] = useState(initialPage);
   const [limit, setLimit] = useState(initialLimit);
-  
+
   const params: PaginationParams = {
     page,
     limit,

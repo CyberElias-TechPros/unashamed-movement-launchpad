@@ -5,6 +5,7 @@ const siteContentSchema = new mongoose.Schema({
   title: { type: String, default: '' },
   content: { type: String, default: '' },
   type: { type: String, enum: ['hero', 'about', 'values', 'cta', 'stats', 'mission', 'featured'], default: 'hero' },
+  imageUrl: { type: String, default: '' },
   metadata: { type: mongoose.Schema.Types.Mixed, default: {} },
 }, { timestamps: true });
 

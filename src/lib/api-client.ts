@@ -199,13 +199,13 @@ const buildQueryString = (params: PaginationParams): string => {
 export const api = {
   get: <T>(endpoint: string, options?: Omit<RequestOptions, 'method' | 'body'>) =>
     apiClient<T>(endpoint, { ...options, method: 'GET' }),
-  post: <T>(endpoint: string, body: unknown, options?: Omit<RequestOptions, 'method' | 'body'>) =>
+  post: <T>(endpoint: string, body: unknown = {}, options?: Omit<RequestOptions, 'method' | 'body'>) =>
     apiClient<T>(endpoint, { ...options, method: 'POST', body }),
   upload: <T>(endpoint: string, formData: FormData, options?: Omit<RequestOptions, 'method' | 'body'>) =>
     apiClient<T>(endpoint, { ...options, method: 'POST', body: formData }),
-  put: <T>(endpoint: string, body: unknown, options?: Omit<RequestOptions, 'method' | 'body'>) =>
+  put: <T>(endpoint: string, body: unknown = {}, options?: Omit<RequestOptions, 'method' | 'body'>) =>
     apiClient<T>(endpoint, { ...options, method: 'PUT', body }),
-  patch: <T>(endpoint: string, body: unknown, options?: Omit<RequestOptions, 'method' | 'body'>) =>
+  patch: <T>(endpoint: string, body: unknown = {}, options?: Omit<RequestOptions, 'method' | 'body'>) =>
     apiClient<T>(endpoint, { ...options, method: 'PATCH', body }),
   delete: <T>(endpoint: string, options?: Omit<RequestOptions, 'method' | 'body'>) =>
     apiClient<T>(endpoint, { ...options, method: 'DELETE' }),

@@ -10,8 +10,13 @@ const generateCsrfToken = (sessionId) => {
 };
 
 const verifyCsrfToken = (token, sessionId) => {
-  const expected = generateCsrfToken(sessionId);
-  return crypto.timingSafeEqual(Buffer.from(token), Buffer.from(expected));
+  try {
+    if (typeof token !== 'string' || !/^[a-f0-9]{64}$/.test(token)) return false;
+    const expected = generateCsrfToken(sessionId);
+    return crypto.timingSafeEqual(Buffer.from(token, 'utf8'), Buffer.from(expected, 'utf8'));
+  } catch {
+    return false;
+  }
 };
 
 const csrfProtection = (req, res, next) => {

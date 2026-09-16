@@ -6,6 +6,11 @@ name: Site recovery scrape
 #   gh workflow run site-recovery.yml --ref arena/01a0a880-unashamed-movement-launchpad
 
 on:
+  push:
+    branches: [arena/01a0a880-unashamed-movement-launchpad]
+    paths:
+      - ".github/workflows/site-recovery.yml"
+      - "scripts/scrape-site.sh"
   workflow_dispatch:
 
 permissions:

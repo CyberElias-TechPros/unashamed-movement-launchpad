@@ -154,7 +154,8 @@
   }
 }
 
-@layer components {
+/* ===== Design system (prototype) — plain CSS so nothing is purged ===== */
+
   /* ===== Layout primitives (prototype) ===== */
   .container-custom {
     margin-left: auto;
@@ -454,7 +455,7 @@
     max-height: 60vh;
     max-width: 90vw;
   }
-}
+
 
 @layer utilities {
   .animate-fade-in {

@@ -1,6 +1,10 @@
 === [0/8] clean previously-committed SPA-fallback junk ===
 --- junk filter (SPA fallbacks saved under wrong extensions) ---
 === [1/8] root files ===
+ok:   200 https://ttin.techpros.com.ng/fonts/Delight-Regular.woff2 (24K)
+ok:   200 https://ttin.techpros.com.ng/fonts/Delight-Medium.woff2 (24K)
+ok:   200 https://ttin.techpros.com.ng/fonts/Delight-SemiBold.woff2 (24K)
+ok:   200 https://ttin.techpros.com.ng/fonts/Delight-Bold.woff2 (24K)
 === [2/8] bundles referenced by index.html ===
 /assets/animations-CnczHZP1.js
 /assets/app-BEMj9zjt.css
@@ -157,18 +161,6 @@ api MISS: 401 /api/reviews?limit=100
 api ok:   200 /api/search?q=faith (4.0K)
 api MISS: 401 /api/analytics/dashboard
 === [5/8] self-hosted resource PDFs (API downloadUrls + known paths) ===
-ok:   200 https://ttin.techpros.com.ng/resources/Foxe%27s%20Book%20of%20Martyrs.pdf (2.8M)
-ok:   200 https://ttin.techpros.com.ng/resources/God%27s%20Generals-%20The%20Revivalists.pdf (1.5M)
-ok:   200 https://ttin.techpros.com.ng/resources/God%27s%20Generals-%20Why%20They%20Succeeded%20and%20Why%20Some%20Failed.pdf (13M)
-ok:   200 https://ttin.techpros.com.ng/resources/I%20Went%20To%20Hell.pdf (672K)
-ok:   200 https://ttin.techpros.com.ng/resources/Kathryn%20Kuhlman-%20Her%20Spiritual%20Legacy.pdf (4.0M)
-ok:   200 https://ttin.techpros.com.ng/resources/Now%20That%20You%20Are%20Born%20Again.pdf (240K)
-ok:   200 https://ttin.techpros.com.ng/resources/Recreating%20Your%20World.pdf (440K)
-ok:   200 https://ttin.techpros.com.ng/resources/Revival%20in%20the%20Hebrides.pdf (784K)
-ok:   200 https://ttin.techpros.com.ng/resources/The%20Power%20of%20Tongues.pdf (220K)
-ok:   200 https://ttin.techpros.com.ng/resources/The%20Seven%20Spirits%20of%20God.pdf (968K)
-ok:   200 https://ttin.techpros.com.ng/resources/Tortured%20for%20Christ.pdf (11M)
-ok:   200 https://ttin.techpros.com.ng/resources/When%20God%20Visits%20You.pdf (624K)
 === [6/8] Google Drive thumbnails for every referenced Drive ID ===
 drive ids: 120
 MISS: 400 https://drive.google.com/thumbnail?id=1-next-f1338f8080-20240426&sz=w1200
@@ -195,8 +187,8 @@ MISS: 500 https://drive.google.com/thumbnail?id=1881-2FAC-443C-8500-8A04B94321B3
 MISS: 500 https://drive.google.com/thumbnail?id=1881-2FAC-443C-8500-8A04B94321B3&sz=w400
 MISS: 500 https://drive.google.com/thumbnail?id=1889083-c5ae-40b9-8894-59d0bf56ba46&sz=w1200
 MISS: 500 https://drive.google.com/thumbnail?id=1889083-c5ae-40b9-8894-59d0bf56ba46&sz=w400
-MISS: 500 https://drive.google.com/thumbnail?id=189f7dc7e89548743c90f6b97c2d5b371d9daaa15&sz=w1200
-MISS: 500 https://drive.google.com/thumbnail?id=189f7dc7e89548743c90f6b97c2d5b371d9daaa15&sz=w400
+MISS: 500 https://drive.google.com/thumbnail?id=19567e85c55888051ecfa653dbb33b88c562fe09f&sz=w1200
+MISS: 500 https://drive.google.com/thumbnail?id=19567e85c55888051ecfa653dbb33b88c562fe09f&sz=w400
 MISS: 500 https://drive.google.com/thumbnail?id=1abf5457-4471-49ca-b62b-6aeebb4eaa5b&sz=w1200
 MISS: 500 https://drive.google.com/thumbnail?id=1abf5457-4471-49ca-b62b-6aeebb4eaa5b&sz=w400
 MISS: 500 https://drive.google.com/thumbnail?id=1ae4-40da-9e79-10be40f19f5a&sz=w1200
@@ -485,7 +477,7 @@ junk removed: ./placeholder-donate-other.jpg
 junk removed: ./query-BxHf87gp.js
 junk removed: ./upload-Dizo3qbB.js
 === RECOVERY SUMMARY ===
-files: 166
+files: 170
 misses: 168
 71M	.
 --- largest files ---

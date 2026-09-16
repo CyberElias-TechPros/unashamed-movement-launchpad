@@ -436,7 +436,7 @@ export const authRoutes = (/* app: App */) => {
     const cookies = parseCookiesSafe(c);
     const refresh = cookies['refreshToken'];
     if (!refresh) return c.json({ message: 'No refresh token' }, 401);
-    const payload = await verifyJwt(refresh, c.env.JWT_REFRESH_SECRET || c.env.JWT_SECRET);
+    const payload = await verifyJwt(refresh, c.env.JWT_REFRESH_SECRET || c.env.JWT_SECRET || 'ttin-local-dev-secret-not-for-production');
     if (!payload) return c.json({ message: 'Invalid refresh token' }, 401);
 
     const row = await c.env.DB.prepare('SELECT * FROM users WHERE id = ?').bind(payload.id).first();

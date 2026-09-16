@@ -294,6 +294,48 @@ describe('shop: checkout → digital delivery → refund', () => {
   });
 });
 
+describe('payments: dev-confirm completes card orders in dev mode', () => {
+  const buyer = new Client();
+
+  it('settles a pending order and issues digital downloads', async () => {
+    const checkout = await buyer.mutate<{ orderId?: string; id?: string }>('POST', '/api/orders/checkout', {
+      customerName: 'Dev Buyer',
+      customerEmail: 'devbuyer@test.dev',
+      items: [
+        { product: '650a1b2c3d4e5f6a7b8c9d11', name: '30-Day Bold Faith Devotional', quantity: 1, price: 0 },
+      ],
+      totalAmount: 0,
+      paymentMethod: 'paystack',
+      currency: 'USD',
+    });
+    expect(checkout.status).toBe(201);
+    const devOrderId = String(checkout.body.orderId ?? checkout.body.id);
+
+    const confirm = await buyer.mutate<{ message: string; status: string }>(
+      'POST',
+      '/api/payments/dev-confirm',
+      { orderId: devOrderId }
+    );
+    expect(confirm.status).toBe(200);
+    expect(confirm.body.status).toBe('processing');
+
+    const row = await env.DB.prepare('SELECT status FROM orders WHERE id = ?').bind(devOrderId).first();
+    expect(row?.status).toBe('processing');
+
+    const token = await env.DB.prepare('SELECT token FROM order_downloads WHERE order_id = ?')
+      .bind(devOrderId)
+      .first();
+    expect(token).not.toBeNull();
+  });
+
+  it('is idempotent for already-settled orders and 404s for unknown ids', async () => {
+    const again = await buyer.mutate('POST', '/api/payments/dev-confirm', {
+      orderId: 'does-not-exist',
+    });
+    expect(again.status).toBe(404);
+  });
+});
+
 describe('donations', () => {
   const admin = new Client();
 

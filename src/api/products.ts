@@ -47,6 +47,10 @@ export const productsApi = {
   },
   
   getById: (id: string) => api.get<Product>(`/products/${id}`),
+
+  /** Back-in-stock notification signup. */
+  subscribeStock: (id: string, email: string) =>
+    api.post<{ message: string }>(`/products/${id}/subscribe-stock`, { email }),
   
   create: (data: Omit<Product, 'id'>) => api.post<Product>('/products', data),
   update: (id: string, data: Partial<Product>) => api.put<Product>(`/products/${id}`, data),
@@ -61,7 +65,6 @@ export const productsApi = {
     api.patch<{ stock: number }>(`/products/${id}/stock`, { quantity }),
   
   getStock: (id: string) => api.get<{ stock: number }>(`/products/${id}/stock`),
-  subscribeStock: (id: string, email: string) => api.post(`/products/${id}/subscribe-stock`, { email }),
 };
 
 export default productsApi;

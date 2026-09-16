@@ -6,6 +6,7 @@
 import { Hono } from 'hono';
 import type { Env } from '../types';
 import { readJson } from '../types';
+import type { Row } from '../types';
 import { hmacSha256Hex, hmacSha512Hex, nowIso, safeEqual } from '../util';
 import { onOrderPaid } from '../fulfillment';
 import { settleDonation } from './community';
@@ -367,6 +368,41 @@ export const paymentRoutes = () => {
       console.error('Paystack webhook error:', e);
       return c.json({ message: 'Paystack webhook processing failed' }, 500);
     }
+  });
+
+  /* ---------------- Dev/test confirm ---------------- */
+
+  /**
+   * Completes a card order when NO real payment provider is configured
+   * (local dev / preview). Marks the order paid, issues digital downloads
+   * and sends the confirmation email — exactly what a webhook would do.
+   * 403s in production so it can never bypass a real payment.
+   */
+  router.post('/dev-confirm', async (c) => {
+    const live =
+      c.env.PAYSTACK_SECRET_KEY ||
+      c.env.FLUTTERWAVE_SECRET_KEY ||
+      c.env.STRIPE_SECRET_KEY ||
+      c.env.PAYPAL_CLIENT_ID;
+    if (live) return c.json({ message: 'Not available while payment providers are configured' }, 403);
+
+    const body = await readJson(c);
+    const orderId = String(body.orderId || '').trim();
+    if (!orderId) return c.json({ message: 'orderId is required' }, 400);
+
+    const order = await c.env.DB.prepare('SELECT * FROM orders WHERE id = ?').bind(orderId).first<Row>();
+    if (!order) return c.json({ message: 'Order not found' }, 404);
+    if (order.status !== 'pending') {
+      return c.json({ message: 'Order already settled', status: order.status });
+    }
+
+    await updateOrderStatus(c.env, {
+      orderId,
+      status: 'processing',
+      paymentId: `dev_${orderId}`,
+      paymentMethod: 'dev',
+    });
+    return c.json({ message: 'Order confirmed (dev mode)', orderId, status: 'processing' });
   });
 
   /* ---------------- Flutterwave ---------------- */

@@ -1,11 +1,11 @@
 import { useState, useEffect } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import Layout from "@/components/Layout";
 import SectionWrapper from "@/components/SectionWrapper";
 import FloatingParticles from "@/components/FloatingParticles";
 import { Button } from "@/components/ui/button";
-import { ShoppingCart, Eye, X, Heart } from "lucide-react";
+import { ShoppingCart, Eye, X, Heart, ArrowRight } from "lucide-react";
 import { useCart } from "@/context/CartContext";
 import { trackAddToCart } from "@/lib/analytics";
 import { useToast } from "@/hooks/use-toast";
@@ -19,21 +19,6 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 const APPAREL_SIZES = ["S", "M", "L", "XL", "XXL"];
 
-const SubscribeForm = ({ onSubscribe }: { onSubscribe: (email: string) => void }) => {
-  return (
-    <form className="flex gap-2" onSubmit={(e) => {
-      e.preventDefault();
-      const f = e.target as HTMLFormElement;
-      const email = (f.elements.namedItem('notifyEmail') as HTMLInputElement).value;
-      if (!email) return;
-      onSubscribe(email);
-      f.reset();
-    }}>
-      <input name="notifyEmail" placeholder="Email" className="p-2 border border-border rounded w-full" />
-      <button className="btn btn-primary" type="submit">Notify me</button>
-    </form>
-  );
-};
 
 const Shop = () => {
   const location = useLocation();
@@ -108,16 +93,6 @@ const Shop = () => {
     enabled: !!productKey,
   });
   const reviews = reviewsResponse?.data || [];
-
-  const submitReview = useMutation({
-    mutationFn: (payload: { productId: string; data: Partial<Review> }) =>
-      reviewsApi.create(payload.productId, payload.data),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['reviews', productKey] }),
-  });
-
-  const subscribeStock = useMutation({
-    mutationFn: (email: string) => productsApi.subscribeStock(productKey, email),
-  });
 
   const toggleWishlist = (product: Product, e: React.MouseEvent) => {
     e.stopPropagation();
@@ -287,7 +262,9 @@ const Shop = () => {
                         {product.category}
                       </p>
                       <h3 className="font-heading text-lg tracking-wider text-card-foreground mb-2">
-                        {product.name}
+                        <Link to={`/shop/${product._id || product.id}`} className="hover:text-accent transition-colors">
+                          {product.name}
+                        </Link>
                       </h3>
                       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                         <span className="font-heading text-xl text-accent">
@@ -387,65 +364,23 @@ const Shop = () => {
                     </div>
                   </div>
                 </div>
-                <div className="p-5 sm:p-8 border-t border-border">
-                  <h4 className="font-heading text-lg mb-2">Reviews</h4>
-                  {reviews && reviews.length > 0 ? (
-                    <div className="space-y-3">
-                      {reviews.map((r) => (
-                        <div key={r._id} className="border border-border rounded p-3">
-                          <div className="font-semibold">{r.name || 'Anonymous'} <span className="text-sm text-muted-foreground">· {r.rating}/5</span></div>
-                          {r.title && <div className="text-sm font-medium">{r.title}</div>}
-                          {r.body && <div className="text-sm text-muted-foreground">{r.body}</div>}
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="text-sm text-muted-foreground">No reviews yet. Be the first to leave a review.</div>
-                  )}
-
-                  <div className="mt-4">
-                    <h5 className="font-medium mb-2">Leave a review</h5>
-                    <form onSubmit={(e) => {
-                      e.preventDefault();
-                      const form = e.target as HTMLFormElement;
-                      const formData = new FormData(form);
-                      const payload: Partial<Review> = {
-                        name: String(formData.get('name') || ''),
-                        email: String(formData.get('email') || ''),
-                        rating: Number(formData.get('rating') || 5),
-                        title: String(formData.get('title') || ''),
-                        body: String(formData.get('body') || ''),
-                      };
-                      const pid = selectedProduct?._id || selectedProduct?.id || '';
-                      submitReview.mutate({ productId: pid, data: payload });
-                      form.reset();
-                    }}>
-                      <input name="name" placeholder="Your name" className="w-full mb-2 p-2 border border-border rounded" />
-                      <input name="email" placeholder="Email (optional)" className="w-full mb-2 p-2 border border-border rounded" />
-                      <select name="rating" defaultValue={5} className="w-full mb-2 p-2 border border-border rounded">
-                        {[5,4,3,2,1].map((n) => (<option key={n} value={n}>{n} stars</option>))}
-                      </select>
-                      <input name="title" placeholder="Review title" className="w-full mb-2 p-2 border border-border rounded" />
-                      <textarea name="body" placeholder="Write your review" className="w-full mb-2 p-2 border border-border rounded" />
-                      <div className="flex gap-2">
-                        <button className="btn btn-primary" type="submit">Submit review</button>
-                      </div>
-                    </form>
-                  </div>
-
-                  {selectedProduct?.stock != null && selectedProduct.stock <= 0 && (
-                    <div className="mt-4">
-                      <p className="text-sm text-muted-foreground mb-2">Out of stock — get notified when available</p>
-                      <SubscribeForm onSubscribe={(email) => subscribeStock.mutate(email)} />
-                    </div>
-                  )}
+                <div className="pt-4 border-t border-border flex flex-col sm:flex-row gap-3">
+                  <Button variant="hero" size="lg" className="gap-2 flex-1" onClick={handleAddToCart}>
+                    <ShoppingCart size={18} /> Add to Cart
+                  </Button>
+                  <Link
+                    to={`/shop/${selectedProduct._id || selectedProduct.id}`}
+                    className="flex-1"
+                  >
+                    <Button variant="outline" size="lg" className="gap-2 w-full">
+                      Full Details <ArrowRight size={16} />
+                    </Button>
+                  </Link>
                 </div>
+
                 {selectedProduct.stock != null && selectedProduct.stock <= 5 && (
-                  <p className="text-sm text-amber-600 mb-2">Only {selectedProduct.stock} left in stock</p>
+                  <p className="text-sm text-amber-600 mt-3">Only {selectedProduct.stock} left in stock</p>
                 )}
-                <Button variant="hero" size="lg" className="gap-2 w-full" onClick={handleAddToCart}>
-                  <ShoppingCart size={18} /> Add to Cart
-                </Button>
               </div>
             </motion.div>
           </motion.div>

@@ -6,6 +6,7 @@ import { CheckCircle, Loader2 } from "lucide-react";
 import { useCart } from "@/context/CartContext";
 import { trackPurchase } from "@/lib/analytics";
 import { paypalApi } from "@/api/paypal";
+import { paystackApi } from "@/api/paystack";
 
 const OrderSuccess = () => {
   const [searchParams] = useSearchParams();
@@ -17,6 +18,7 @@ const OrderSuccess = () => {
 
   const clear = useCallback(() => clearCart(), [clearCart]);
   const [paypalState, setPaypalState] = useState<"idle" | "confirming" | "done" | "failed">("idle");
+  const [cardState, setCardState] = useState<"idle" | "confirming" | "done" | "failed">("idle");
 
   useEffect(() => {
     clear();
@@ -32,6 +34,17 @@ const OrderSuccess = () => {
         .capture(captureId)
         .then(() => setPaypalState("done"))
         .catch(() => setPaypalState("failed"));
+    } else if (orderId && orderId !== "confirmed") {
+      // Card flow (Paystack/Flutterwave/Stripe): the payment provider
+      // redirects straight here. In production the webhook settles the
+      // order; in dev/test mode (no payment keys configured) the worker's
+      // dev-confirm endpoint settles it so the whole flow — order status,
+      // stock, emails, digital downloads — completes end to end.
+      setCardState("confirming");
+      paystackApi
+        .devConfirm(orderId)
+        .then(() => setCardState("done"))
+        .catch(() => setCardState("failed"));
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -40,18 +53,20 @@ const OrderSuccess = () => {
     <Layout>
       <section className="section-padding bg-primary pt-20 min-h-[60vh] flex items-center">
         <div className="container-custom text-center max-w-lg mx-auto">
-          {paypalState === "confirming" ? (
+          {paypalState === "confirming" || cardState === "confirming" ? (
             <Loader2 className="w-20 h-20 text-accent mx-auto mb-6 animate-spin" />
           ) : (
             <CheckCircle className="w-20 h-20 text-accent mx-auto mb-6" />
           )}
           <h1 className="font-heading text-4xl tracking-wider text-primary-foreground mb-4">
-            {paypalState === "confirming" ? "Confirming Payment…" : "Order Confirmed"}
+            {paypalState === "confirming" || cardState === "confirming"
+              ? "Confirming Payment…"
+              : "Order Confirmed"}
           </h1>
-          {paypalState === "failed" && (
+          {(paypalState === "failed" || cardState === "failed") && (
             <p className="text-amber-300 text-sm mb-4">
-              We couldn't confirm your payment just now — no need to worry, PayPal will notify us
-              and you'll receive a confirmation email shortly.
+              We couldn't confirm your payment just now — no need to worry, the payment provider
+              will notify us and you'll receive a confirmation email shortly.
             </p>
           )}
           <p className="text-primary-foreground/70 mb-8">

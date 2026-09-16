@@ -21,6 +21,7 @@ const Index = lazy(() => import("./pages/Index.tsx"));
 const About = lazy(() => import("./pages/About.tsx"));
 const Testimonies = lazy(() => import("./pages/Testimonies.tsx"));
 const Shop = lazy(() => import("./pages/Shop.tsx"));
+const ProductDetail = lazy(() => import("./pages/ProductDetail.tsx"));
 const Unashamed = lazy(() => import("./pages/Unashamed.tsx"));
 const Resources = lazy(() => import("./pages/Resources.tsx"));
 const Events = lazy(() => import("./pages/Events.tsx"));
@@ -127,6 +128,7 @@ const AnimatedRoutes = () => {
           <Route path="/about" element={<PageTransition><About /></PageTransition>} />
           <Route path="/testimonies" element={<PageTransition><Testimonies /></PageTransition>} />
           <Route path="/shop" element={<PageTransition><Shop /></PageTransition>} />
+          <Route path="/shop/:id" element={<PageTransition><ProductDetail /></PageTransition>} />
           <Route path="/unashamed" element={<PageTransition><Unashamed /></PageTransition>} />
           <Route path="/resources" element={<PageTransition><Resources /></PageTransition>} />
           <Route path="/events" element={<PageTransition><Events /></PageTransition>} />

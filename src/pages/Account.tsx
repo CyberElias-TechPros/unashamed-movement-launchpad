@@ -145,6 +145,26 @@ const Account = () => {
             <h1 className="font-heading text-4xl sm:text-5xl tracking-wider text-primary-foreground">
               Hi{user?.name ? `, ${user.name.split(" ")[0]}` : ""} 👋
             </h1>
+            <div className="flex flex-wrap gap-3 mt-6">
+              <Link
+                to="/orders"
+                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-white/10 hover:bg-[#eab308] hover:text-[#0a0a0a] text-primary-foreground text-sm font-heading tracking-wider transition-all duration-300"
+              >
+                My Orders
+              </Link>
+              <Link
+                to="/wishlist"
+                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-white/10 hover:bg-[#eab308] hover:text-[#0a0a0a] text-primary-foreground text-sm font-heading tracking-wider transition-all duration-300"
+              >
+                Wishlist
+              </Link>
+              <Link
+                to="/order-lookup"
+                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-white/10 hover:bg-[#eab308] hover:text-[#0a0a0a] text-primary-foreground text-sm font-heading tracking-wider transition-all duration-300"
+              >
+                Track an Order
+              </Link>
+            </div>
           </motion.div>
         </div>
       </section>

@@ -33,12 +33,12 @@ const About = () => {
               Our Story
             </p>
             <h1 className="font-heading text-4xl sm:text-6xl md:text-7xl lg:text-8xl tracking-wider text-primary-foreground mb-6">
-              About TTIN
+              About Us
             </h1>
             <p className="font-body text-primary-foreground/70 text-xl max-w-2xl leading-relaxed">
-              The Time Is Now (TTIN) is a faith-based movement born out of a 
-              burning desire to see Christians live boldly and unapologetically for Christ. 
-              We exist to challenge the culture of silence and inspire believers to speak up.
+              The Time is Now is a movement designed to awaken believers from passivity to
+              consistently preach the gospel with boldness and urgency in this generation —
+              thereby causing them to live up to their full potential in Christ.
             </p>
           </motion.div>
         </div>
@@ -136,8 +136,8 @@ const About = () => {
             <div className="text-center mt-12">
               <div className="max-w-3xl mx-auto">
                 <p className="font-body text-primary-foreground/80 text-lg leading-relaxed">
-                  This single act of obedience sparked a chain reaction that has now reached 
-                  over 16 countries and inspired more than 100 people to preach openly. 
+                  This single act of obedience sparked a chain reaction that has now reached
+                  over 33 countries and inspired more than 150 people to preach openly. 
                   What began as one person saying "Yes" to God has become a global movement 
                   of unashamed believers taking the Gospel to every corner of society.
                 </p>
@@ -188,9 +188,9 @@ const About = () => {
             </h2>
             <ol className="relative border-l border-accent/40 pl-8 space-y-10">
               {[
-                { year: "2024", title: "The spark", desc: "Believers began sharing bold faith stories online and in small groups." },
-                { year: "Feb 2025", title: "Plane preaching", desc: "Open-air preaching on a flight ignited a global movement across 16 countries." },
-                { year: "2025", title: "TTIN launches", desc: "Resources, merch, events, and testimonies unite under The Time Is Now." },
+                { year: "21st Feb 2025", title: "Posted a video of myself preaching open air on a plane", desc: "One act of obedience on a flight home became the spark." },
+                { year: "Feb 22nd - 24th", title: "Others Joined in", desc: "Other people preached in buses, on the streets after seeing the video." },
+                { year: "24th February", title: "TTIN Launches", desc: "The official Movement was launched — and it's been spreading ever since." },
               ].map((item) => (
                 <li key={item.year} className="relative">
                   <span className="absolute -left-[2.35rem] w-4 h-4 rounded-full bg-accent" />
@@ -219,7 +219,7 @@ const About = () => {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 max-w-5xl mx-auto">
               {teamMembers.map((member) => (
                 <div key={member.name} className="text-center bg-primary-foreground/5 rounded-2xl p-8 border border-primary-foreground/10">
-                  <div className="w-32 h-32 rounded-full bg-secondary mx-auto mb-4 flex items-center justify-center font-heading text-3xl text-primary-foreground">
+                  <div className="w-32 h-32 rounded-full bg-accent mx-auto mb-4 flex items-center justify-center font-heading text-3xl text-accent-foreground">
                     {member.name.charAt(0)}
                   </div>
                   <h4 className="font-heading text-xl tracking-wider text-primary-foreground">{member.name}</h4>

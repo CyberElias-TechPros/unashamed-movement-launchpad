@@ -7,7 +7,7 @@ import FloatingParticles from "@/components/FloatingParticles";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Quote, ArrowRight, Users, Globe, Download, Play, Book, Share2, MapPin } from "lucide-react";
+import { Quote, ArrowRight, Users, Globe, Play, Book, Share2, MapPin, MessagesSquare } from "lucide-react";
 import { TestimonySubmissionForm } from "@/components/TestimonySubmissionForm";
 import WorldMap from "@/components/WorldMap";
 import { testimonialsApi, Testimonial } from "@/api/testimonials";
@@ -195,14 +195,14 @@ const Testimonies = () => {
 
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
             {[
-              { number: "100+", label: "People Preached Open Air", icon: <Users className="w-6 h-6" /> },
-              { number: "16", label: "Countries Reached", icon: <Globe className="w-6 h-6" /> },
-              { number: "158", label: "Books Downloaded", icon: <Download className="w-6 h-6" /> },
-              { number: "7", label: "Types of Locations", icon: <MapPin className="w-6 h-6" /> },
+              { number: "150+", label: "People Preached Open Air", icon: <Users className="w-6 h-6" /> },
+              { number: "33", label: "Countries Reached", icon: <Globe className="w-6 h-6" /> },
+              { number: "1,200+", label: "Community Members", icon: <Users className="w-6 h-6" /> },
+              { number: "800+", label: "Gospel Conversations Started", icon: <MessagesSquare className="w-6 h-6" /> },
             ].map((stat, index) => (
               <SectionWrapper key={stat.label} delay={index * 0.1}>
                 <div className="text-center">
-                  <div className="w-16 h-16 bg-accent rounded-full flex items-center justify-center text-white mb-4 mx-auto">
+                  <div className="w-16 h-16 bg-accent rounded-full flex items-center justify-center text-accent-foreground mb-4 mx-auto">
                     {stat.icon}
                   </div>
                   <div className="font-heading text-4xl lg:text-5xl text-accent mb-2">

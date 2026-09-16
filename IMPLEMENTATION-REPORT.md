@@ -153,3 +153,59 @@ checkout and donations, ahead of Paystack/Flutterwave (NGN) and Stripe.
 2. Register the webhook `https://<worker>/api/payments/paypal/webhook` for events
    `CHECKOUT.ORDER.APPROVED` and `PAYMENT.CAPTURE.COMPLETED`; copy the webhook id.
 3. Toggle providers under **Admin → Settings → Payments**.
+
+---
+
+# Addendum 2: Prototype design & content alignment (ttin.techpros.com.ng)
+
+The public site now matches the existing prototype's **dark + gold** brand and copy.
+
+## Style (design system)
+
+- Palette flipped from light parchment/purple to the prototype's brand:
+  **background `#1A1414` charcoal black** (from the prototype's manifest
+  `background_color`) and **accent `#FFB800` signature gold** (its `theme_color`).
+  `:root`, `.dark`, the legacy `bw-purple` toggle, admin sidebar tokens, scrollbar,
+  and all gradients (gold text gradient, brand/gold backgrounds) updated.
+- `primary` is now the elevated brand dark, `accent` the gold — so every
+  `bg-primary` section (hero, footer, mission, locations) is dark with cream text,
+  and every `hero`/CTA button is gold with dark text.
+- `index.html` theme-color → `#FFB800`; PWA manifest → background `#1A1414`,
+  theme `#FFB800`; `color-scheme: dark` for native controls.
+- Contrast fixes: hardcoded purple/white/black classes replaced with brand tokens
+  (WorldMap pins → gold family, Instagram CTA → gold gradient, countries chips,
+  stat icon circles, theme toggle switch).
+- Typography unchanged: Bebas Neue display + Inter body + Playfair quotes —
+  the bold-condensed style the prototype uses.
+
+## Content (copied from the prototype)
+
+- **Hero:** "THE TIME IS NOW" / "Making radical Christianity normal again." /
+  quote "Is your comfort zone more important than someone else's eternity?" —
+  primary CTA **Join the Movement → WhatsApp community** (seeded via `site_content`).
+- **Impact:** 150+ people preached open air, 33 countries, 1,200+ members, 45+
+  volunteers, 20M+ views, 800+ gospel conversations + prototype description.
+- **Mission:** "Our mission is simple: make radical Christianity normal again." +
+  the movement description from the prototype's About page.
+- **Take Action / Join the Movement** CTA (home + footer) with WhatsApp + Give Now.
+- **About:** "About Us" hero with the prototype's movement description; journey
+  timeline now the real milestones (21st Feb 2025 plane video → Feb 22–24 others
+  joined → 24th Feb TTIN launches).
+- **Testimonies:** the 10 real prototype stories (Shiloh/Eswatini, Afe Okojie,
+  Favour Salami, Chibuikem, Selam, Beverly, Joselyn, Precious, Sarah, Michael T.)
+  seeded with countries + categories; page stats updated.
+- **Footer:** Follow Us — Instagram `__thetimeisnow`, TikTok, YouTube, email
+  `thetimeisnow255@gmail.com` (Contact page handle fixed too).
+- **Unashamed:** heading → "UNASHAMED POD".
+- Pages already matching the prototype (verified, unchanged): Shop ("Wear Your
+  Faith / Shop Now"), Events ("Come Together"), Resources ("Grow Your Faith"),
+  Donate ($5 Coffee / $15 Meal / $50 Bible / $100 Event + "Other Ways to Give"),
+  Contact (WhatsApp community + quick contact), Locations ("Where We Preach" —
+  buses, ferries, malls, airplanes, trains, streets, airports).
+
+## Verification
+
+- Frontend: lint 0 errors, tsc clean, production build ✓, unit tests 6/6.
+- Worker: tsc clean, API tests 19/19 (seed change included).
+- Live stack re-seeded and verified: `/api/content/hero` returns the prototype
+  hero; testimonies API returns the real stories.

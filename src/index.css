@@ -6,76 +6,76 @@
 
 @layer base {
   :root {
-    /* TTIN Brand Palette */
-    --background: 36 23% 93%; /* Parchment #F2EFEB */
-    --foreground: 0 0% 0%; /* Black */
+    /* TTIN Brand — dark + gold (matches ttin.techpros.com.ng prototype) */
+    --background: 0 13% 9%; /* Charcoal Black #1A1414 */
+    --foreground: 39 46% 93%; /* Warm Cream #F5EFE4 */
 
-    --card: 36 23% 93%;
-    --card-foreground: 0 0% 0%;
+    --card: 20 20% 13%; /* Espresso #28211C */
+    --card-foreground: 39 46% 93%;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 0%;
+    --popover: 20 18% 16%; /* #2E2620 */
+    --popover-foreground: 39 46% 93%;
 
-    --primary: 289 38% 26%; /* Blackberry Cream #51295B */
-    --primary-foreground: 36 23% 93%;
+    --primary: 20 25% 13%; /* Brand Dark #2A231D */
+    --primary-foreground: 39 46% 93%;
 
-    --secondary: 289 28% 51%; /* Amethyst #9861A5 */
-    --secondary-foreground: 36 23% 93%;
+    --secondary: 43 80% 42%; /* Rich Gold #C89B0D */
+    --secondary-foreground: 0 13% 9%;
 
-    --muted: 38 83% 81%; /* Soft Peach #F6DAA6 */
-    --muted-foreground: 289 38% 26%;
+    --muted: 0 10% 15%; /* #2A2424 */
+    --muted-foreground: 36 14% 72%; /* Warm Grey #C2B6A9 */
 
-    --accent: 43 78% 56%; /* Sunflower Gold #E6B537 */
-    --accent-foreground: 0 0% 0%;
+    --accent: 43 100% 50%; /* Signature Gold #FFB800 */
+    --accent-foreground: 0 13% 9%;
 
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
 
-    --border: 289 15% 80%;
-    --input: 289 15% 80%;
-    --ring: 289 38% 26%;
+    --border: 0 9% 24%; /* #423939 */
+    --input: 0 9% 24%;
+    --ring: 43 100% 50%;
 
     --radius: 0.5rem;
 
     /* Extended brand tokens */
-    --dark-spruce: 113 32% 25%; /* #2F542A */
-    --palm-leaf: 65 43% 45%; /* #9BA441 */
-    --sunflower-gold: 43 78% 56%; /* #E6B537 */
-    --soft-peach: 38 83% 81%; /* #F6DAA6 */
-    --parchment: 36 23% 93%; /* #F2EFEB */
-    --blackberry: 289 38% 26%; /* #51295B */
-    --amethyst: 289 28% 51%; /* #9861A5 */
+    --dark-spruce: 0 13% 9%; /* #1A1414 */
+    --palm-leaf: 43 80% 42%; /* #C89B0D */
+    --sunflower-gold: 43 100% 50%; /* #FFB800 */
+    --soft-peach: 48 100% 74%; /* #FFE082 */
+    --parchment: 39 46% 93%; /* #F5EFE4 */
+    --blackberry: 20 25% 13%; /* #2A231D */
+    --amethyst: 43 100% 60%; /* #FFD24D */
 
-    --sidebar-background: 0 0% 98%;
-    --sidebar-foreground: 240 5.3% 26.1%;
-    --sidebar-primary: 240 5.9% 10%;
-    --sidebar-primary-foreground: 0 0% 98%;
-    --sidebar-accent: 240 4.8% 95.9%;
-    --sidebar-accent-foreground: 240 5.9% 10%;
-    --sidebar-border: 220 13% 91%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --sidebar-background: 0 13% 7%;
+    --sidebar-foreground: 39 46% 93%;
+    --sidebar-primary: 43 100% 50%;
+    --sidebar-primary-foreground: 0 13% 9%;
+    --sidebar-accent: 20 20% 16%;
+    --sidebar-accent-foreground: 39 46% 93%;
+    --sidebar-border: 0 9% 20%;
+    --sidebar-ring: 43 100% 50%;
   }
 
   .dark {
-    --background: 0 0% 5%;
-    --foreground: 36 23% 93%;
-    --card: 0 0% 8%;
-    --card-foreground: 36 23% 93%;
-    --popover: 0 0% 8%;
-    --popover-foreground: 36 23% 93%;
-    --primary: 289 28% 51%;
-    --primary-foreground: 36 23% 93%;
-    --secondary: 289 38% 26%;
-    --secondary-foreground: 36 23% 93%;
-    --muted: 0 0% 15%;
-    --muted-foreground: 38 83% 81%;
-    --accent: 43 78% 56%;
-    --accent-foreground: 0 0% 0%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 289 15% 20%;
-    --input: 289 15% 20%;
-    --ring: 289 28% 51%;
+    --background: 0 13% 9%;
+    --foreground: 39 46% 93%;
+    --card: 20 20% 13%;
+    --card-foreground: 39 46% 93%;
+    --popover: 20 18% 16%;
+    --popover-foreground: 39 46% 93%;
+    --primary: 43 100% 50%;
+    --primary-foreground: 0 13% 9%;
+    --secondary: 43 80% 42%;
+    --secondary-foreground: 0 13% 9%;
+    --muted: 0 10% 15%;
+    --muted-foreground: 36 14% 72%;
+    --accent: 43 100% 50%;
+    --accent-foreground: 0 13% 9%;
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 0 9% 24%;
+    --input: 0 9% 24%;
+    --ring: 43 100% 50%;
   }
 }
 
@@ -95,18 +95,18 @@
 
 @layer utilities {
   .text-gradient-gold {
-    background: linear-gradient(135deg, hsl(43 78% 56%), hsl(38 83% 81%));
+    background: linear-gradient(135deg, hsl(48 100% 74%), hsl(43 100% 50%));
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
   }
 
   .bg-gradient-brand {
-    background: linear-gradient(135deg, hsl(289 38% 26%), hsl(289 28% 51%));
+    background: linear-gradient(135deg, hsl(35 30% 16%), hsl(20 25% 11%));
   }
 
   .bg-gradient-gold {
-    background: linear-gradient(135deg, hsl(43 78% 56%), hsl(38 83% 81%));
+    background: linear-gradient(135deg, hsl(48 100% 70%), hsl(43 100% 50%));
   }
 
   .section-padding {
@@ -118,9 +118,10 @@
   }
 }
 
-/* Smooth scrolling */
+/* Smooth scrolling + dark native controls */
 html {
   scroll-behavior: smooth;
+  color-scheme: dark;
 }
 
 /* Custom scrollbar */
@@ -129,16 +130,16 @@ html {
 }
 
 ::-webkit-scrollbar-track {
-  background: hsl(36 23% 93%);
+  background: hsl(0 13% 9%);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: hsl(289 38% 26%);
+  background: hsl(43 100% 50%);
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: hsl(289 28% 51%);
+  background: hsl(48 100% 64%);
 }
 
 /* Hide scrollbar utility */
@@ -197,78 +198,26 @@ html {
   }
 }
 
-/* B&W Purple Theme */
+/* Legacy alternate theme toggle — now the same dark + gold brand */
 .bw-purple-theme {
-  --background: 0 0% 0%;
-  --foreground: 0 0% 100%;
-  
-  --card: 0 0% 8%;
-  --card-foreground: 0 0% 100%;
-  
-  --popover: 0 0% 8%;
-  --popover-foreground: 0 0% 100%;
-  
-  --primary: 270 50% 50%;
-  --primary-foreground: 0 0% 0%;
-  
-  --secondary: 270 60% 40%;
-  --secondary-foreground: 0 0% 100%;
-  
-  --muted: 0 0% 15%;
-  --muted-foreground: 0 0% 80%;
-  
-  --accent: 45 100% 60%;
-  --accent-foreground: 0 0% 0%;
-  
-  --destructive: 0 84.2% 60.2%;
-  --destructive-foreground: 210 40% 98%;
-  
-  --border: 0 0% 30%;
-  --input: 0 0% 30%;
-  --ring: 270 50% 50%;
-  
-  --sidebar-background: 0 0% 5%;
-  --sidebar-foreground: 0 0% 100%;
-  --sidebar-primary: 270 50% 50%;
-  --sidebar-primary-foreground: 0 0% 0%;
-  --sidebar-accent: 270 60% 40%;
-  --sidebar-accent-foreground: 0 0% 100%;
-  --sidebar-border: 0 0% 20%;
-  --sidebar-ring: 270 50% 50%;
+  --background: 0 13% 9%;
+  --foreground: 39 46% 93%;
+  --card: 20 20% 13%;
+  --card-foreground: 39 46% 93%;
+  --popover: 20 18% 16%;
+  --popover-foreground: 39 46% 93%;
+  --primary: 20 25% 13%;
+  --primary-foreground: 39 46% 93%;
+  --secondary: 43 80% 42%;
+  --secondary-foreground: 0 13% 9%;
+  --muted: 0 10% 15%;
+  --muted-foreground: 36 14% 72%;
+  --accent: 43 100% 50%;
+  --accent-foreground: 0 13% 9%;
+  --destructive: 0 72% 51%;
+  --destructive-foreground: 0 0% 100%;
+  --border: 0 9% 24%;
+  --input: 0 9% 24%;
+  --ring: 43 100% 50%;
 }
 
-.bw-purple-theme .text-gradient-gold {
-  background: linear-gradient(135deg, hsl(45 100% 60%), hsl(270 50% 70%));
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-
-.bw-purple-theme .bg-gradient-brand {
-  background: linear-gradient(135deg, hsl(270 50% 50%), hsl(270 60% 40%));
-}
-
-.bw-purple-theme .bg-gradient-gold {
-  background: linear-gradient(135deg, hsl(45 100% 60%), hsl(270 50% 60%));
-}
-
-/* Landscape video support for mobile */
-@media (orientation: landscape) and (max-height: 500px) {
-  .video-container {
-    max-height: 60vh;
-    max-width: 90vw;
-  }
-}
-
-
-/* Respect users who prefer reduced motion (accessibility). */
-@media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-    scroll-behavior: auto !important;
-  }
-}

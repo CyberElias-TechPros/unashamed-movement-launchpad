@@ -219,7 +219,7 @@ const Contact = () => {
                       <span>thetimeisnow255@gmail.com</span>
                     </a>
                     <a
-                      href="https://instagram.com/_thetimeisnow"
+                      href="https://instagram.com/__thetimeisnow"
                       target="_blank"
                       rel="noopener noreferrer"
                       onClick={() => trackEvent({ category: "social", action: "click", label: "contact_instagram" })}

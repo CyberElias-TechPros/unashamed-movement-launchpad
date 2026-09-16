@@ -36,17 +36,20 @@ const HeroSection = () => {
     queryKey: ['content', 'hero'],
     queryFn: () => contentApi.getByKey('hero').catch(() => ({
       key: 'hero',
-      title: 'UNASHAMED',
-      content: '"Is your timidity worth someone else\'s eternity?"',
+      title: 'THE TIME IS NOW',
+      content: 'Making radical Christianity normal again.',
       type: 'hero' as const,
-      metadata: {} as Record<string, unknown>,
+      metadata: {
+        kicker: 'A movement of unashamed believers',
+        blurb: '"Is your comfort zone more important than someone else\'s eternity?"',
+      } as Record<string, unknown>,
     })),
   });
 
   const heroMeta = (hero?.metadata ?? {}) as Record<string, string | undefined>;
-  const heading = hero?.title || 'UNASHAMED';
-  const subheading = hero?.content || '"Is your timidity worth someone else\'s eternity?"';
-  const blurb = heroMeta.blurb || 'A movement for Christians who refuse to stay silent. Be bold. Be unapologetic. Be unashamed.';
+  const heading = hero?.title || 'THE TIME IS NOW';
+  const subheading = hero?.content || 'Making radical Christianity normal again.';
+  const blurb = heroMeta.blurb || '"Is your comfort zone more important than someone else\'s eternity?"';
 
   const [emblaRef, emblaApi] = useEmblaCarousel({ loop: true, duration: 30 });
   const [selectedIndex, setSelectedIndex] = useState(0);
@@ -166,14 +169,16 @@ const HeroSection = () => {
 
               <motion.div variants={itemVariant} className="flex flex-col sm:flex-row gap-4 justify-center">
                 <MagneticButton>
-                  <Link
-                    to="/about"
+                  <a
+                    href="https://chat.whatsapp.com/DhzT4HxSnzFHftlnLIyJna"
+                    target="_blank"
+                    rel="noopener noreferrer"
                     onClick={() => trackEvent({ category: "cta", action: "click", label: "hero_join_movement" })}
                   >
                     <Button variant="hero" size="lg" className="px-10">
                       Join The Movement <ArrowRight className="ml-2" size={18} />
                     </Button>
-                  </Link>
+                  </a>
                 </MagneticButton>
                 <MagneticButton>
                   <Link

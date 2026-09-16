@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { Instagram, Twitter, Mail, ArrowUp } from "lucide-react";
+import { Instagram, Youtube, Music2, Mail, ArrowUp } from "lucide-react";
 import { trackEvent } from "@/lib/analytics";
 
 const Footer = () => {
@@ -12,20 +12,34 @@ const Footer = () => {
       {/* Partner Section */}
       <div className="section-padding bg-gradient-brand">
         <div className="container-custom text-center">
+          <p className="font-body text-accent text-sm tracking-[0.3em] uppercase mb-4">
+            Take Action
+          </p>
           <h2 className="font-heading text-4xl sm:text-5xl lg:text-6xl tracking-wider mb-4">
-            Partner With Us
+            Join the Movement
           </h2>
           <p className="font-body text-primary-foreground/80 max-w-2xl mx-auto mb-8 text-lg">
-            Join us in spreading boldness across the world. Your support helps us 
-            reach more people and create more resources for the kingdom.
+            Stop hiding your light. The world needs what you carry. Get updates, resources,
+            and join a community of fearless believers.
           </p>
-          <Link
-            to="/donate"
-            onClick={() => trackEvent({ category: "navigation", action: "click", label: "donate_footer" })}
-            className="inline-block bg-accent text-accent-foreground font-heading text-lg tracking-wider px-10 py-4 rounded-md hover:bg-accent/90 transition-all duration-300 hover:scale-105 shadow-lg"
-          >
-            Give Now
-          </Link>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <a
+              href="https://chat.whatsapp.com/DhzT4HxSnzFHftlnLIyJna"
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={() => trackEvent({ category: "social", action: "click", label: "whatsapp_footer" })}
+              className="inline-block bg-accent text-accent-foreground font-heading text-lg tracking-wider px-10 py-4 rounded-md hover:bg-accent/90 transition-all duration-300 hover:scale-105 shadow-lg"
+            >
+              Join the Movement
+            </a>
+            <Link
+              to="/donate"
+              onClick={() => trackEvent({ category: "navigation", action: "click", label: "donate_footer" })}
+              className="inline-block border border-accent/60 text-accent font-heading text-lg tracking-wider px-10 py-4 rounded-md hover:bg-accent/10 transition-all duration-300"
+            >
+              Give Now
+            </Link>
+          </div>
         </div>
       </div>
 
@@ -36,7 +50,7 @@ const Footer = () => {
           <div>
             <h3 className="font-heading text-3xl tracking-wider mb-4">TTIN</h3>
             <p className="font-display italic text-lg text-primary-foreground/70 mb-6">
-              "Is your timidity worth someone else's eternity?"
+              "Is your comfort zone more important than someone else's eternity?"
             </p>
           </div>
 
@@ -63,11 +77,11 @@ const Footer = () => {
           {/* Connect */}
           <div>
             <h4 className="font-heading text-xl tracking-wider mb-4 text-accent">
-              Connect
+              Follow Us
             </h4>
             <div className="flex gap-4 mb-6">
               <a
-                href="https://instagram.com/_thetimeisnow"
+                href="https://instagram.com/__thetimeisnow"
                 target="_blank"
                 rel="noopener noreferrer"
                 onClick={() => trackEvent({ category: "social", action: "click", label: "instagram" })}
@@ -77,16 +91,29 @@ const Footer = () => {
                 <Instagram size={20} />
               </a>
               <a
-                href="https://x.com/thetimeisnow"
+                href="https://tiktok.com/@__thetimeisnow"
                 target="_blank"
                 rel="noopener noreferrer"
+                onClick={() => trackEvent({ category: "social", action: "click", label: "tiktok" })}
                 className="w-12 h-12 rounded-full bg-primary-foreground/10 flex items-center justify-center hover:bg-accent hover:text-accent-foreground transition-all duration-300"
+                aria-label="TikTok"
               >
-                <Twitter size={20} />
+                <Music2 size={20} />
               </a>
               <a
-                href="mailto:hello@thetimeisnow.org"
+                href="https://youtube.com/@tthetimeisnow"
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={() => trackEvent({ category: "social", action: "click", label: "youtube" })}
                 className="w-12 h-12 rounded-full bg-primary-foreground/10 flex items-center justify-center hover:bg-accent hover:text-accent-foreground transition-all duration-300"
+                aria-label="YouTube"
+              >
+                <Youtube size={20} />
+              </a>
+              <a
+                href="mailto:thetimeisnow255@gmail.com"
+                className="w-12 h-12 rounded-full bg-primary-foreground/10 flex items-center justify-center hover:bg-accent hover:text-accent-foreground transition-all duration-300"
+                aria-label="Email"
               >
                 <Mail size={20} />
               </a>

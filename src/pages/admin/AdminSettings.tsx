@@ -376,8 +376,8 @@ const AdminSettings = () => {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="default">Default</SelectItem>
-                    <SelectItem value="bw-purple">BW Purple</SelectItem>
+                    <SelectItem value="default">Signature Dark &amp; Gold</SelectItem>
+                    <SelectItem value="bw-purple">Dark &amp; Gold (legacy toggle)</SelectItem>
                     <SelectItem value="minimal">Minimal</SelectItem>
                   </SelectContent>
                 </Select>

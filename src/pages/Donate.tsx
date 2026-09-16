@@ -182,7 +182,7 @@ const Donate = () => {
         <section className="pt-10">
           <div className="container-custom max-w-xl">
             <div className="rounded-2xl border border-primary/30 bg-primary/5 p-6 text-center">
-              <Loader2 className="w-10 h-10 text-primary mx-auto mb-3 animate-spin" />
+              <Loader2 className="w-10 h-10 text-accent mx-auto mb-3 animate-spin" />
               <p className="font-medium">Confirming your gift with PayPal…</p>
             </div>
           </div>

@@ -69,7 +69,7 @@ const FeaturedSection = ({ featured }: FeaturedSectionProps) => {
                   <p className="font-body text-muted-foreground mb-6">
                     {item.desc}
                   </p>
-                  <span className="font-heading text-lg tracking-wider text-accent group-hover:text-primary transition-colors inline-flex items-center gap-2">
+                  <span className="font-heading text-lg tracking-wider text-accent group-hover:text-foreground transition-colors inline-flex items-center gap-2">
                     {item.label} <ArrowRight size={16} />
                   </span>
                 </TiltCard>

@@ -125,11 +125,11 @@ const Unashamed = () => {
               Video Series
             </p>
             <h1 className="font-heading text-4xl sm:text-6xl md:text-7xl lg:text-9xl tracking-wider text-primary-foreground mb-6">
-              UNASHAMED
+              UNASHAMED POD
             </h1>
             <p className="font-body text-primary-foreground/70 text-xl max-w-2xl mx-auto">
-              A video series challenging believers to step out of the shadows 
-              and into the bold, unashamed life God designed for them.
+              A podcast challenging believers to step out of the shadows and into the
+              bold, unashamed life God designed for them.
             </p>
           </motion.div>
         </div>
@@ -259,7 +259,7 @@ const Unashamed = () => {
                 href="https://instagram.com/_thetimeisnow"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white px-6 py-3 rounded-full font-heading tracking-wider hover:opacity-90 transition-opacity"
+                className="inline-flex items-center gap-2 bg-gradient-gold text-accent-foreground px-6 py-3 rounded-full font-heading tracking-wider hover:opacity-90 transition-opacity"
               >
                 <Instagram className="w-5 h-5" />
                 Follow on Instagram

@@ -27,7 +27,7 @@ const LayoutToggle = ({ className }: { className?: string }) => {
           id="color-mode"
           checked={colorMode === "bw-purple"}
           onCheckedChange={(checked) => setColorMode(checked ? "bw-purple" : "original")}
-          className="data-[state=checked]:bg-purple-500"
+          className="data-[state=checked]:bg-accent"
         />
       </div>
     </div>

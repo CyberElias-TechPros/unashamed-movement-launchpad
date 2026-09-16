@@ -12,10 +12,10 @@ interface CountryData {
 }
 
 const COLORS = [
-  "bg-blue-500", "bg-blue-600", "bg-blue-400", "bg-blue-300",
-  "bg-green-500", "bg-green-400", "bg-green-600", "bg-green-700",
-  "bg-purple-400", "bg-red-500", "bg-red-400", "bg-red-600",
-  "bg-yellow-500", "bg-yellow-600", "bg-purple-500", "bg-purple-600",
+  "bg-accent", "bg-accent/90", "bg-accent/80", "bg-accent/70",
+  "bg-accent/60", "bg-accent/50", "bg-accent/40", "bg-accent/30",
+  "bg-amber-500", "bg-amber-600", "bg-amber-400", "bg-amber-300",
+  "bg-yellow-500", "bg-yellow-600", "bg-amber-200", "bg-accent/20",
 ];
 
 const FLAG_BY_CODE: Record<string, string> = {

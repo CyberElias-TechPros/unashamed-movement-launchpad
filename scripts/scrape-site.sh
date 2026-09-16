@@ -98,26 +98,7 @@ for round in 1 2 3 4 5 6 7 8; do
   [ "$new" = "0" ] && break
 done
 
-echo "=== [4/8] self-hosted resource PDFs (known paths) ==="
-mkdir -p resources
-while IFS= read -r pdf; do
-  fetch "$BASE/resources/$pdf" "resources/$pdf"
-done <<'PDFS'
-Foxe's Book of Martyrs.pdf
-God's Generals- The Revivalists.pdf
-God's Generals- Why They Succeeded and Why Some Failed.pdf
-I Went To Hell.pdf
-Kathryn Kuhlman- Her Spiritual Legacy.pdf
-Now That You Are Born Again.pdf
-Recreating Your World.pdf
-Revival in the Hebrides.pdf
-The Power of Tongues.pdf
-The Seven Spirits of God.pdf
-Tortured for Christ.pdf
-When God Visits You.pdf
-PDFS
-
-echo "=== [5/8] API scrape (JSON; XHR-style headers + session cookie) ==="
+echo "=== [4/8] API scrape (JSON; XHR-style headers + session cookie) ==="
 mkdir -p api
 # establish session (cookie jar) like the SPA does
 curl -sL -A "$UA" -c "$JAR" "$BASE/api/auth/csrf-token" -o api/auth-csrf-token.json -w 'csrf: %{http_code}\n' || true
@@ -148,6 +129,41 @@ api_get "/api/videos/feed" "videos-feed.json"
 api_get "/api/reviews?limit=100" "reviews.json"
 api_get "/api/search?q=faith" "search-faith.json"
 api_get "/api/analytics/dashboard" "analytics-dashboard.json"
+
+echo "=== [5/8] self-hosted resource PDFs (API downloadUrls + known paths) ==="
+mkdir -p resources
+{
+  python3 - <<'PY' 2>/dev/null || true
+import json
+try:
+    d = json.load(open('api/resources.json'))
+    items = d.get('data', d) if isinstance(d, dict) else d
+    for it in items:
+        u = it.get('downloadUrl') or ''
+        if u.startswith('/resources/'):
+            print(u[len('/resources/'):])
+except Exception:
+    pass
+PY
+  cat <<'PDFS'
+Foxe's Book of Martyrs.pdf
+God's Generals- The Revivalists.pdf
+God's Generals- Why They Succeeded and Why Some Failed.pdf
+I Went To Hell.pdf
+Kathryn Kuhlman- Her Spiritual Legacy.pdf
+Now That You Are Born Again.pdf
+Recreating Your World.pdf
+Revival in the Hebrides.pdf
+The Power of Tongues.pdf
+The Seven Spirits of God.pdf
+Tortured for Christ.pdf
+When God Visits You.pdf
+PDFS
+} | sort -u | while IFS= read -r pdf; do
+  [ -z "$pdf" ] && continue
+  enc=$(python3 -c 'import sys,urllib.parse; print(urllib.parse.quote(sys.argv[1]))' "$pdf" 2>/dev/null || true)
+  fetch "$BASE/resources/$enc" "resources/$pdf" || fetch "$BASE/resources/$pdf" "resources/$pdf"
+done
 
 echo "=== [6/8] Google Drive thumbnails for every referenced Drive ID ==="
 mkdir -p external _urls

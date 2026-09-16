@@ -7,19 +7,28 @@ export default defineConfig(({ mode }) => ({
   server: {
     host: "::",
     port: 8080,
-    // Accept any Host header (preview sandboxes proxy under unique hostnames).
+    // Allow preview/sandbox hosts to reach the dev server.
     allowedHosts: true,
     hmr: {
       overlay: false,
     },
+    // In dev, the API runs on `wrangler dev` (Cloudflare Worker) on :8787.
     proxy: {
       "/api": {
-        target: "http://127.0.0.1:5000",
-        changeOrigin: true,
+        target: process.env.VITE_API_PROXY || "http://localhost:8787",
+        changeOrigin: false,
       },
-      "/uploads": {
-        target: "http://127.0.0.1:5000",
-        changeOrigin: true,
+    },
+  },
+  // `vite preview` (used for testing production builds) gets the same proxy.
+  preview: {
+    host: "::",
+    port: 8080,
+    allowedHosts: true,
+    proxy: {
+      "/api": {
+        target: process.env.VITE_API_PROXY || "http://localhost:8787",
+        changeOrigin: false,
       },
     },
   },

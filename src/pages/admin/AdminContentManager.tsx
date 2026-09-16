@@ -11,7 +11,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { contentApi } from "@/api/content";
+import { contentApi, type SiteContent } from "@/api/content";
 import MediaPicker from "@/components/MediaPicker";
 
 interface ContentSection {
@@ -102,7 +102,7 @@ const AdminContentManager = () => {
     mutationFn: async () => {
       const section = sections.find((s) => s.key === activeTab);
       if (!section) return;
-      await contentApi.upsert({ key: activeTab, title: section.title, content: section.content, type: activeTab as "hero" | "about" | "values" | "stats" | "cta", imageUrl: section.imageUrl });
+      await contentApi.upsert({ key: activeTab, title: section.title, content: section.content, type: activeTab as SiteContent["type"], metadata: { imageUrl: section.imageUrl } });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["content"] });

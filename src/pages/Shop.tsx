@@ -10,6 +10,7 @@ import { useCart } from "@/context/CartContext";
 import { trackAddToCart } from "@/lib/analytics";
 import { useToast } from "@/hooks/use-toast";
 import { productsApi, Product } from "@/api/products";
+import type { PaginatedResponse } from "@/lib/api-client";
 import { reviewsApi, Review } from "@/api/reviews";
 import type { PaginatedResponse } from "@/lib/api-client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";

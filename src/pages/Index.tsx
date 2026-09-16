@@ -28,10 +28,18 @@ const Index = () => {
     const unwrap = <T,>(res: { data?: T[] } | T[] | null | undefined): T[] =>
       Array.isArray(res) ? res : res?.data ?? [];
     Promise.all([
-      eventsApi.getAll().catch(() => [] as import("@/api/events").Event[]),
-      productsApi.getAll().catch(() => null),
-      resourcesApi.getAll().catch(() => null),
-    ]).then(([events, products, resources]) => {
+      eventsApi.getAll().catch(() => []),
+      productsApi.getAll().catch(() => []),
+      resourcesApi.getAll().catch(() => []),
+    ]).then(([eventsResponse, productsResponse, resourcesResponse]) => {
+      const asArray = <T,>(res: unknown): T[] => {
+        if (Array.isArray(res)) return res as T[];
+        const maybe = res as { data?: T[] };
+        return maybe?.data ?? [];
+      };
+      const events = asArray<{ title?: string }>(eventsResponse);
+      const products = asArray<{ name?: string }>(productsResponse);
+      const resources = asArray<{ title?: string }>(resourcesResponse);
       setFeatured({
         events: unwrap(events)[0]?.title,
         shop: unwrap<{ name: string }>(products)[0]?.name,

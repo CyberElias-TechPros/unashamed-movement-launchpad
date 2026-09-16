@@ -74,7 +74,7 @@ const AdminResourceManager = () => {
     setLimit,
     refresh,
   } = usePaginatedQuery<Resource>({
-    endpoint: "/resources",
+    endpoint: "/resources/admin/all",
     queryKey: ["resources", "admin"],
   });
 

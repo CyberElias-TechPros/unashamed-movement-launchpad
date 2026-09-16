@@ -31,8 +31,8 @@ export const reviewsApi = {
   getAll: (filters?: ReviewFilters) => 
     api.getPaginated<Review>('/reviews', filters || {}),
   
-  approve: (id: string) => api.post(`/reviews/${id}/approve`),
-  reject: (id: string) => api.post(`/reviews/${id}/reject`),
+  approve: (id: string) => api.post(`/reviews/${id}/approve`, {}),
+  reject: (id: string) => api.post(`/reviews/${id}/reject`, {}),
   remove: (id: string) => api.delete(`/reviews/${id}`),
   
   // Bulk operations

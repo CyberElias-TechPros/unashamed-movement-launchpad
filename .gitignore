@@ -25,6 +25,6 @@ server/.env
 *.sln
 *.sw?
 
-# Dev in-memory mongo snapshot
-server/.devdb.json
-*.tsbuildinfo
+# Cloudflare Worker local state & secrets
+worker/.dev.vars
+worker/.wrangler/

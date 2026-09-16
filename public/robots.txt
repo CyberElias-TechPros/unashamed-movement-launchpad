@@ -1,10 +1,8 @@
 User-agent: *
+Allow: /
 Disallow: /admin/
 Disallow: /cart/
 Disallow: /checkout/
-
-Sitemap: https://thetimeisnow.org/sitemap.xml
-
-Allow: /
+Disallow: /api/
 
 Sitemap: https://thetimeisnow.org/sitemap.xml

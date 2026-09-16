@@ -50,12 +50,11 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 
-// Must stay in sync with the Product model enum on the server.
 type ProductCategory = "merch" | "digital";
 
 interface ProductFormData {
-  _id?: string;
   id?: string;
+  _id?: string;
   name: string;
   description: string;
   price: number;
@@ -171,7 +170,7 @@ const AdminProductManager = () => {
       category: editing.category,
       tag: editing.tag,
       images: editing.images,
-    };
+    } as Partial<Product>;
 
     const productId = editing._id || editing.id;
     if (productId) {

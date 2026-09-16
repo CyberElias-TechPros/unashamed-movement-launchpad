@@ -48,7 +48,7 @@ interface AdminSidebarProps {
 
 interface AdminMenuItem {
   title: string;
-  icon: React.ElementType;
+  icon: typeof LayoutDashboard;
   path: string;
   description: string;
   badge?: (stats?: AdminSidebarProps["stats"]) => string | undefined;

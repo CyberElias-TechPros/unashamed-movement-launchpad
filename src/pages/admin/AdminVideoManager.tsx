@@ -50,14 +50,14 @@ const AdminVideoManager = () => {
     setLimit,
     refresh,
   } = usePaginatedQuery<Video>({
-    endpoint: "/videos",
+    endpoint: "/videos/admin/all",
     queryKey: ["videos", "admin"],
   });
 
   // Client-side filtering
   const filteredVideos = videos.filter((v: Video) => {
     const matchesSearch = !searchQuery || v.title.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesStatus = statusFilter === "all" || (statusFilter === "published" ? v.isPublished : !v.isPublished);
+    const matchesStatus = statusFilter === "all" || (statusFilter === "published" ? v.isActive : !v.isActive);
     return matchesSearch && matchesStatus;
   });
 
@@ -68,7 +68,7 @@ const AdminVideoManager = () => {
         youtubeUrl: url,
         description,
         thumbnailUrl: thumbnail,
-        isPublished: true,
+        isActive: true,
       }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["videos"] });
@@ -116,7 +116,7 @@ const AdminVideoManager = () => {
     url: "",
     description: "",
     thumbnail: "",
-    isPublished: true,
+    isActive: true,
   });
   const [videoFile, setVideoFile] = useState<File | null>(null);
 
@@ -127,7 +127,7 @@ const AdminVideoManager = () => {
       url: v.youtubeUrl || v.url || "",
       description: v.description || "",
       thumbnail: v.thumbnailUrl || v.thumbnail || "",
-      isPublished: v.isPublished ?? true,
+      isActive: v.isActive ?? true,
     });
     setTitle(v.title || "");
     setUrl(v.youtubeUrl || v.url || "");
@@ -139,7 +139,7 @@ const AdminVideoManager = () => {
     if (!editingId || !title.trim() || !url.trim()) return;
     await updateMutation.mutateAsync({
       id: editingId,
-      data: { title, youtubeUrl: url, description, thumbnailUrl: thumbnail, isPublished: editingFields.isPublished },
+      data: { title, youtubeUrl: url, description, thumbnailUrl: thumbnail, isActive: editingFields.isActive },
     });
     setEditingId(null);
     setTitle("");
@@ -386,7 +386,7 @@ const AdminVideoManager = () => {
               <span className="text-sm font-medium">{selectedIds.length} selected</span>
               <Button
                 size="sm"
-                onClick={() => bulkUpdateMutation.mutate({ ids: selectedIds, data: { isPublished: true } })}
+                onClick={() => bulkUpdateMutation.mutate({ ids: selectedIds, data: { isActive: true } })}
                 disabled={bulkUpdateMutation.isPending}
               >
                 Publish
@@ -394,7 +394,7 @@ const AdminVideoManager = () => {
               <Button
                 size="sm"
                 variant="secondary"
-                onClick={() => bulkUpdateMutation.mutate({ ids: selectedIds, data: { isPublished: false } })}
+                onClick={() => bulkUpdateMutation.mutate({ ids: selectedIds, data: { isActive: false } })}
                 disabled={bulkUpdateMutation.isPending}
               >
                 Unpublish
@@ -481,8 +481,8 @@ const AdminVideoManager = () => {
                       >
                         {isSelected ? <CheckSquare className="h-6 w-6" /> : <Square className="h-6 w-6" />}
                       </button>
-                      <Badge variant={v.isPublished ? "default" : "secondary"} className="absolute top-3 left-12">
-                        {v.isPublished ? "Published" : "Draft"}
+                      <Badge variant={v.isActive ? "default" : "secondary"} className="absolute top-3 left-12">
+                        {v.isActive ? "Published" : "Draft"}
                       </Badge>
                       <Button
                         variant="secondary"
@@ -500,7 +500,7 @@ const AdminVideoManager = () => {
                     <CardContent>
                       <div className="flex items-center justify-between">
                         <Badge variant="outline" className="text-xs">
-                          {v.type || "video"}
+                          {v.episode || "video"}
                         </Badge>
                         <div className="flex">
                           <Button

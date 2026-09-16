@@ -4,6 +4,8 @@ export interface ContactData {
   name: string;
   email: string;
   message: string;
+  /** Honeypot field — bots fill it, humans never see it. */
+  website?: string;
 }
 
 export const contactApi = {

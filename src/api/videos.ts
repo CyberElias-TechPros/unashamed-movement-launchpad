@@ -57,9 +57,10 @@ export const videosApi = {
   bulkDelete: (ids: string[]) => api.post('/videos/bulk-delete', { ids }),
   bulkUpdateStatus: (ids: string[], isActive: boolean) =>
     api.post('/videos/bulk-update-status', { ids, isActive }),
-  /** Applies arbitrary field updates to many videos at once. */
+  // The admin page calls bulkUpdate with partial data — only status toggles
+  // exist server-side, so honour isActive and ignore other fields.
   bulkUpdate: (ids: string[], data: Partial<Video>) =>
-    api.post('/videos/bulk-update', { ids, data }),
+    api.post('/videos/bulk-update-status', { ids, isActive: data.isActive ?? true }),
 };
 
 export default videosApi;

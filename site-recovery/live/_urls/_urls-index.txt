@@ -1,0 +1,6 @@
+/assets/animations-CnczHZP1.js
+/assets/app-BEMj9zjt.css
+/assets/app-DwH0RQZ6.js
+/assets/query-BxHf87gp.js
+/assets/router-BY5DHDkN.js
+/assets/vendor-BtIrUdbE.js

@@ -1,0 +1,806 @@
+=== [0/8] clean previously-committed SPA-fallback junk ===
+--- junk filter (SPA fallbacks saved under wrong extensions) ---
+junk removed: ./Cart-vT4B10KY.js
+junk removed: ./plus-NmFNPxxh.js.map
+junk removed: ./Donate-D9PvbY6E.js
+junk removed: ./Layout-DMrKFuEN.js.map
+junk removed: ./AdminAnalytics-ColncwEd.js.map
+junk removed: ./testimonials-Chkyn5Sj.js
+junk removed: ./AdminResourceManager-D33sbZ-W.js
+junk removed: ./external-link-CZjpW9WP.js.map
+junk removed: ./label-BRncKLO7.js
+junk removed: ./message-circle-Bf-ZEyQd.js
+junk removed: ./VerifyEmail-BQdCcuvx.js.map
+junk removed: ./download-Ca9vYRJL.js
+junk removed: ./external/51bea1ee5449-components
+junk removed: ./AdminLogin-CHquWQec.js.map
+junk removed: ./AdminOrders-D5KtOkv0.js
+junk removed: ./Events-f7cCxWlP.js.map
+junk removed: ./AdminProductManager-BZVMw4S-.js.map
+junk removed: ./youtube-eLeN2Rod.js.map
+junk removed: ./tabs-B1vpzPlF.js.map
+junk removed: ./AdminVideoManager-CAHFSgSR.js
+junk removed: ./Search-Bytca5bK.js
+junk removed: ./Events-f7cCxWlP.js
+junk removed: ./Orders-ClfMeDWu.js.map
+junk removed: ./card-BluG0E_E.js.map
+junk removed: ./AdminOrders-D5KtOkv0.js.map
+junk removed: ./circle-check-Bf6lQKvr.js.map
+junk removed: ./vendor-BtIrUdbE.js
+junk removed: ./About-BhttS5Ua.js.map
+junk removed: ./Cart-vT4B10KY.js.map
+junk removed: ./heart-CJYSqNSA.js
+junk removed: ./AdminSettings-B8Y5s65J.js.map
+junk removed: ./AdminContentManager-B7k5OM2B.js
+junk removed: ./sw.js.map
+junk removed: ./textarea-wp2h82Pa.js
+junk removed: ./Search-Bytca5bK.js.map
+junk removed: ./instagram-BJAEN--U.js.map
+junk removed: ./AdminSettings-B8Y5s65J.js
+junk removed: ./square-Dini9WVr.js
+junk removed: ./save-CqZ6wlOF.js
+junk removed: ./AdminLogin-CHquWQec.js
+junk removed: ./AdminTestimonialManager-Ck3hVGOm.js
+junk removed: ./textarea-wp2h82Pa.js.map
+junk removed: ./eye-Db7FfO7t.js.map
+junk removed: ./Resources-Db8Sxxv6.js.map
+junk removed: ./dialog-BvvqZ4AK.js
+junk removed: ./reviews-Dvo7AmfO.js
+junk removed: ./Wishlist-CmqtNs8B.js.map
+junk removed: ./products-0Oi-QMQu.js
+junk removed: ./AdminReviews-Dx-bwUaf.js
+junk removed: ./PaymentCancelled-CV2RfXor.js
+junk removed: ./table-DeGFP3Oc.js
+junk removed: ./circle-x-CsvkT5Cg.js
+junk removed: ./Wishlist-CmqtNs8B.js
+junk removed: ./animations-CnczHZP1.js
+junk removed: ./Resources-Db8Sxxv6.js
+junk removed: ./Index-B7e6x5hS.js.map
+junk removed: ./Shop-CZAlKgcb.js.map
+junk removed: ./eye-Db7FfO7t.js
+junk removed: ./users-DxW7mDyM.js
+junk removed: ./OrderSuccess-Bt4ZZgQ5.js
+junk removed: ./videos-BcPLsAfh.js
+junk removed: ./plus-NmFNPxxh.js
+junk removed: ./orders-WE5cnzO8.js.map
+junk removed: ./index-Dh4i1-J3.js
+junk removed: ./arrow-right-Bjknidwc.js.map
+junk removed: ./ForgotPassword-BPZ1LRvT.js.map
+junk removed: ./upload-Dizo3qbB.js.map
+junk removed: ./trending-up-CuU4IfXJ.js.map
+junk removed: ./AdminDashboard-BRwHgLMM.js.map
+junk removed: ./AdminReviews-Dx-bwUaf.js.map
+junk removed: ./FloatingParticles-DNbW4bg4.js.map
+junk removed: ./AdminResourceManager-D33sbZ-W.js.map
+junk removed: ./NotFound-eY4BAtFh.js.map
+junk removed: ./Videos-BZ12boI9.js
+junk removed: ./Contact-SdxihwrR.js.map
+junk removed: ./PaymentCancelled-CV2RfXor.js.map
+junk removed: ./SectionWrapper-HXhYO-Al.js.map
+junk removed: ./Checkout-BMAts_Yl.js
+junk removed: ./arrow-right-Bjknidwc.js
+junk removed: ./MediaPicker-B31rWKjj.js.map
+junk removed: ./trash-2-JINCW2tx.js
+junk removed: ./circle-check-big-D2joIsSM.js
+junk removed: ./ResetPassword-CRAKSVcC.js
+junk removed: ./resources-DqguV11A.js
+junk removed: ./pagination-ClEn4ggg.js.map
+junk removed: ./AdminAnalytics-ColncwEd.js
+junk removed: ./AdminContentManager-B7k5OM2B.js.map
+junk removed: ./external-link-CZjpW9WP.js
+junk removed: ./circle-x-CsvkT5Cg.js.map
+junk removed: ./square-pen-D2MgFxTa.js
+junk removed: ./users-DxW7mDyM.js.map
+junk removed: ./trash-2-JINCW2tx.js.map
+junk removed: ./router-BY5DHDkN.js
+junk removed: ./dialog-BvvqZ4AK.js.map
+junk removed: ./zod-DyezxskM.js
+junk removed: ./AdminMedia-BZKgTSGk.js
+junk removed: ./square-Dini9WVr.js.map
+junk removed: ./pagination-ClEn4ggg.js
+junk removed: ./orders-WE5cnzO8.js
+junk removed: ./resources-DqguV11A.js.map
+junk removed: ./types-QrSs3t7L.js
+junk removed: ./tabs-B1vpzPlF.js
+junk removed: ./ResetPassword-CRAKSVcC.js.map
+junk removed: ./OrderSuccess-Bt4ZZgQ5.js.map
+junk removed: ./download-Ca9vYRJL.js.map
+junk removed: ./NotFound-eY4BAtFh.js
+junk removed: ./ClickToPlayVideo-BiqB_NX5.js.map
+junk removed: ./heart-CJYSqNSA.js.map
+junk removed: ./AdminVideoManager-CAHFSgSR.js.map
+junk removed: ./chevron-left-DgQkaw9q.js.map
+junk removed: ./index-Dh4i1-J3.js.map
+junk removed: ./Checkout-BMAts_Yl.js.map
+junk removed: ./newsletter-C6q0sbTL.js.map
+junk removed: ./table-DeGFP3Oc.js.map
+junk removed: ./media-D1xLczfg.js
+junk removed: ./router-BY5DHDkN.js.map
+junk removed: ./AdminTestimonialManager-Ck3hVGOm.js.map
+junk removed: ./MediaPicker-B31rWKjj.js
+junk removed: ./Index-B7e6x5hS.js
+junk removed: ./globe-CtXCi80n.js
+junk removed: ./Orders-ClfMeDWu.js
+junk removed: ./Unashamed-BZ0G5_wW.js.map
+junk removed: ./videos-BcPLsAfh.js.map
+junk removed: ./vendor-BtIrUdbE.js.map
+junk removed: ./circle-check-Bf6lQKvr.js
+junk removed: ./media-D1xLczfg.js.map
+junk removed: ./instagram-BJAEN--U.js
+junk removed: ./Shop-CZAlKgcb.js
+junk removed: ./Videos-BZ12boI9.js.map
+junk removed: ./globe-CtXCi80n.js.map
+junk removed: ./FloatingParticles-DNbW4bg4.js
+junk removed: ./map-pin-Ce57jX2F.js
+junk removed: ./Unashamed-BZ0G5_wW.js
+junk removed: ./AdminNewsletterManager-D1jYwBEf.js
+junk removed: ./save-CqZ6wlOF.js.map
+junk removed: ./SectionWrapper-HXhYO-Al.js
+junk removed: ./newsletter-C6q0sbTL.js
+junk removed: ./map-pin-Ce57jX2F.js.map
+junk removed: ./select-C0wnS22A.js
+junk removed: ./card-BluG0E_E.js
+junk removed: ./Testimonies-Bt9Hw4Pd.js
+junk removed: ./Layout-DMrKFuEN.js
+junk removed: ./youtube-eLeN2Rod.js
+junk removed: ./AdminProductManager-BZVMw4S-.js
+junk removed: ./message-circle-Bf-ZEyQd.js.map
+junk removed: ./AdminDashboard-BRwHgLMM.js
+junk removed: ./select-C0wnS22A.js.map
+junk removed: ./About-BhttS5Ua.js
+junk removed: ./query-BxHf87gp.js.map
+junk removed: ./label-BRncKLO7.js.map
+junk removed: ./testimonials-Chkyn5Sj.js.map
+junk removed: ./Contact-SdxihwrR.js
+junk removed: ./zod-DyezxskM.js.map
+junk removed: ./Donate-D9PvbY6E.js.map
+junk removed: ./chevron-left-DgQkaw9q.js
+junk removed: ./AdminNewsletterManager-D1jYwBEf.js.map
+junk removed: ./VerifyEmail-BQdCcuvx.js
+junk removed: ./Testimonies-Bt9Hw4Pd.js.map
+junk removed: ./reviews-Dvo7AmfO.js.map
+junk removed: ./square-pen-D2MgFxTa.js.map
+junk removed: ./assets/plus-NmFNPxxh.js.map
+junk removed: ./assets/Layout-DMrKFuEN.js.map
+junk removed: ./assets/AdminAnalytics-ColncwEd.js.map
+junk removed: ./assets/external-link-CZjpW9WP.js.map
+junk removed: ./assets/VerifyEmail-BQdCcuvx.js.map
+junk removed: ./assets/AdminLogin-CHquWQec.js.map
+junk removed: ./assets/Events-f7cCxWlP.js.map
+junk removed: ./assets/AdminProductManager-BZVMw4S-.js.map
+junk removed: ./assets/youtube-eLeN2Rod.js.map
+junk removed: ./assets/tabs-B1vpzPlF.js.map
+junk removed: ./assets/Orders-ClfMeDWu.js.map
+junk removed: ./assets/card-BluG0E_E.js.map
+junk removed: ./assets/AdminOrders-D5KtOkv0.js.map
+junk removed: ./assets/circle-check-Bf6lQKvr.js.map
+junk removed: ./assets/app-DwH0RQZ6.js.map
+junk removed: ./assets/About-BhttS5Ua.js.map
+junk removed: ./assets/Cart-vT4B10KY.js.map
+junk removed: ./assets/AdminSettings-B8Y5s65J.js.map
+junk removed: ./assets/Search-Bytca5bK.js.map
+junk removed: ./assets/instagram-BJAEN--U.js.map
+junk removed: ./assets/textarea-wp2h82Pa.js.map
+junk removed: ./assets/eye-Db7FfO7t.js.map
+junk removed: ./assets/Resources-Db8Sxxv6.js.map
+junk removed: ./assets/Wishlist-CmqtNs8B.js.map
+junk removed: ./assets/Index-B7e6x5hS.js.map
+junk removed: ./assets/Shop-CZAlKgcb.js.map
+junk removed: ./assets/orders-WE5cnzO8.js.map
+junk removed: ./assets/arrow-right-Bjknidwc.js.map
+junk removed: ./assets/ForgotPassword-BPZ1LRvT.js.map
+junk removed: ./assets/upload-Dizo3qbB.js.map
+junk removed: ./assets/trending-up-CuU4IfXJ.js.map
+junk removed: ./assets/AdminDashboard-BRwHgLMM.js.map
+junk removed: ./assets/AdminReviews-Dx-bwUaf.js.map
+junk removed: ./assets/FloatingParticles-DNbW4bg4.js.map
+junk removed: ./assets/AdminResourceManager-D33sbZ-W.js.map
+junk removed: ./assets/NotFound-eY4BAtFh.js.map
+junk removed: ./assets/Contact-SdxihwrR.js.map
+junk removed: ./assets/PaymentCancelled-CV2RfXor.js.map
+junk removed: ./assets/SectionWrapper-HXhYO-Al.js.map
+junk removed: ./assets/MediaPicker-B31rWKjj.js.map
+junk removed: ./assets/app-BEMj9zjt.css.map
+junk removed: ./assets/pagination-ClEn4ggg.js.map
+junk removed: ./assets/AdminContentManager-B7k5OM2B.js.map
+junk removed: ./assets/circle-x-CsvkT5Cg.js.map
+junk removed: ./assets/users-DxW7mDyM.js.map
+junk removed: ./assets/trash-2-JINCW2tx.js.map
+junk removed: ./assets/dialog-BvvqZ4AK.js.map
+junk removed: ./assets/square-Dini9WVr.js.map
+junk removed: ./assets/resources-DqguV11A.js.map
+junk removed: ./assets/ResetPassword-CRAKSVcC.js.map
+junk removed: ./assets/OrderSuccess-Bt4ZZgQ5.js.map
+junk removed: ./assets/download-Ca9vYRJL.js.map
+junk removed: ./assets/ClickToPlayVideo-BiqB_NX5.js.map
+junk removed: ./assets/heart-CJYSqNSA.js.map
+junk removed: ./assets/AdminVideoManager-CAHFSgSR.js.map
+junk removed: ./assets/chevron-left-DgQkaw9q.js.map
+junk removed: ./assets/index-Dh4i1-J3.js.map
+junk removed: ./assets/Checkout-BMAts_Yl.js.map
+junk removed: ./assets/newsletter-C6q0sbTL.js.map
+junk removed: ./assets/table-DeGFP3Oc.js.map
+junk removed: ./assets/router-BY5DHDkN.js.map
+junk removed: ./assets/AdminTestimonialManager-Ck3hVGOm.js.map
+junk removed: ./assets/Unashamed-BZ0G5_wW.js.map
+junk removed: ./assets/videos-BcPLsAfh.js.map
+junk removed: ./assets/vendor-BtIrUdbE.js.map
+junk removed: ./assets/media-D1xLczfg.js.map
+junk removed: ./assets/Videos-BZ12boI9.js.map
+junk removed: ./assets/globe-CtXCi80n.js.map
+junk removed: ./assets/save-CqZ6wlOF.js.map
+junk removed: ./assets/map-pin-Ce57jX2F.js.map
+junk removed: ./assets/message-circle-Bf-ZEyQd.js.map
+junk removed: ./assets/select-C0wnS22A.js.map
+junk removed: ./assets/query-BxHf87gp.js.map
+junk removed: ./assets/label-BRncKLO7.js.map
+junk removed: ./assets/testimonials-Chkyn5Sj.js.map
+junk removed: ./assets/zod-DyezxskM.js.map
+junk removed: ./assets/Donate-D9PvbY6E.js.map
+junk removed: ./assets/AdminNewsletterManager-D1jYwBEf.js.map
+junk removed: ./assets/Testimonies-Bt9Hw4Pd.js.map
+junk removed: ./assets/reviews-Dvo7AmfO.js.map
+junk removed: ./assets/square-pen-D2MgFxTa.js.map
+junk removed: ./assets/AdminMedia-BZKgTSGk.js.map
+junk removed: ./assets/animations-CnczHZP1.js.map
+junk removed: ./assets/circle-check-big-D2joIsSM.js.map
+junk removed: ./assets/types-QrSs3t7L.js.map
+junk removed: ./assets/products-0Oi-QMQu.js.map
+junk removed: ./ForgotPassword-BPZ1LRvT.js
+junk removed: ./ClickToPlayVideo-BiqB_NX5.js
+junk removed: ./trending-up-CuU4IfXJ.js
+junk removed: ./AdminMedia-BZKgTSGk.js.map
+junk removed: ./query-BxHf87gp.js
+junk removed: ./animations-CnczHZP1.js.map
+junk removed: ./circle-check-big-D2joIsSM.js.map
+junk removed: ./types-QrSs3t7L.js.map
+junk removed: ./upload-Dizo3qbB.js
+junk removed: ./products-0Oi-QMQu.js.map
+=== [1/8] root files ===
+=== [2/8] bundles referenced by index.html ===
+/assets/animations-CnczHZP1.js
+/assets/app-BEMj9zjt.css
+/assets/app-DwH0RQZ6.js
+/assets/query-BxHf87gp.js
+/assets/router-BY5DHDkN.js
+/assets/vendor-BtIrUdbE.js
+=== [3/8] fixpoint harvest: download every referenced asset until nothing new ===
+ok:   200 https://ttin.techpros.com.ng/About-BhttS5Ua.js (4.0K)
+ok:   200 https://ttin.techpros.com.ng/AdminAnalytics-ColncwEd.js (4.0K)
+ok:   200 https://ttin.techpros.com.ng/AdminContentManager-B7k5OM2B.js (4.0K)
+ok:   200 https://ttin.techpros.com.ng/AdminDashboard-BRwHgLMM.js (4.0K)
+ok:   200 https://ttin.techpros.com.ng/AdminLogin-CHquWQec.js (4.0K)
+ok:   200 https://ttin.techpros.com.ng/AdminMedia-BZKgTSGk.js (4.0K)
+ok:   200 https://ttin.techpros.com.ng/AdminNewsletterManager-D1jYwBEf.js (4.0K)
+ok:   200 https://ttin.techpros.com.ng/AdminOrders-D5KtOkv0.js (4.0K)
+ok:   200 https://ttin.techpros.com.ng/AdminProductManager-BZVMw4S-.js (4.0K)
+ok:   200 https://ttin.techpros.com.ng/AdminResourceManager-D33sbZ-W.js (4.0K)
+ok:   200 https://ttin.techpros.com.ng/AdminReviews-Dx-bwUaf.js (4.0K)
+ok:   200 https://ttin.techpros.com.ng/AdminSettings-B8Y5s65J.js (4.0K)
+ok:   200 https://ttin.techpros.com.ng/AdminTestimonialManager-Ck3hVGOm.js (4.0K)
+ok:   200 https://ttin.techpros.com.ng/AdminVideoManager-CAHFSgSR.js (4.0K)
+ok:   200 https://ttin.techpros.com.ng/Cart-vT4B10KY.js (4.0K)
+ok:   200 https://ttin.techpros.com.ng/Checkout-BMAts_Yl.js (4.0K)
+ok:   200 https://ttin.techpros.com.ng/ClickToPlayVideo-BiqB_NX5.js (4.0K)
+ok:   200 https://ttin.techpros.com.ng/Contact-SdxihwrR.js (4.0K)
+ok:   200 https://ttin.techpros.com.ng/Donate-D9PvbY6E.js (4.0K)
+ok:   200 https://ttin.techpros.com.ng/Events-f7cCxWlP.js (4.0K)
+ok:   200 https://ttin.techpros.com.ng/FloatingParticles-DNbW4bg4.js (4.0K)
+ok:   200 https://ttin.techpros.com.ng/ForgotPassword-BPZ1LRvT.js (4.0K)
+ok:   200 https://ttin.techpros.com.ng/Index-B7e6x5hS.js (4.0K)
+ok:   200 https://ttin.techpros.com.ng/Layout-DMrKFuEN.js (4.0K)
+ok:   200 https://ttin.techpros.com.ng/MediaPicker-B31rWKjj.js (4.0K)
+ok:   200 https://ttin.techpros.com.ng/NotFound-eY4BAtFh.js (4.0K)
+ok:   200 https://ttin.techpros.com.ng/OrderSuccess-Bt4ZZgQ5.js (4.0K)
+ok:   200 https://ttin.techpros.com.ng/Orders-ClfMeDWu.js (4.0K)
+ok:   200 https://ttin.techpros.com.ng/PaymentCancelled-CV2RfXor.js (4.0K)
+ok:   200 https://ttin.techpros.com.ng/ResetPassword-CRAKSVcC.js (4.0K)
+ok:   200 https://ttin.techpros.com.ng/Resources-Db8Sxxv6.js (4.0K)
+ok:   200 https://ttin.techpros.com.ng/Search-Bytca5bK.js (4.0K)
+ok:   200 https://ttin.techpros.com.ng/SectionWrapper-HXhYO-Al.js (4.0K)
+ok:   200 https://ttin.techpros.com.ng/Shop-CZAlKgcb.js (4.0K)
+ok:   200 https://ttin.techpros.com.ng/Testimonies-Bt9Hw4Pd.js (4.0K)
+ok:   200 https://ttin.techpros.com.ng/Unashamed-BZ0G5_wW.js (4.0K)
+ok:   200 https://ttin.techpros.com.ng/VerifyEmail-BQdCcuvx.js (4.0K)
+ok:   200 https://ttin.techpros.com.ng/Videos-BZ12boI9.js (4.0K)
+ok:   200 https://ttin.techpros.com.ng/Wishlist-CmqtNs8B.js (4.0K)
+ok:   200 https://ttin.techpros.com.ng/animations-CnczHZP1.js (4.0K)
+ok:   200 https://ttin.techpros.com.ng/app-BEMj9zjt.css (4.0K)
+ok:   200 https://ttin.techpros.com.ng/app-DwH0RQZ6.js (4.0K)
+ok:   200 https://ttin.techpros.com.ng/arrow-right-Bjknidwc.js (4.0K)
+ok:   200 https://ttin.techpros.com.ng/assets/search-DQkOgyNc.js (4.0K)
+ok:   200 https://ttin.techpros.com.ng/card-BluG0E_E.js (4.0K)
+ok:   200 https://ttin.techpros.com.ng/chevron-left-DgQkaw9q.js (4.0K)
+ok:   200 https://ttin.techpros.com.ng/circle-check-Bf6lQKvr.js (4.0K)
+ok:   200 https://ttin.techpros.com.ng/circle-check-big-D2joIsSM.js (4.0K)
+ok:   200 https://ttin.techpros.com.ng/circle-x-CsvkT5Cg.js (4.0K)
+ok:   200 https://ttin.techpros.com.ng/dialog-BvvqZ4AK.js (4.0K)
+ok:   200 https://ttin.techpros.com.ng/download-Ca9vYRJL.js (4.0K)
+ok:   200 https://ttin.techpros.com.ng/external-link-CZjpW9WP.js (4.0K)
+ok:   200 https://ttin.techpros.com.ng/eye-Db7FfO7t.js (4.0K)
+ok:   200 https://ttin.techpros.com.ng/globe-CtXCi80n.js (4.0K)
+ok:   200 https://ttin.techpros.com.ng/heart-CJYSqNSA.js (4.0K)
+ok:   200 https://ttin.techpros.com.ng/hqdefault.jpg (4.0K)
+ok:   200 https://ttin.techpros.com.ng/images/Picture1.png (592K)
+ok:   200 https://ttin.techpros.com.ng/images/Picture2.png (648K)
+ok:   200 https://ttin.techpros.com.ng/index-Dh4i1-J3.js (4.0K)
+ok:   200 https://ttin.techpros.com.ng/instagram-BJAEN--U.js (4.0K)
+ok:   200 https://ttin.techpros.com.ng/label-BRncKLO7.js (4.0K)
+ok:   200 https://ttin.techpros.com.ng/map-pin-Ce57jX2F.js (4.0K)
+ok:   200 https://ttin.techpros.com.ng/media-D1xLczfg.js (4.0K)
+ok:   200 https://ttin.techpros.com.ng/message-circle-Bf-ZEyQd.js (4.0K)
+ok:   200 https://ttin.techpros.com.ng/newsletter-C6q0sbTL.js (4.0K)
+ok:   200 https://ttin.techpros.com.ng/orders-WE5cnzO8.js (4.0K)
+ok:   200 https://ttin.techpros.com.ng/pagination-ClEn4ggg.js (4.0K)
+ok:   200 https://ttin.techpros.com.ng/placeholder-cart-item.jpg (4.0K)
+ok:   200 https://ttin.techpros.com.ng/placeholder-community-bg.jpg (4.0K)
+ok:   200 https://ttin.techpros.com.ng/placeholder-contact-bg.jpg (4.0K)
+ok:   200 https://ttin.techpros.com.ng/placeholder-donate-card.jpg (4.0K)
+ok:   200 https://ttin.techpros.com.ng/placeholder-donate-other.jpg (4.0K)
+ok:   200 https://ttin.techpros.com.ng/placeholder-event.jpg (4.0K)
+ok:   200 https://ttin.techpros.com.ng/placeholder-featured-event.jpg (4.0K)
+ok:   200 https://ttin.techpros.com.ng/placeholder-ig-short.jpg (4.0K)
+ok:   200 https://ttin.techpros.com.ng/placeholder-product-thumb.jpg (4.0K)
+ok:   200 https://ttin.techpros.com.ng/plus-NmFNPxxh.js (4.0K)
+ok:   200 https://ttin.techpros.com.ng/products-0Oi-QMQu.js (4.0K)
+ok:   200 https://ttin.techpros.com.ng/query-BxHf87gp.js (4.0K)
+ok:   200 https://ttin.techpros.com.ng/resources-DqguV11A.js (4.0K)
+ok:   200 https://ttin.techpros.com.ng/reviews-Dvo7AmfO.js (4.0K)
+ok:   200 https://ttin.techpros.com.ng/router-BY5DHDkN.js (4.0K)
+ok:   200 https://ttin.techpros.com.ng/save-CqZ6wlOF.js (4.0K)
+ok:   200 https://ttin.techpros.com.ng/search-DQkOgyNc.js (4.0K)
+ok:   200 https://ttin.techpros.com.ng/select-C0wnS22A.js (4.0K)
+ok:   200 https://ttin.techpros.com.ng/square-Dini9WVr.js (4.0K)
+ok:   200 https://ttin.techpros.com.ng/square-pen-D2MgFxTa.js (4.0K)
+ok:   200 https://ttin.techpros.com.ng/table-DeGFP3Oc.js (4.0K)
+ok:   200 https://ttin.techpros.com.ng/tabs-B1vpzPlF.js (4.0K)
+ok:   200 https://ttin.techpros.com.ng/testimonials-Chkyn5Sj.js (4.0K)
+ok:   200 https://ttin.techpros.com.ng/textarea-wp2h82Pa.js (4.0K)
+ok:   200 https://ttin.techpros.com.ng/trash-2-JINCW2tx.js (4.0K)
+ok:   200 https://ttin.techpros.com.ng/trending-up-CuU4IfXJ.js (4.0K)
+ok:   200 https://ttin.techpros.com.ng/types-QrSs3t7L.js (4.0K)
+ok:   200 https://ttin.techpros.com.ng/upload-Dizo3qbB.js (4.0K)
+ok:   200 https://ttin.techpros.com.ng/users-DxW7mDyM.js (4.0K)
+ok:   200 https://ttin.techpros.com.ng/vendor-BtIrUdbE.js (4.0K)
+ok:   200 https://ttin.techpros.com.ng/videos-BcPLsAfh.js (4.0K)
+MISS: 000 https://ttin.techpros.com.ng/videos/Copy of PRIMARY HOME PAGE VIDEO.mov
+ok:   200 https://ttin.techpros.com.ng/videos/Copy%20of%20PRIMARY%20HOME%20PAGE%20VIDEO.mov (4.0K)
+MISS: 000 https://ttin.techpros.com.ng/videos/Copy of VID-20250626-WA0001.mp4
+ok:   200 https://ttin.techpros.com.ng/videos/Copy%20of%20VID-20250626-WA0001.mp4 (4.0K)
+MISS: 000 https://ttin.techpros.com.ng/videos/Copy of copy_96991881-2FAC-443C-8500-8A04B94321B3.mov
+ok:   200 https://ttin.techpros.com.ng/videos/Copy%20of%20copy_96991881-2FAC-443C-8500-8A04B94321B3.mov (4.0K)
+MISS: 000 https://ttin.techpros.com.ng/videos/Copy of copy_A3CA812F-207C-44EA-8F0B-FA784DEAA076.mov
+ok:   200 https://ttin.techpros.com.ng/videos/Copy%20of%20copy_A3CA812F-207C-44EA-8F0B-FA784DEAA076.mov (4.0K)
+MISS: 000 https://ttin.techpros.com.ng/videos/Copy of copy_F05630D0-3670-47DC-AA0B-37776B031FE3.mov
+ok:   200 https://ttin.techpros.com.ng/videos/Copy%20of%20copy_F05630D0-3670-47DC-AA0B-37776B031FE3.mov (4.0K)
+MISS: 000 https://ttin.techpros.com.ng/videos/Copy of copy_F95DE055-EDF2-4C4C-8F9B-E64D9A4CC70B.mov
+ok:   200 https://ttin.techpros.com.ng/videos/Copy%20of%20copy_F95DE055-EDF2-4C4C-8F9B-E64D9A4CC70B.mov (4.0K)
+MISS: 000 https://ttin.techpros.com.ng/videos/Use for web.mov
+ok:   200 https://ttin.techpros.com.ng/videos/Use%20for%20web.mov (4.0K)
+MISS: 000 https://ttin.techpros.com.ng/videos/Use for website 2.mov
+ok:   200 https://ttin.techpros.com.ng/videos/Use%20for%20website%202.mov (4.0K)
+MISS: 000 https://ttin.techpros.com.ng/videos/Use for website 3.mov
+ok:   200 https://ttin.techpros.com.ng/videos/Use%20for%20website%203.mov (4.0K)
+MISS: 000 https://ttin.techpros.com.ng/videos/Use for website 4.mov
+ok:   200 https://ttin.techpros.com.ng/videos/Use%20for%20website%204.mov (4.0K)
+MISS: 000 https://ttin.techpros.com.ng/videos/Use for website.mp4
+ok:   200 https://ttin.techpros.com.ng/videos/Use%20for%20website.mp4 (4.0K)
+MISS: 000 https://ttin.techpros.com.ng/videos/Use for website_2.mov
+ok:   200 https://ttin.techpros.com.ng/videos/Use%20for%20website_2.mov (4.0K)
+MISS: 000 https://ttin.techpros.com.ng/videos/Use for website_4.mov
+ok:   200 https://ttin.techpros.com.ng/videos/Use%20for%20website_4.mov (4.0K)
+MISS: 000 https://ttin.techpros.com.ng/videos/Use for website_5.mov
+ok:   200 https://ttin.techpros.com.ng/videos/Use%20for%20website_5.mov (4.0K)
+MISS: 000 https://ttin.techpros.com.ng/videos/Use for websitee.mov
+ok:   200 https://ttin.techpros.com.ng/videos/Use%20for%20websitee.mov (4.0K)
+MISS: 000 https://ttin.techpros.com.ng/videos/Use for websitre 5.mov
+ok:   200 https://ttin.techpros.com.ng/videos/Use%20for%20websitre%205.mov (4.0K)
+ok:   200 https://ttin.techpros.com.ng/videos/front-video.mp4 (8.7M)
+ok:   200 https://ttin.techpros.com.ng/with-selector.production.js (4.0K)
+ok:   200 https://ttin.techpros.com.ng/youtube-eLeN2Rod.js (4.0K)
+ok:   200 https://ttin.techpros.com.ng/zod-DyezxskM.js (4.0K)
+round 1: +118 files
+round 2: +0 files
+=== [4/8] self-hosted resource PDFs (known paths) ===
+MISS: 000 https://ttin.techpros.com.ng/resources/Foxe's Book of Martyrs.pdf
+MISS: 000 https://ttin.techpros.com.ng/resources/God's Generals- The Revivalists.pdf
+MISS: 000 https://ttin.techpros.com.ng/resources/God's Generals- Why They Succeeded and Why Some Failed.pdf
+MISS: 000 https://ttin.techpros.com.ng/resources/I Went To Hell.pdf
+MISS: 000 https://ttin.techpros.com.ng/resources/Kathryn Kuhlman- Her Spiritual Legacy.pdf
+MISS: 000 https://ttin.techpros.com.ng/resources/Now That You Are Born Again.pdf
+MISS: 000 https://ttin.techpros.com.ng/resources/Recreating Your World.pdf
+MISS: 000 https://ttin.techpros.com.ng/resources/Revival in the Hebrides.pdf
+MISS: 000 https://ttin.techpros.com.ng/resources/The Power of Tongues.pdf
+MISS: 000 https://ttin.techpros.com.ng/resources/The Seven Spirits of God.pdf
+MISS: 000 https://ttin.techpros.com.ng/resources/Tortured for Christ.pdf
+MISS: 000 https://ttin.techpros.com.ng/resources/When God Visits You.pdf
+=== [5/8] API scrape (JSON; XHR-style headers + session cookie) ===
+csrf: 200
+api ok:   200 /api/health (4.0K)
+api ok:   200 /api/settings (4.0K)
+api ok:   200 /api/content (4.0K)
+api ok:   200 /api/countries (4.0K)
+api ok:   200 /api/products?limit=100 (4.0K)
+api ok:   200 /api/testimonies?limit=100 (4.0K)
+api ok:   200 /api/events?limit=100 (4.0K)
+api ok:   200 /api/resources?limit=100 (8.0K)
+api ok:   200 /api/videos?limit=100 (4.0K)
+api ok:   200 /api/videos/feed (4.0K)
+api MISS: 401 /api/reviews?limit=100
+api ok:   200 /api/search?q=faith (4.0K)
+api MISS: 401 /api/analytics/dashboard
+=== [6/8] Google Drive thumbnails for every referenced Drive ID ===
+drive ids: 120
+MISS: 400 https://drive.google.com/thumbnail?id=1-next-f1338f8080-20240426&sz=w1200
+MISS: 400 https://drive.google.com/thumbnail?id=1-next-f1338f8080-20240426&sz=w400
+MISS: 500 https://drive.google.com/thumbnail?id=10fage2il1rwinds6th3mily4n0s2rm0ers5shion&sz=w1200
+MISS: 500 https://drive.google.com/thumbnail?id=10fage2il1rwinds6th3mily4n0s2rm0ers5shion&sz=w400
+MISS: 500 https://drive.google.com/thumbnail?id=10o1piranga7q1r0ish4s0maili5t0anbul7t0au2&sz=w1200
+MISS: 500 https://drive.google.com/thumbnail?id=10o1piranga7q1r0ish4s0maili5t0anbul7t0au2&sz=w400
+MISS: 500 https://drive.google.com/thumbnail?id=11r1s1t0d0a3u0ndbeck6xe1ury5v1y2ma0drid4i&sz=w1200
+MISS: 500 https://drive.google.com/thumbnail?id=11r1s1t0d0a3u0ndbeck6xe1ury5v1y2ma0drid4i&sz=w400
+ok:   200 https://drive.google.com/thumbnail?id=11x2fam3ica3sterdam8nalytics7droid5quan4z&sz=w1200 (1.2M)
+MISS: 400 https://drive.google.com/thumbnail?id=1205127d479198dd34475293411db42b8b48c8&sz=w1200
+MISS: 400 https://drive.google.com/thumbnail?id=1205127d479198dd34475293411db42b8b48c8&sz=w400
+MISS: 500 https://drive.google.com/thumbnail?id=12F-207C-44EA-8F0B-FA784DEAA076&sz=w1200
+MISS: 500 https://drive.google.com/thumbnail?id=12F-207C-44EA-8F0B-FA784DEAA076&sz=w400
+MISS: 500 https://drive.google.com/thumbnail?id=12bcam3er2site5d0ding5ibo2r3f1hoswho6ien2&sz=w1200
+MISS: 500 https://drive.google.com/thumbnail?id=12bcam3er2site5d0ding5ibo2r3f1hoswho6ien2&sz=w400
+ok:   200 https://drive.google.com/thumbnail?id=14QO5PT393OzV2eB9DLFHCelCJzbAdHrd&sz=w1200 (1.2M)
+ok:   200 https://drive.google.com/thumbnail?id=14fh2g1h1i0a1ds2m1ndle4tchen5wi3m1n1oeln3&sz=w1200 (1.2M)
+MISS: 500 https://drive.google.com/thumbnail?id=14sicherung10t2g1i0ajes4deo3g1king4llas4n&sz=w1200
+MISS: 500 https://drive.google.com/thumbnail?id=14sicherung10t2g1i0ajes4deo3g1king4llas4n&sz=w400
+MISS: 500 https://drive.google.com/thumbnail?id=155f4849-23f9-48d4-9d02-fbda132e06eb&sz=w1200
+MISS: 500 https://drive.google.com/thumbnail?id=155f4849-23f9-48d4-9d02-fbda132e06eb&sz=w400
+MISS: 500 https://drive.google.com/thumbnail?id=17991454684364207601101488628772976033327&sz=w1200
+MISS: 500 https://drive.google.com/thumbnail?id=17991454684364207601101488628772976033327&sz=w400
+ok:   200 https://drive.google.com/thumbnail?id=17I59lIp5xrjM_57Rtll9HsGdPxYSqlmH&sz=w1200 (848K)
+MISS: 500 https://drive.google.com/thumbnail?id=1881-2FAC-443C-8500-8A04B94321B3&sz=w1200
+MISS: 500 https://drive.google.com/thumbnail?id=1881-2FAC-443C-8500-8A04B94321B3&sz=w400
+MISS: 500 https://drive.google.com/thumbnail?id=1889083-c5ae-40b9-8894-59d0bf56ba46&sz=w1200
+MISS: 500 https://drive.google.com/thumbnail?id=1889083-c5ae-40b9-8894-59d0bf56ba46&sz=w400
+ok:   200 https://drive.google.com/thumbnail?id=1A0RryeBlWLzWibtOG8gcvEnoF02lwWmc&sz=w1200 (620K)
+ok:   200 https://drive.google.com/thumbnail?id=1D9Ij-nDbMqUyc5taJfvKTemMgliNyqkG&sz=w1200 (1.2M)
+ok:   200 https://drive.google.com/thumbnail?id=1DmS4fFMrLXHU5DQ-Ib8RptZftwwFv6iq&sz=w1200 (1.1M)
+ok:   200 https://drive.google.com/thumbnail?id=1GIfK3x0fsSP_u_l1xHiHUuU-lt-V5GeL&sz=w1200 (672K)
+ok:   200 https://drive.google.com/thumbnail?id=1IMt9z8NS5-djBKdniAlLjAUIE2vLRFaR&sz=w1200 (1.7M)
+ok:   200 https://drive.google.com/thumbnail?id=1LG1dq9Mf9DKiecpToONwakLJIDXRUzN2&sz=w1200 (708K)
+ok:   200 https://drive.google.com/thumbnail?id=1QRLX-nQGVKer3eijUuFGhC5pt_YMjaCb&sz=w1200 (48K)
+ok:   200 https://drive.google.com/thumbnail?id=1QgAb5cUQBnIDocUYupX-YyLDRAusNZma&sz=w1200 (1.2M)
+ok:   200 https://drive.google.com/thumbnail?id=1QrdudmFqLQbuEZ-WhKCBIVRBYFJrLO9t&sz=w1200 (1.1M)
+ok:   200 https://drive.google.com/thumbnail?id=1QyjqlFPKOnQO7V4ow9ZrSzKMCUKPXHRO&sz=w1200 (668K)
+ok:   200 https://drive.google.com/thumbnail?id=1RmMeef-gAvb6OoZFpxz0wG-S3sK6HrwJ&sz=w1200 (852K)
+ok:   200 https://drive.google.com/thumbnail?id=1SyxVJOh3DvVOXSediYuTKyZ_pxV6D9rO&sz=w1200 (1.4M)
+ok:   200 https://drive.google.com/thumbnail?id=1Zej1g3M0KwKqIIGfDyheY1cv8txAvAko&sz=w1200 (1.2M)
+MISS: 500 https://drive.google.com/thumbnail?id=1abf5457-4471-49ca-b62b-6aeebb4eaa5b&sz=w1200
+MISS: 500 https://drive.google.com/thumbnail?id=1abf5457-4471-49ca-b62b-6aeebb4eaa5b&sz=w400
+MISS: 500 https://drive.google.com/thumbnail?id=1ae4-40da-9e79-10be40f19f5a&sz=w1200
+MISS: 500 https://drive.google.com/thumbnail?id=1ae4-40da-9e79-10be40f19f5a&sz=w400
+MISS: 500 https://drive.google.com/thumbnail?id=1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNiYzZjNGUi&sz=w1200
+MISS: 500 https://drive.google.com/thumbnail?id=1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNiYzZjNGUi&sz=w400
+MISS: 500 https://drive.google.com/thumbnail?id=1c1ds2ease3clerc5frak4gal2o2xus4gbt3i0dl2&sz=w1200
+MISS: 500 https://drive.google.com/thumbnail?id=1c1ds2ease3clerc5frak4gal2o2xus4gbt3i0dl2&sz=w400
+ok:   200 https://drive.google.com/thumbnail?id=1cYq2fRI7v4JKiR5jkeAsbOd2N2lU4KWp&sz=w1200 (768K)
+ok:   200 https://drive.google.com/thumbnail?id=1d2ny_kuCgAINBMT-UURTCizzjzqh5Gbt&sz=w1200 (1.5M)
+MISS: 400 https://drive.google.com/thumbnail?id=1e-cbe6-402a-8af6-cb6a5ea6843f&sz=w1200
+MISS: 400 https://drive.google.com/thumbnail?id=1e-cbe6-402a-8af6-cb6a5ea6843f&sz=w400
+MISS: 500 https://drive.google.com/thumbnail?id=1e0arch3t2cure1ity6ek2lect4ner3rvices6ven&sz=w1200
+MISS: 500 https://drive.google.com/thumbnail?id=1e0arch3t2cure1ity6ek2lect4ner3rvices6ven&sz=w400
+ok:   200 https://drive.google.com/thumbnail?id=1e0c1t0bank4flix4work5ustar5w0s2xt0direct&sz=w1200 (1.2M)
+MISS: 500 https://drive.google.com/thumbnail?id=1e0d0ia3et2lbourne7me1orial6n0u2rck0msd7g&sz=w1200
+MISS: 500 https://drive.google.com/thumbnail?id=1e0d0ia3et2lbourne7me1orial6n0u2rck0msd7g&sz=w400
+MISS: 500 https://drive.google.com/thumbnail?id=1e0e-d7b4-44c8-abf2-21f21b7d1de0&sz=w1200
+MISS: 500 https://drive.google.com/thumbnail?id=1e0e-d7b4-44c8-abf2-21f21b7d1de0&sz=w400
+MISS: 500 https://drive.google.com/thumbnail?id=1e1h1ino4t0ering5holic7ba1n1re3c1d1enter4&sz=w1200
+MISS: 500 https://drive.google.com/thumbnail?id=1e1h1ino4t0ering5holic7ba1n1re3c1d1enter4&sz=w400
+MISS: 500 https://drive.google.com/thumbnail?id=1e1ing3sun4y2clk3ds2e0al0er2s3gree4livery&sz=w1200
+MISS: 500 https://drive.google.com/thumbnail?id=1e1ing3sun4y2clk3ds2e0al0er2s3gree4livery&sz=w400
+MISS: 500 https://drive.google.com/thumbnail?id=1ed3uokgroup8w1y0oto4z2la0caixa5mborghini&sz=w1200
+MISS: 500 https://drive.google.com/thumbnail?id=1ed3uokgroup8w1y0oto4z2la0caixa5mborghini&sz=w400
+MISS: 500 https://drive.google.com/thumbnail?id=1ex2sale4um3undation8x2r0ee1senius7l1ogan&sz=w1200
+MISS: 500 https://drive.google.com/thumbnail?id=1ex2sale4um3undation8x2r0ee1senius7l1ogan&sz=w400
+ok:   200 https://drive.google.com/thumbnail?id=1f48cQfjKPsiLvnUlZKcSdOgYMvt1ioSy&sz=w1200 (1.4M)
+ok:   200 https://drive.google.com/thumbnail?id=1fLjr-Xwz0BZq8k_-k4J1qh_b8Nxs_-xS&sz=w1200 (340K)
+ok:   200 https://drive.google.com/thumbnail?id=1fdHRNljDTkHmlGugaZbnsXorYXOQ-O1y&sz=w1200 (436K)
+MISS: 500 https://drive.google.com/thumbnail?id=1g0ee3h1i0ft0s3ves2ing5l0ass3e1obal2o4m0a&sz=w1200
+MISS: 500 https://drive.google.com/thumbnail?id=1g0ee3h1i0ft0s3ves2ing5l0ass3e1obal2o4m0a&sz=w400
+MISS: 500 https://drive.google.com/thumbnail?id=1g1h0arti5i0ble3d1ke2ng0o3o1z2j1lack0frid&sz=w1200
+MISS: 500 https://drive.google.com/thumbnail?id=1g1h0arti5i0ble3d1ke2ng0o3o1z2j1lack0frid&sz=w400
+MISS: 500 https://drive.google.com/thumbnail?id=1g1l0ine5oo2pen3racle3nge4g0anic5igins6sa&sz=w1200
+MISS: 500 https://drive.google.com/thumbnail?id=1g1l0ine5oo2pen3racle3nge4g0anic5igins6sa&sz=w400
+MISS: 500 https://drive.google.com/thumbnail?id=1g1mail3erck5nergy4gineer0ing9terprises10&sz=w1200
+MISS: 500 https://drive.google.com/thumbnail?id=1g1mail3erck5nergy4gineer0ing9terprises10&sz=w400
+ok:   200 https://drive.google.com/thumbnail?id=1gQWrnRISkYrF5feQOw1VqT3d_qqA7Djt&sz=w1200 (260K)
+ok:   200 https://drive.google.com/thumbnail?id=1gTJYHsg6q7VO6yAo-h9wzoiBvHupZv7N&sz=w1200 (904K)
+MISS: 500 https://drive.google.com/thumbnail?id=1gery5zuki5v1watch4iss4x1y0dney4stems6z2t&sz=w1200
+MISS: 500 https://drive.google.com/thumbnail?id=1gery5zuki5v1watch4iss4x1y0dney4stems6z2t&sz=w400
+ok:   200 https://drive.google.com/thumbnail?id=1gles5te3j1k0i0n2y0pe4l0ing4m0art3ile4n0c&sz=w1200 (1.2M)
+MISS: 500 https://drive.google.com/thumbnail?id=1gressive8mo2perties3y5tection8u0dential9&sz=w1200
+MISS: 500 https://drive.google.com/thumbnail?id=1gressive8mo2perties3y5tection8u0dential9&sz=w400
+MISS: 500 https://drive.google.com/thumbnail?id=1h1iami3crosoft7l1ni1t2t0subishi9k1l0b1s2&sz=w1200
+MISS: 500 https://drive.google.com/thumbnail?id=1h1iami3crosoft7l1ni1t2t0subishi9k1l0b1s2&sz=w400
+MISS: 500 https://drive.google.com/thumbnail?id=1ing3o2yage5u2wales2mart4ter4ng0gou5tch0e&sz=w1200
+MISS: 500 https://drive.google.com/thumbnail?id=1ing3o2yage5u2wales2mart4ter4ng0gou5tch0e&sz=w400
+MISS: 500 https://drive.google.com/thumbnail?id=1ing4ining5vel0ers0insurance16ust3v2t1ube&sz=w1200
+MISS: 500 https://drive.google.com/thumbnail?id=1ing4ining5vel0ers0insurance16ust3v2t1ube&sz=w400
+MISS: 500 https://drive.google.com/thumbnail?id=1ing5k1lc1p2oan0s3cker3us3l1ndon4tte1o3ve&sz=w1200
+MISS: 500 https://drive.google.com/thumbnail?id=1ing5k1lc1p2oan0s3cker3us3l1ndon4tte1o3ve&sz=w400
+MISS: 500 https://drive.google.com/thumbnail?id=1ipei4lk2obao4rget4tamotors6r2too4x0i3c0i&sz=w1200
+MISS: 500 https://drive.google.com/thumbnail?id=1ipei4lk2obao4rget4tamotors6r2too4x0i3c0i&sz=w400
+ok:   200 https://drive.google.com/thumbnail?id=1jfAJFYX_UyL4FxPzSTXkDeqWuYWrgSCW&sz=w1200 (1.1M)
+ok:   200 https://drive.google.com/thumbnail?id=1k1m1np2o0cs1tor4g1mains5t1wnload7rive4tv&sz=w1200 (1.2M)
+MISS: 500 https://drive.google.com/thumbnail?id=1k1stitute6urance4e4t0ernational10uit4ves&sz=w1200
+MISS: 500 https://drive.google.com/thumbnail?id=1k1stitute6urance4e4t0ernational10uit4ves&sz=w400
+MISS: 500 https://drive.google.com/thumbnail?id=1k2r0celona5laycard4s5efoot5gains6seball5&sz=w1200
+MISS: 500 https://drive.google.com/thumbnail?id=1k2r0celona5laycard4s5efoot5gains6seball5&sz=w400
+ok:   200 https://drive.google.com/thumbnail?id=1l0aims4eaning6ick2nic1que6othing5ud3ub0m&sz=w1200 (1.2M)
+ok:   200 https://drive.google.com/thumbnail?id=1lestate6tor2y4cipes5d0umbrella9hab3ise0n&sz=w1200 (1.2M)
+ok:   200 https://drive.google.com/thumbnail?id=1lickr3ghts4r2orist4wers5y2m1o0o0d1tball6&sz=w1200 (1.2M)
+MISS: 500 https://drive.google.com/thumbnail?id=1m0all4n1o0day3kyo3ols3p1ray3shiba5tal3ur&sz=w1200
+MISS: 500 https://drive.google.com/thumbnail?id=1m0all4n1o0day3kyo3ols3p1ray3shiba5tal3ur&sz=w400
+MISS: 500 https://drive.google.com/thumbnail?id=1m0amat4db2mo0bilien9n0c1dustries8finiti5&sz=w1200
+MISS: 500 https://drive.google.com/thumbnail?id=1m0amat4db2mo0bilien9n0c1dustries8finiti5&sz=w400
+ok:   200 https://drive.google.com/thumbnail?id=1masek5nnis4va3f1g1h0d1eater2re6iaa2ckets&sz=w1200 (1.2M)
+ok:   200 https://drive.google.com/thumbnail?id=1mco4chi3my2pa2t0e3s0da2ia2sociates9t0hle&sz=w1200 (1.2M)
+ok:   200 https://drive.google.com/thumbnail?id=1mmh4uckujOEE8WAK6vTbGBoQuu0xAxUt&sz=w1200 (2.1M)
+MISS: 500 https://drive.google.com/thumbnail?id=1n0c2ohl2ker3litie5rn2st3r0axi3ess3ime3o0&sz=w1200
+MISS: 500 https://drive.google.com/thumbnail?id=1n0c2ohl2ker3litie5rn2st3r0axi3ess3ime3o0&sz=w400
+MISS: 500 https://drive.google.com/thumbnail?id=1n1o0ach3des3ffee4llege4ogne5m0mbank4unit&sz=w1200
+MISS: 500 https://drive.google.com/thumbnail?id=1n1o0ach3des3ffee4llege4ogne5m0mbank4unit&sz=w400
+MISS: 500 https://drive.google.com/thumbnail?id=1n1ockey4ldings5iday5medepot5goods5s0ense&sz=w1200
+MISS: 500 https://drive.google.com/thumbnail?id=1n1ockey4ldings5iday5medepot5goods5s0ense&sz=w400
+MISS: 500 https://drive.google.com/thumbnail?id=1nce1ial7re0stone6mdale6sh0ing5t0ness6j1k&sz=w1200
+MISS: 500 https://drive.google.com/thumbnail?id=1nce1ial7re0stone6mdale6sh0ing5t0ness6j1k&sz=w400
+ok:   200 https://drive.google.com/thumbnail?id=1nd2o0k0ing5sch2tik2on4t1utique6x2r0adesc&sz=w1200 (1.2M)
+MISS: 500 https://drive.google.com/thumbnail?id=1ners6me2oodside6rk0s2ld3w2s1tc1f3xbox3er&sz=w1200
+MISS: 500 https://drive.google.com/thumbnail?id=1ners6me2oodside6rk0s2ld3w2s1tc1f3xbox3er&sz=w400
+ok:   200 https://drive.google.com/thumbnail?id=1nes3shu4v0s2w1z2ua1bank3s2g1k1nicom3vers&sz=w1200 (1.2M)
+MISS: 500 https://drive.google.com/thumbnail?id=1o0bi0le4da2e1i1m1nash3ey2ster5rmon3tgage&sz=w1200
+MISS: 500 https://drive.google.com/thumbnail?id=1o0bi0le4da2e1i1m1nash3ey2ster5rmon3tgage&sz=w400
+MISS: 500 https://drive.google.com/thumbnail?id=1o1p2o0cks3deo3gers4om3s0vp3u0gby3hr2n2w0&sz=w1200
+MISS: 500 https://drive.google.com/thumbnail?id=1o1p2o0cks3deo3gers4om3s0vp3u0gby3hr2n2w0&sz=w400
+ok:   200 https://drive.google.com/thumbnail?id=1odobashi7ga2kohama6u0tube6t1un3za0ppos4r&sz=w1200 (1.2M)
+MISS: 500 https://drive.google.com/thumbnail?id=1oitte5ta3mocrat6ntal2ist5si0gn4v2hl2iamo&sz=w1200
+MISS: 500 https://drive.google.com/thumbnail?id=1oitte5ta3mocrat6ntal2ist5si0gn4v2hl2iamo&sz=w400
+MISS: 500 https://drive.google.com/thumbnail?id=1omberg7ue3m0s1w2n0pparibas9o0ats3ehringe&sz=w1200
+MISS: 500 https://drive.google.com/thumbnail?id=1omberg7ue3m0s1w2n0pparibas9o0ats3ehringe&sz=w400
+MISS: 500 https://drive.google.com/thumbnail?id=1on3msclub4ung5ndvik0coromant12ofi4p1rl2s&sz=w1200
+MISS: 500 https://drive.google.com/thumbnail?id=1on3msclub4ung5ndvik0coromant12ofi4p1rl2s&sz=w400
+MISS: 500 https://drive.google.com/thumbnail?id=1on3nja3ssan1y5l1o0kia3rton4w0ruz3tv4p1r0&sz=w1200
+MISS: 500 https://drive.google.com/thumbnail?id=1on3nja3ssan1y5l1o0kia3rton4w0ruz3tv4p1r0&sz=w400
+MISS: 500 https://drive.google.com/thumbnail?id=1p1rgin4sa1ion4va1o3laanderen9n1odka3lvo3&sz=w1200
+MISS: 500 https://drive.google.com/thumbnail?id=1p1rgin4sa1ion4va1o3laanderen9n1odka3lvo3&sz=w400
+MISS: 500 https://drive.google.com/thumbnail?id=1p2rsica5untry4pon0s4rses6pa2r0edit0card4&sz=w1200
+MISS: 500 https://drive.google.com/thumbnail?id=1p2rsica5untry4pon0s4rses6pa2r0edit0card4&sz=w400
+MISS: 500 https://drive.google.com/thumbnail?id=1q1r0ainger5phics5tis4een3ipe3ocery4up4s1&sz=w1200
+MISS: 500 https://drive.google.com/thumbnail?id=1q1r0ainger5phics5tis4een3ipe3ocery4up4s1&sz=w400
+MISS: 500 https://drive.google.com/thumbnail?id=1q1r1s0d2t0n1r2u0seum3ic4v1w1x1y1z2na0b1g&sz=w1200
+MISS: 500 https://drive.google.com/thumbnail?id=1q1r1s0d2t0n1r2u0seum3ic4v1w1x1y1z2na0b1g&sz=w400
+ok:   200 https://drive.google.com/thumbnail?id=1rbus3force5tel5kdn3l0ibaba4pay4lfinanz6s&sz=w1200 (1.2M)
+MISS: 500 https://drive.google.com/thumbnail?id=1rn3f0a1d2g1h0anel2nel4rity4se2t2eap3inta&sz=w1200
+MISS: 500 https://drive.google.com/thumbnail?id=1rn3f0a1d2g1h0anel2nel4rity4se2t2eap3inta&sz=w400
+MISS: 500 https://drive.google.com/thumbnail?id=1rp3bb0ott3vie4c1le2ogado5udhabi7c0ademy5&sz=w1200
+MISS: 500 https://drive.google.com/thumbnail?id=1rp3bb0ott3vie4c1le2ogado5udhabi7c0ademy5&sz=w400
+ok:   200 https://drive.google.com/thumbnail?id=1rzb1UrAB0mQogoUxm3eCh9a_GxZ_onYY&sz=w1200 (528K)
+MISS: 500 https://drive.google.com/thumbnail?id=1sbc3t1u0ghes5yatt3undai7ibm2cbc2e1u2d1e0&sz=w1200
+MISS: 500 https://drive.google.com/thumbnail?id=1sbc3t1u0ghes5yatt3undai7ibm2cbc2e1u2d1e0&sz=w400
+MISS: 500 https://drive.google.com/thumbnail?id=1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3Z&sz=w1200
+MISS: 500 https://drive.google.com/thumbnail?id=1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3Z&sz=w400
+MISS: 500 https://drive.google.com/thumbnail?id=1sinki6re1mes5iphop4samitsu7tachi5v2k0t2m&sz=w1200
+MISS: 500 https://drive.google.com/thumbnail?id=1sinki6re1mes5iphop4samitsu7tachi5v2k0t2m&sz=w400
+MISS: 500 https://drive.google.com/thumbnail?id=1son4keup4n0agement7go3p1rket0ing3s4riott&sz=w1200
+MISS: 500 https://drive.google.com/thumbnail?id=1son4keup4n0agement7go3p1rket0ing3s4riott&sz=w400
+MISS: 500 https://drive.google.com/thumbnail?id=1t1ub2w0c2y2qa1pon3uebec3st5racing4dio4e0&sz=w1200
+MISS: 500 https://drive.google.com/thumbnail?id=1t1ub2w0c2y2qa1pon3uebec3st5racing4dio4e0&sz=w400
+MISS: 500 https://drive.google.com/thumbnail?id=1t1uild0ers6siness6y1zz3v1w1y1z0h3ca0b1fe&sz=w1200
+MISS: 500 https://drive.google.com/thumbnail?id=1t1uild0ers6siness6y1zz3v1w1y1z0h3ca0b1fe&sz=w400
+MISS: 500 https://drive.google.com/thumbnail?id=1t1va3cg1n2d1e0ats2uty4er2rlin4st0buy5t2f&sz=w1200
+MISS: 500 https://drive.google.com/thumbnail?id=1t1va3cg1n2d1e0ats2uty4er2rlin4st0buy5t2f&sz=w400
+MISS: 500 https://drive.google.com/thumbnail?id=1tate5t1u0rovision8s2vents5xchange6pert3o&sz=w1200
+MISS: 500 https://drive.google.com/thumbnail?id=1tate5t1u0rovision8s2vents5xchange6pert3o&sz=w400
+ok:   200 https://drive.google.com/thumbnail?id=1tet2ures6d1n0g1k2oneer5zza4k1l0ace2y0sta&sz=w1200 (1.2M)
+ok:   200 https://drive.google.com/thumbnail?id=1tners4s1y3y2ccw3e0t2f0izer5g1h0armacy6d1&sz=w1200 (1.2M)
+MISS: 400 https://drive.google.com/thumbnail?id=1tor4d0s1ult4e0g1ro2tna4f0l1rica5g0akhan5&sz=w1200
+MISS: 400 https://drive.google.com/thumbnail?id=1tor4d0s1ult4e0g1ro2tna4f0l1rica5g0akhan5&sz=w400
+MISS: 500 https://drive.google.com/thumbnail?id=1u0cci3ge2ide2tars5ru3w1y2hair2mburg5ngou&sz=w1200
+MISS: 500 https://drive.google.com/thumbnail?id=1u0cci3ge2ide2tars5ru3w1y2hair2mburg5ngou&sz=w400
+ok:   200 https://drive.google.com/thumbnail?id=1ug5obozY0tfeadtomEP_NJPaA5nbUhr-&sz=w1200 (356K)
+MISS: 500 https://drive.google.com/thumbnail?id=1uise0s6u0isinella9v1w1x1y0mru3ou3z2dad1n&sz=w1200
+MISS: 500 https://drive.google.com/thumbnail?id=1uise0s6u0isinella9v1w1x1y0mru3ou3z2dad1n&sz=w400
+MISS: 500 https://drive.google.com/thumbnail?id=1up4me0s3p1rden4y2b0iz3d0n2e0a1nt0ing5org&sz=w1200
+MISS: 500 https://drive.google.com/thumbnail?id=1up4me0s3p1rden4y2b0iz3d0n2e0a1nt0ing5org&sz=w400
+MISS: 500 https://drive.google.com/thumbnail?id=1urg4t1y2p0morgan6rs3uegos4niper7kaufen5d&sz=w1200
+MISS: 500 https://drive.google.com/thumbnail?id=1urg4t1y2p0morgan6rs3uegos4niper7kaufen5d&sz=w400
+MISS: 500 https://drive.google.com/thumbnail?id=1ve2xo3b0i1s2c0b1haeffler7midt4olarships8&sz=w1200
+MISS: 500 https://drive.google.com/thumbnail?id=1ve2xo3b0i1s2c0b1haeffler7midt4olarships8&sz=w400
+MISS: 500 https://drive.google.com/thumbnail?id=1vinklein9m0era3p2non3petown5ital0one8r0a&sz=w1200
+MISS: 500 https://drive.google.com/thumbnail?id=1vinklein9m0era3p2non3petown5ital0one8r0a&sz=w400
+MISS: 500 https://drive.google.com/thumbnail?id=1w2tt2u1yc2z2obi1server7ffice5kinawa6laya&sz=w1200
+MISS: 500 https://drive.google.com/thumbnail?id=1w2tt2u1yc2z2obi1server7ffice5kinawa6laya&sz=w400
+ok:   200 https://drive.google.com/thumbnail?id=1wYGPMFOzW78J2g8s7v9dAVeCPfSL2lwm&sz=w1200 (176K)
+MISS: 500 https://drive.google.com/thumbnail?id=1x0y3fr2g1h0angrila6rp3ell3ia1ksha5oes2p0&sz=w1200
+MISS: 500 https://drive.google.com/thumbnail?id=1x0y3fr2g1h0angrila6rp3ell3ia1ksha5oes2p0&sz=w400
+ok:   200 https://drive.google.com/thumbnail?id=1x1yTVu10QGLhsBsecY0C-AXj_oxwSGei&sz=w1200 (252K)
+MISS: 500 https://drive.google.com/thumbnail?id=1x2n1odaddy5ld0point6f2odyear5g0le4p1t1v2&sz=w1200
+MISS: 500 https://drive.google.com/thumbnail?id=1x2n1odaddy5ld0point6f2odyear5g0le4p1t1v2&sz=w400
+MISS: 500 https://drive.google.com/thumbnail?id=1y1z2va0cations7na1guard7c1e0gas3ntures6r&sz=w1200
+MISS: 500 https://drive.google.com/thumbnail?id=1y1z2va0cations7na1guard7c1e0gas3ntures6r&sz=w400
+MISS: 500 https://drive.google.com/thumbnail?id=1y2y2pa0ce3ort2t3r0l2s1t0ada2ples4r1teban&sz=w1200
+MISS: 500 https://drive.google.com/thumbnail?id=1y2y2pa0ce3ort2t3r0l2s1t0ada2ples4r1teban&sz=w400
+=== [7/8] SPA route shells (for the record) ===
+route /about -> 200
+route /testimonies -> 200
+route /shop -> 200
+route /unashamed -> 200
+route /resources -> 200
+route /events -> 200
+route /contact -> 200
+route /donate -> 200
+route /admin -> 200
+route /404 -> 200
+=== [8/8] final junk filter + large-file notes ===
+--- junk filter (SPA fallbacks saved under wrong extensions) ---
+junk removed: ./Cart-vT4B10KY.js
+junk removed: ./Donate-D9PvbY6E.js
+junk removed: ./testimonials-Chkyn5Sj.js
+junk removed: ./AdminResourceManager-D33sbZ-W.js
+junk removed: ./label-BRncKLO7.js
+junk removed: ./message-circle-Bf-ZEyQd.js
+junk removed: ./download-Ca9vYRJL.js
+junk removed: ./external/drive-1odobashi7ga2kohama6u0tube6t1un3za0ppos4r.jpg
+junk removed: ./external/drive-11x2fam3ica3sterdam8nalytics7droid5quan4z.jpg
+junk removed: ./external/drive-1k1m1np2o0cs1tor4g1mains5t1wnload7rive4tv.jpg
+junk removed: ./external/drive-1rbus3force5tel5kdn3l0ibaba4pay4lfinanz6s.jpg
+junk removed: ./external/drive-1lickr3ghts4r2orist4wers5y2m1o0o0d1tball6.jpg
+junk removed: ./external/drive-1nes3shu4v0s2w1z2ua1bank3s2g1k1nicom3vers.jpg
+junk removed: ./external/drive-1tners4s1y3y2ccw3e0t2f0izer5g1h0armacy6d1.jpg
+junk removed: ./external/drive-1nd2o0k0ing5sch2tik2on4t1utique6x2r0adesc.jpg
+junk removed: ./external/drive-1l0aims4eaning6ick2nic1que6othing5ud3ub0m.jpg
+junk removed: ./external/drive-1gles5te3j1k0i0n2y0pe4l0ing4m0art3ile4n0c.jpg
+junk removed: ./external/drive-1masek5nnis4va3f1g1h0d1eater2re6iaa2ckets.jpg
+junk removed: ./external/drive-1lestate6tor2y4cipes5d0umbrella9hab3ise0n.jpg
+junk removed: ./external/drive-1e0c1t0bank4flix4work5ustar5w0s2xt0direct.jpg
+junk removed: ./external/drive-1mco4chi3my2pa2t0e3s0da2ia2sociates9t0hle.jpg
+junk removed: ./external/drive-14fh2g1h1i0a1ds2m1ndle4tchen5wi3m1n1oeln3.jpg
+junk removed: ./external/drive-1tet2ures6d1n0g1k2oneer5zza4k1l0ace2y0sta.jpg
+junk removed: ./AdminOrders-D5KtOkv0.js
+junk removed: ./app-DwH0RQZ6.js
+junk removed: ./AdminVideoManager-CAHFSgSR.js
+junk removed: ./Search-Bytca5bK.js
+junk removed: ./Events-f7cCxWlP.js
+junk removed: ./vendor-BtIrUdbE.js
+junk removed: ./heart-CJYSqNSA.js
+junk removed: ./AdminContentManager-B7k5OM2B.js
+junk removed: ./textarea-wp2h82Pa.js
+junk removed: ./placeholder-community-bg.jpg
+junk removed: ./AdminSettings-B8Y5s65J.js
+junk removed: ./square-Dini9WVr.js
+junk removed: ./save-CqZ6wlOF.js
+junk removed: ./placeholder-featured-event.jpg
+junk removed: ./AdminLogin-CHquWQec.js
+junk removed: ./AdminTestimonialManager-Ck3hVGOm.js
+junk removed: ./hqdefault.jpg
+junk removed: ./dialog-BvvqZ4AK.js
+junk removed: ./reviews-Dvo7AmfO.js
+junk removed: ./products-0Oi-QMQu.js
+junk removed: ./AdminReviews-Dx-bwUaf.js
+junk removed: ./PaymentCancelled-CV2RfXor.js
+junk removed: ./table-DeGFP3Oc.js
+junk removed: ./circle-x-CsvkT5Cg.js
+junk removed: ./Wishlist-CmqtNs8B.js
+junk removed: ./animations-CnczHZP1.js
+junk removed: ./Resources-Db8Sxxv6.js
+junk removed: ./placeholder-ig-short.jpg
+junk removed: ./eye-Db7FfO7t.js
+junk removed: ./users-DxW7mDyM.js
+junk removed: ./OrderSuccess-Bt4ZZgQ5.js
+junk removed: ./videos-BcPLsAfh.js
+junk removed: ./videos/Copy of PRIMARY HOME PAGE VIDEO.mov
+junk removed: ./videos/Use for websitee.mov
+junk removed: ./videos/Use for website_2.mov
+junk removed: ./videos/Copy of VID-20250626-WA0001.mp4
+junk removed: ./videos/Use for websitre 5.mov
+junk removed: ./videos/Use for website_4.mov
+junk removed: ./videos/Copy of copy_A3CA812F-207C-44EA-8F0B-FA784DEAA076.mov
+junk removed: ./videos/Use for website.mp4
+junk removed: ./videos/Copy of copy_F95DE055-EDF2-4C4C-8F9B-E64D9A4CC70B.mov
+junk removed: ./videos/Copy of copy_96991881-2FAC-443C-8500-8A04B94321B3.mov
+junk removed: ./videos/Use for website 4.mov
+junk removed: ./videos/Copy of copy_F05630D0-3670-47DC-AA0B-37776B031FE3.mov
+junk removed: ./videos/Use for website 3.mov
+junk removed: ./videos/Use for web.mov
+junk removed: ./videos/Use for website 2.mov
+junk removed: ./videos/Use for website_5.mov
+junk removed: ./plus-NmFNPxxh.js
+junk removed: ./index-Dh4i1-J3.js
+junk removed: ./placeholder-cart-item.jpg
+junk removed: ./Videos-BZ12boI9.js
+junk removed: ./Checkout-BMAts_Yl.js
+junk removed: ./arrow-right-Bjknidwc.js
+junk removed: ./trash-2-JINCW2tx.js
+junk removed: ./circle-check-big-D2joIsSM.js
+junk removed: ./ResetPassword-CRAKSVcC.js
+junk removed: ./resources-DqguV11A.js
+junk removed: ./AdminAnalytics-ColncwEd.js
+junk removed: ./external-link-CZjpW9WP.js
+junk removed: ./square-pen-D2MgFxTa.js
+junk removed: ./router-BY5DHDkN.js
+junk removed: ./zod-DyezxskM.js
+junk removed: ./AdminMedia-BZKgTSGk.js
+junk removed: ./placeholder-event.jpg
+junk removed: ./pagination-ClEn4ggg.js
+junk removed: ./orders-WE5cnzO8.js
+junk removed: ./types-QrSs3t7L.js
+junk removed: ./tabs-B1vpzPlF.js
+junk removed: ./NotFound-eY4BAtFh.js
+junk removed: ./app-BEMj9zjt.css
+junk removed: ./media-D1xLczfg.js
+junk removed: ./_bc.txt
+junk removed: ./MediaPicker-B31rWKjj.js
+junk removed: ./Index-B7e6x5hS.js
+junk removed: ./globe-CtXCi80n.js
+junk removed: ./placeholder-donate-card.jpg
+junk removed: ./Orders-ClfMeDWu.js
+junk removed: ./circle-check-Bf6lQKvr.js
+junk removed: ./instagram-BJAEN--U.js
+junk removed: ./Shop-CZAlKgcb.js
+junk removed: ./with-selector.production.js
+junk removed: ./FloatingParticles-DNbW4bg4.js
+junk removed: ./map-pin-Ce57jX2F.js
+junk removed: ./Unashamed-BZ0G5_wW.js
+junk removed: ./AdminNewsletterManager-D1jYwBEf.js
+junk removed: ./_bl.txt
+junk removed: ./SectionWrapper-HXhYO-Al.js
+junk removed: ./newsletter-C6q0sbTL.js
+junk removed: ./select-C0wnS22A.js
+junk removed: ./card-BluG0E_E.js
+junk removed: ./Testimonies-Bt9Hw4Pd.js
+junk removed: ./Layout-DMrKFuEN.js
+junk removed: ./youtube-eLeN2Rod.js
+junk removed: ./AdminProductManager-BZVMw4S-.js
+junk removed: ./AdminDashboard-BRwHgLMM.js
+junk removed: ./placeholder-contact-bg.jpg
+junk removed: ./search-DQkOgyNc.js
+junk removed: ./placeholder-product-thumb.jpg
+junk removed: ./About-BhttS5Ua.js
+junk removed: ./Contact-SdxihwrR.js
+junk removed: ./chevron-left-DgQkaw9q.js
+junk removed: ./VerifyEmail-BQdCcuvx.js
+junk removed: ./ForgotPassword-BPZ1LRvT.js
+junk removed: ./ClickToPlayVideo-BiqB_NX5.js
+junk removed: ./trending-up-CuU4IfXJ.js
+junk removed: ./placeholder-donate-other.jpg
+junk removed: ./query-BxHf87gp.js
+junk removed: ./upload-Dizo3qbB.js
+=== RECOVERY SUMMARY ===
+files: 154
+misses: 180
+36M	.
+--- largest files ---
+8.7M	./videos/front-video.mp4
+2.1M	./external/drive-1mmh4uckujOEE8WAK6vTbGBoQuu0xAxUt.jpg
+1.7M	./external/drive-1IMt9z8NS5-djBKdniAlLjAUIE2vLRFaR.jpg
+1.5M	./external/drive-1d2ny_kuCgAINBMT-UURTCizzjzqh5Gbt.jpg
+1.4M	./external/drive-1f48cQfjKPsiLvnUlZKcSdOgYMvt1ioSy.jpg
+1.4M	./external/drive-1SyxVJOh3DvVOXSediYuTKyZ_pxV6D9rO.jpg
+1.2M	./external/drive-1Zej1g3M0KwKqIIGfDyheY1cv8txAvAko.jpg
+1.2M	./external/drive-1QgAb5cUQBnIDocUYupX-YyLDRAusNZma.jpg
+1.2M	./external/drive-1D9Ij-nDbMqUyc5taJfvKTemMgliNyqkG.jpg
+1.2M	./external/drive-14QO5PT393OzV2eB9DLFHCelCJzbAdHrd.jpg
+1.1M	./external/drive-1jfAJFYX_UyL4FxPzSTXkDeqWuYWrgSCW.jpg
+1.1M	./external/drive-1QrdudmFqLQbuEZ-WhKCBIVRBYFJrLO9t.jpg
+1.1M	./external/drive-1DmS4fFMrLXHU5DQ-Ib8RptZftwwFv6iq.jpg
+904K	./external/drive-1gTJYHsg6q7VO6yAo-h9wzoiBvHupZv7N.jpg
+852K	./external/drive-1RmMeef-gAvb6OoZFpxz0wG-S3sK6HrwJ.jpg
+848K	./external/drive-17I59lIp5xrjM_57Rtll9HsGdPxYSqlmH.jpg
+768K	./external/drive-1cYq2fRI7v4JKiR5jkeAsbOd2N2lU4KWp.jpg
+708K	./external/drive-1LG1dq9Mf9DKiecpToONwakLJIDXRUzN2.jpg
+672K	./external/drive-1GIfK3x0fsSP_u_l1xHiHUuU-lt-V5GeL.jpg
+668K	./external/drive-1QyjqlFPKOnQO7V4ow9ZrSzKMCUKPXHRO.jpg
+648K	./images/Picture2.png
+620K	./external/drive-1A0RryeBlWLzWibtOG8gcvEnoF02lwWmc.jpg
+592K	./images/Picture1.png
+528K	./external/drive-1rzb1UrAB0mQogoUxm3eCh9a_GxZ_onYY.jpg
+436K	./external/drive-1fdHRNljDTkHmlGugaZbnsXorYXOQ-O1y.jpg
+sort: fflush failed: 'standard output': Broken pipe
+sort: write error

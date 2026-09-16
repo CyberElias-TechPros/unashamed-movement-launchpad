@@ -59,7 +59,8 @@ echo "=== [0/8] clean previously-committed SPA-fallback junk ==="
 clean_junk
 
 echo "=== [1/8] root files ==="
-for f in index.html manifest.json robots.txt sitemap.xml sw.js offline.html favicon.ico; do
+for f in index.html manifest.json robots.txt sitemap.xml sw.js offline.html favicon.ico \
+         fonts/Delight-Regular.woff2 fonts/Delight-Medium.woff2 fonts/Delight-SemiBold.woff2 fonts/Delight-Bold.woff2; do
   fetch "$BASE/$f" "$f"
 done
 
@@ -77,7 +78,9 @@ echo "=== [3/8] fixpoint harvest: download every referenced asset until nothing 
 for round in 1 2 3 4 5 6 7 8; do
   find . -path ./external -prune -o -type f \( -name '*.js' -o -name '*.mjs' -o -name '*.css' -o -name '*.html' \) -print0 \
     | xargs -0 cat 2>/dev/null > _bc.txt || true
-  sed -E 's#(https?:)?//[A-Za-z0-9_./%?&=,:+~_-]+##g' _bc.txt > _bl.txt || true
+  # unwrap CSS url(...) so paths inside parens are harvestable, then strip full URLs
+  sed -E 's/url\((["'"'"']?)([^)"'"'"']*)\1\)/ \2 /g' _bc.txt \
+    | sed -E 's#(https?:)?//[A-Za-z0-9_./%?&=,:+~_-]+##g' > _bl.txt || true
   {
     grep -oE "/[A-Za-z0-9_./()%,' -]+" _bl.txt | sed 's/[[:space:]]*$//' \
       | grep -E '\.(png|jpe?g|svg|webp|gif|avif|mp4|webm|mov|m4v|mp3|wav|pdf|woff2?|ttf|eot|otf|ico|json|txt|xml|js|mjs|css|map)$' || true

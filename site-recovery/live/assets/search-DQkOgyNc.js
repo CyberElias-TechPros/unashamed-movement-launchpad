@@ -1,0 +1,1 @@
+import{g as r}from"./app-DwH0RQZ6.js";import"./animations-CnczHZP1.js";import"./vendor-BtIrUdbE.js";import"./query-BxHf87gp.js";import"./router-BY5DHDkN.js";const m={search:o=>r.get(`/search?q=${encodeURIComponent(o)}`)};export{m as default,m as searchApi};

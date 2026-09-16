@@ -4,8 +4,8 @@
   "description": "A faith-based movement inspiring Christians to live boldly and unapologetically",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#0f172a",
-  "theme_color": "#f59e0b",
+  "background_color": "#1a1414",
+  "theme_color": "#FFB800",
   "icons": [
     {
       "src": "/techpros.png",

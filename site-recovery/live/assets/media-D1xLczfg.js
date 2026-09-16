@@ -1,0 +1,1 @@
+import{g as o}from"./app-DwH0RQZ6.js";const r={upload:t=>{const a=new FormData;return a.append("file",t),o.post("/uploads/cloudinary",a,{headers:{"Content-Type":"multipart/form-data"}})},list:()=>o.get("/uploads/cloudinary")};export{r as m};

@@ -4,10 +4,18 @@ JWT_SECRET=change_this_to_a_long_random_string
 JWT_REFRESH_SECRET=change_this_to_another_long_random_string
 CSRF_SECRET=change_this_to_csrf_secret
 CLIENT_URL=http://localhost:8080
+# Where contact-form notifications are sent (optional; also settable in wrangler.jsonc vars):
+# CONTACT_NOTIFICATION_EMAIL=team@thetimeisnow.org
 # Optional integrations:
 # RESEND_API_KEY=
 # STRIPE_SECRET_KEY=
 # STRIPE_WEBHOOK_SECRET=
+# PayPal (primary provider):
+# PAYPAL_CLIENT_ID=
+# PAYPAL_CLIENT_SECRET=
+# PAYPAL_WEBHOOK_ID=
+# PAYPAL_ENV=sandbox   # or 'live'
 # PAYSTACK_SECRET_KEY=
+# PAYSTACK_WEBHOOK_SECRET=
 # FLUTTERWAVE_SECRET_KEY=
 # FLUTTERWAVE_WEBHOOK_HASH=

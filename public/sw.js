@@ -1,10 +1,11 @@
-const CACHE_NAME = 'ttin-v4';
+const CACHE_NAME = 'ttin-v5';
 const STATIC_CACHE = [
   '/',
   '/index.html',
   '/manifest.json',
   '/techpros.png',
   '/videos/hero-poster.jpg',
+  '/offline.html',
 ];
 
 self.addEventListener('install', (event) => {
@@ -30,6 +31,16 @@ self.addEventListener('fetch', (event) => {
   const url = new URL(request.url);
 
   if (request.method !== 'GET') return;
+
+  // Page navigations: network first, offline fallback page when unreachable.
+  if (request.mode === 'navigate' && url.origin === self.location.origin) {
+    event.respondWith(
+      fetch(request).catch(() =>
+        caches.match(request).then((cached) => cached || caches.match('/index.html'))
+      ).catch(() => caches.match('/offline.html'))
+    );
+    return;
+  }
 
   if (url.pathname.startsWith('/api') || url.hostname !== self.location.hostname) {
     return;

@@ -64,7 +64,7 @@ const Search = () => {
                     <ul className="space-y-3">
                       {section.items.map((item: { _id?: string; id?: string; name?: string; title?: string; description?: string; text?: string }) => (
                         <li key={item._id || item.id} className="p-4 border border-border rounded-lg hover:border-accent">
-                          <Link to={section.path} className="font-heading tracking-wider">
+                          <Link to={section.key === 'products' ? `/shop/${item._id || item.id}` : section.path} className="font-heading tracking-wider">
                             {item.name || item.title}
                           </Link>
                           <p className="text-sm text-muted-foreground line-clamp-2 mt-1">

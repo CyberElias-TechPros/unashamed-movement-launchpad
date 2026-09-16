@@ -10,10 +10,12 @@ import { ArrowLeft, ShoppingBag, Loader2, CreditCard } from "lucide-react";
 import { paystackApi } from "@/api/paystack";
 import { flutterwaveApi } from "@/api/flutterwave";
 import { stripeApi } from "@/api/stripe";
+import { paypalApi } from "@/api/paypal";
 import { ordersApi } from "@/api/orders";
 import { productsApi } from "@/api/products";
 import { useToast } from "@/hooks/use-toast";
 import { z } from "zod";
+import { formatCurrency } from "@/lib/format";
 
 const checkoutSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
@@ -26,12 +28,19 @@ const checkoutSchema = z.object({
 });
 
 type CheckoutForm = z.infer<typeof checkoutSchema>;
-type PaymentMethod = "paystack" | "flutterwave" | "stripe";
+type PaymentMethod = "paypal" | "paystack" | "flutterwave" | "stripe";
+
+const METHOD_LABELS: Record<PaymentMethod, string> = {
+  paypal: "PayPal",
+  paystack: "Paystack",
+  flutterwave: "Flutterwave",
+  stripe: "Stripe",
+};
 
 const Checkout = () => {
   const { items, total, clearCart } = useCart();
   const [isProcessing, setIsProcessing] = useState(false);
-  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("paystack");
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("paypal"); // PayPal is the primary option
   const [currency, setCurrency] = useState("USD");
   const [formData, setFormData] = useState<CheckoutForm>({
     name: "",
@@ -102,6 +111,7 @@ const Checkout = () => {
           price: item.price,
         })),
         totalAmount: total,
+        currency,
         paymentMethod,
         shippingAddress: {
           street: formData.address,
@@ -125,7 +135,14 @@ const Checkout = () => {
         currency,
       };
 
-      if (paymentMethod === "paystack") {
+      if (paymentMethod === "paypal") {
+        const paypalRes = await paypalApi.createOrder({ orderId, currency });
+        if (!paypalRes.approveUrl) {
+          throw new Error(paypalRes.message || "PayPal checkout failed");
+        }
+        window.location.href = paypalRes.approveUrl;
+        return;
+      } else if (paymentMethod === "paystack") {
         const paystackRes = await paystackApi.initialize({
           ...customerInfo,
           orderId,
@@ -323,6 +340,9 @@ const Checkout = () => {
                      <SelectValue placeholder="Select payment method" />
                    </SelectTrigger>
                    <SelectContent>
+                     <SelectItem value="paypal" disabled={currency === "NGN"}>
+                       PayPal (recommended){currency === "NGN" ? " — not available for NGN" : ""}
+                     </SelectItem>
                      <SelectItem value="paystack">Paystack</SelectItem>
                      <SelectItem value="flutterwave">Flutterwave</SelectItem>
                      <SelectItem value="stripe">Stripe</SelectItem>
@@ -332,7 +352,19 @@ const Checkout = () => {
 
                <div>
                  <label className="font-body text-sm mb-2 block">Currency</label>
-                 <Select value={currency} onValueChange={setCurrency}>
+                 <Select
+                  value={currency}
+                  onValueChange={(next) => {
+                    setCurrency(next);
+                    if (next === "NGN" && paymentMethod === "paypal") {
+                      setPaymentMethod("paystack");
+                      toast({
+                        title: "Switched to Paystack",
+                        description: "PayPal doesn't support Naira (₦). Paystack or Flutterwave handles NGN.",
+                      });
+                    }
+                  }}
+                >
                    <SelectTrigger>
                      <SelectValue placeholder="Select currency" />
                    </SelectTrigger>
@@ -352,11 +384,11 @@ const Checkout = () => {
                     Processing...
                   </>
                 ) : (
-                  `Pay with ${paymentMethod === "paystack" ? "Paystack" : paymentMethod === "flutterwave" ? "Flutterwave" : "Stripe"} $${total.toFixed(2)}`
+                  `Pay with ${METHOD_LABELS[paymentMethod]} ${formatCurrency(total, currency)}`
                 )}
               </Button>
               <div className="text-xs text-muted-foreground mt-2">
-                Pay with {paymentMethod === "paystack" ? "Paystack" : paymentMethod === "flutterwave" ? "Flutterwave" : "Stripe"}
+                Pay securely with {METHOD_LABELS[paymentMethod]}
               </div>
             </motion.form>
 
@@ -374,21 +406,21 @@ const Checkout = () => {
                       <p className="font-body font-medium">{item.name}</p>
                       <p className="font-body text-sm text-muted-foreground">Qty: {item.quantity}</p>
                     </div>
-                    <p className="font-body">${(item.price * item.quantity).toFixed(2)}</p>
+                    <p className="font-body">{formatCurrency(item.price * item.quantity, currency)}</p>
                   </div>
                 ))}
                 <div className="border-t border-border pt-4 space-y-2">
                   <div className="flex justify-between">
                     <span className="font-body text-muted-foreground">Subtotal</span>
-                    <span className="font-body">${(total * 0.92).toFixed(2)}</span>
+                    <span className="font-body">{formatCurrency(total * 0.92, currency)}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="font-body text-muted-foreground">Tax</span>
-                    <span className="font-body">${(total * 0.08).toFixed(2)}</span>
+                    <span className="font-body">{formatCurrency(total * 0.08, currency)}</span>
                   </div>
                   <div className="flex justify-between font-heading text-lg pt-2 border-t border-border">
                     <span>Total</span>
-                    <span className="text-accent">${total.toFixed(2)}</span>
+                    <span className="text-accent">{formatCurrency(total, currency)}</span>
                   </div>
                 </div>
               </div>

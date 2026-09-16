@@ -4,7 +4,7 @@
 import type { Context, Next } from 'hono';
 import { getCookie, setCookie, deleteCookie } from 'hono/cookie';
 import type { Env, AuthUser } from './types';
-import { hmacSha256Hex, parseCookies, safeEqual, serializeCookie, randomHex, verifyJwt } from './util';
+import { hmacSha256Hex, parseCookies, safeEqual, serializeCookie, randomHex, signJwt, verifyJwt } from './util';
 
 /* ------------------------------------------------------------------ */
 /* Auth                                                                */
@@ -24,16 +24,30 @@ export const isSecureRequest = (c: Context<{ Bindings: Env }>): boolean => {
   return new URL(c.req.url).protocol === 'https:';
 };
 
+/**
+ * Local-dev fallback: `wrangler dev` without a .dev.vars file would otherwise
+ * sign/verify JWTs with an empty key and crash (HMAC import rejects length 0).
+ * Production sets real secrets via `wrangler secret put`, so this only ever
+ * applies to local development.
+ */
+const DEV_FALLBACK_SECRET = 'ttin-local-dev-secret-not-for-production';
+let warnedDevSecret = false;
+const envSecret = (value: string | undefined, name: string): string => {
+  if (value) return value;
+  if (!warnedDevSecret) {
+    warnedDevSecret = true;
+    console.warn(`[dev] ${name} is not set — using an insecure local fallback. Set it in .dev.vars or with \`wrangler secret put ${name}\`.`);
+  }
+  return DEV_FALLBACK_SECRET;
+};
+
 export const signToken = async (
-  c: Context<{ Bindings: Env }>,
+  _c: Context<{ Bindings: Env }>,
   id: string,
   role: string,
   secret: string,
   ttl: number
-): Promise<string> => {
-  const { signJwt } = await import('./util');
-  return signJwt({ id, role }, secret, ttl);
-};
+): Promise<string> => signJwt({ id, role }, secret, ttl);
 
 /** Signs access + refresh tokens, sets auth cookies, returns the tokens. */
 export const awaitSetAuthCookies = async (
@@ -41,8 +55,8 @@ export const awaitSetAuthCookies = async (
   user: { id: string; role: string }
 ): Promise<{ accessToken: string; refreshToken: string }> => {
   const secure = isSecureRequest(c);
-  const accessToken = await signToken(c, user.id, user.role, c.env.JWT_SECRET, ACCESS_TTL);
-  const refreshToken = await signToken(c, user.id, user.role, c.env.JWT_REFRESH_SECRET || c.env.JWT_SECRET, REFRESH_TTL);
+  const accessToken = await signToken(c, user.id, user.role, envSecret(c.env.JWT_SECRET, 'JWT_SECRET'), ACCESS_TTL);
+  const refreshToken = await signToken(c, user.id, user.role, envSecret(c.env.JWT_REFRESH_SECRET || c.env.JWT_SECRET, 'JWT_REFRESH_SECRET'), REFRESH_TTL);
 
   setCookie(c, ACCESS_COOKIE, accessToken, {
     httpOnly: true,
@@ -83,7 +97,7 @@ export const getAuthUser = async (c: Context<{ Bindings: Env }>): Promise<AuthUs
   const authHeader = c.req.header('authorization');
   const token = cookies[ACCESS_COOKIE] || (authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : '');
   if (!token) return null;
-  const payload = await verifyJwt(token, c.env.JWT_SECRET);
+  const payload = await verifyJwt(token, envSecret(c.env.JWT_SECRET, 'JWT_SECRET'));
   if (!payload) return null;
   return { id: payload.id, role: payload.role };
 };

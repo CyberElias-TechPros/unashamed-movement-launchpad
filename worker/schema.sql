@@ -55,6 +55,8 @@ CREATE TABLE IF NOT EXISTS orders (
   payment_id TEXT NOT NULL DEFAULT '',
   idempotency_key TEXT UNIQUE,
   shipping_address TEXT,
+  refunded_at TEXT,
+  currency TEXT NOT NULL DEFAULT 'USD',
   created_at TEXT NOT NULL,
   updated_at TEXT NOT NULL
 );
@@ -171,9 +173,11 @@ CREATE TABLE IF NOT EXISTS contacts (
   message TEXT NOT NULL,
   ip TEXT NOT NULL DEFAULT '',
   user_agent TEXT NOT NULL DEFAULT '',
+  is_read INTEGER NOT NULL DEFAULT 0,
   created_at TEXT NOT NULL
 );
 CREATE INDEX IF NOT EXISTS idx_contacts_created ON contacts (created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_contacts_read ON contacts (is_read, created_at DESC);
 
 CREATE TABLE IF NOT EXISTS newsletter_subscribers (
   id TEXT PRIMARY KEY,
@@ -238,7 +242,7 @@ CREATE TABLE IF NOT EXISTS site_settings (
   smtp_host TEXT NOT NULL DEFAULT '',
   smtp_port TEXT NOT NULL DEFAULT '587',
   pay_stripe INTEGER NOT NULL DEFAULT 1,
-  pay_paypal INTEGER NOT NULL DEFAULT 0,
+  pay_paypal INTEGER NOT NULL DEFAULT 1,
   pay_paystack INTEGER NOT NULL DEFAULT 1,
   pay_flutterwave INTEGER NOT NULL DEFAULT 1,
   updated_at TEXT NOT NULL
@@ -262,3 +266,17 @@ CREATE TABLE IF NOT EXISTS back_in_stock (
   created_at TEXT NOT NULL
 );
 CREATE UNIQUE INDEX IF NOT EXISTS idx_back_in_stock_unique ON back_in_stock (product_id, email);
+
+-- Secure, expiring download tokens for paid digital products.
+-- Created when an order's payment is confirmed; emailed to the customer.
+CREATE TABLE IF NOT EXISTS order_downloads (
+  token TEXT PRIMARY KEY,
+  order_id TEXT NOT NULL REFERENCES orders (id) ON DELETE CASCADE,
+  product_id TEXT NOT NULL,
+  email TEXT NOT NULL,
+  expires_at INTEGER NOT NULL,
+  download_count INTEGER NOT NULL DEFAULT 0,
+  max_downloads INTEGER NOT NULL DEFAULT 10,
+  created_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_order_downloads_order ON order_downloads (order_id);

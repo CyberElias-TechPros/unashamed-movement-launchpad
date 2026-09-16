@@ -7,7 +7,7 @@ import { intToBool, readJson, toApi } from '../types';
 import { newId, orderBy, paginateQuery, parsePageParams, searchGroup, updateRow } from '../db';
 import { isEmail, nowIso } from '../util';
 import { contactLimiter, newsletterLimiter, requireAdmin, csrfProtection } from '../middleware';
-import { sendEmail } from '../email';
+import { sendEmail, wrapHtml } from '../email';
 
 type App = Hono<{ Bindings: Env }>;
 
@@ -148,12 +148,109 @@ export const contactRoutes = () => {
     await c.env.DB.prepare('INSERT INTO contacts (id, name, email, message, ip, user_agent, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)')
       .bind(id, name, email, message, c.req.header('cf-connecting-ip') || '', c.req.header('user-agent') || '', nowIso())
       .run();
+
+    // Notify the team so messages never sit unseen (best-effort).
+    const teamEmail = c.env.CONTACT_NOTIFICATION_EMAIL || '';
+    if (teamEmail) {
+      void sendEmail(c.env, {
+        to: teamEmail,
+        replyTo: email,
+        subject: `New contact message from ${name}`,
+        text: `${name} <${email}> wrote:\n\n${message}`,
+        html: wrapHtml(
+          `New contact message`,
+          `<p><strong>${name}</strong> &lt;${email}&gt; wrote:</p><blockquote style="border-left:3px solid #7c3aed;margin:0;padding-left:16px;color:#3f3f46;">${message}</blockquote>`,
+          { label: 'Open the admin inbox', url: `${c.env.CLIENT_URL}/admin/contacts` }
+        ),
+      });
+    }
     return c.json({ message: 'Message received', id }, 201);
   });
 
   router.post('/spam-check', contactLimiter, csrfProtection, async (c) => {
     const body = await readJson(c);
     return c.json({ isSpam: Boolean(body.website || body.honeypot) });
+  });
+
+  /* ------------------- Admin inbox ------------------- */
+
+  router.get('/', requireAdmin, async (c) => {
+    const q = new URL(c.req.url).searchParams;
+    const { page, limit, offset } = parsePageParams(q);
+    const clauses: string[] = [];
+    const params: unknown[] = [];
+    const isRead = q.get('isRead');
+    if (isRead !== null && isRead !== '') {
+      clauses.push('is_read = ?');
+      params.push(isRead === 'true' ? 1 : 0);
+    }
+    const search = searchGroup(q.get('search') || '', ['name', 'email', 'message']);
+    if (search.sql) {
+      clauses.push(search.sql);
+      params.push(...search.params);
+    }
+    const order = orderBy(q, { createdAt: 'created_at' }, 'created_at DESC');
+    const result = await paginateQuery(
+      c.env.DB,
+      { sql: clauses.join(' AND '), params },
+      'SELECT * FROM contacts',
+      order,
+      page,
+      limit,
+      offset
+    );
+    const unread = await c.env.DB.prepare('SELECT COUNT(*) AS n FROM contacts WHERE is_read = 0').first<{ n: number }>();
+    return c.json({
+      success: true,
+      data: result.data.map((row) => intToBool(toApi(row), ['is_read'])),
+      pagination: result.pagination,
+      unreadCount: unread?.n || 0,
+    });
+  });
+
+  router.patch('/:id/read', requireAdmin, csrfProtection, async (c) => {
+    const body = await readJson(c);
+    const isRead = body.isRead === false ? 0 : 1;
+    const res = await c.env.DB.prepare('UPDATE contacts SET is_read = ? WHERE id = ?')
+      .bind(isRead, c.req.param('id'))
+      .run();
+    if (res.meta.changes === 0) return c.json({ message: 'Not found' }, 404);
+    const row = await c.env.DB.prepare('SELECT * FROM contacts WHERE id = ?').bind(c.req.param('id')).first();
+    return c.json(intToBool(toApi(row!), ['is_read']));
+  });
+
+  router.delete('/:id', requireAdmin, csrfProtection, async (c) => {
+    await c.env.DB.prepare('DELETE FROM contacts WHERE id = ?').bind(c.req.param('id')).run();
+    return c.json({ message: 'Message deleted' });
+  });
+
+  // Reply to a contact message by email (sent from the admin inbox).
+  router.post('/:id/reply', requireAdmin, csrfProtection, async (c) => {
+    const body = await readJson(c);
+    const reply = String(body.reply || '').trim();
+    if (!reply) return c.json({ message: 'Reply text is required' }, 400);
+    const row = await c.env.DB.prepare('SELECT * FROM contacts WHERE id = ?').bind(c.req.param('id')).first();
+    if (!row) return c.json({ message: 'Not found' }, 404);
+
+    const result = await sendEmail(c.env, {
+      to: String(row.email),
+      replyTo: c.env.CONTACT_NOTIFICATION_EMAIL || undefined,
+      subject: `Re: your message to The Time Is Now`,
+      text: `Hi ${row.name},\n\n${reply}\n\n— The Time Is Now team`,
+      html: wrapHtml(
+        `Hi ${row.name},`,
+        `<p>${reply.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/\n/g, '<br/>')}</p>
+         <p style="color:#71717a;font-size:14px;">— The Time Is Now team</p>
+         <hr style="border:none;border-top:1px solid #e4e4e7;margin:24px 0;"/>
+         <p style="font-size:13px;color:#a1a1aa;">You wrote:</p>
+         <blockquote style="border-left:3px solid #e4e4e7;margin:0;padding-left:16px;color:#71717a;font-size:14px;">${String(row.message).replace(/</g, '&lt;')}</blockquote>`
+      ),
+    });
+    if (!result.ok && c.env.RESEND_API_KEY) {
+      return c.json({ message: 'Reply email failed to send — please try again' }, 502);
+    }
+    await c.env.DB.prepare('UPDATE contacts SET is_read = 1 WHERE id = ?').bind(c.req.param('id')).run();
+    return c.json({ message: 'Reply sent' });
   });
 
   return router;
@@ -270,6 +367,56 @@ export const newsletterRoutes = () => {
 
 const serializeDonation = (row: Row) => intToBool(toApi(row), ['is_anonymous']);
 
+/** Email a donation receipt (best-effort). */
+export const sendDonationReceipt = async (env: Env, row: Row): Promise<void> => {
+  if (!row.donor_email) return;
+  const amount = Number(row.amount || 0);
+  const currency = String(row.currency || 'USD');
+  const fmt = new Intl.NumberFormat('en-US', { style: 'currency', currency }).format(amount);
+  void sendEmail(env, {
+    to: String(row.donor_email),
+    subject: 'Your donation receipt — thank you',
+    text: `Hi ${row.donor_name}, thank you for your ${fmt} gift to The Time Is Now (receipt ${row.id}). Your generosity helps us reach more people with the gospel.`,
+    html: wrapHtml(
+      'Thank you for your gift 💛',
+      `<p>Hi <strong>${row.donor_name}</strong>,</p>
+       <p>Thank you for your <strong>${fmt}</strong> gift to <strong>The Time Is Now</strong>.</p>
+       <p><strong>Receipt no.:</strong> ${row.id}<br/>
+          <strong>Date:</strong> ${String(row.created_at).slice(0, 10)}<br/>
+          <strong>Method:</strong> ${String(row.payment_method || '—')}</p>
+       <p>Your generosity helps us take the gospel to streets, campuses, and nations. If you need a formal receipt for your records, simply reply to this email.</p>`,
+      { label: 'See what your gift does', url: `${env.CLIENT_URL}/about` }
+    ),
+  });
+};
+
+/**
+ * Mark a donation paid/failed and send the receipt. Called by payment webhooks
+ * — resolves the donation by id, payment provider reference, or payment_id.
+ */
+export const settleDonation = async (
+  env: Env,
+  opts: { refId: string; status: 'completed' | 'failed'; paymentId?: string }
+): Promise<boolean> => {
+  if (!opts.refId) return false;
+  const row = await env.DB.prepare(
+    'SELECT * FROM donations WHERE id = ? OR payment_id = ?'
+  )
+    .bind(opts.refId, opts.refId)
+    .first<Row>();
+  if (!row) return false;
+  if (row.status === 'completed') return true; // idempotent
+
+  await env.DB.prepare(
+    'UPDATE donations SET status = ?, payment_id = COALESCE(NULLIF(?2, \'\'), payment_id), updated_at = ? WHERE id = ?'
+  )
+    .bind(opts.status, opts.paymentId || '', nowIso(), row.id)
+    .run();
+
+  if (opts.status === 'completed') await sendDonationReceipt(env, row);
+  return true;
+};
+
 export const donationRoutes = () => {
   const router = new Hono<{ Bindings: Env }>();
 
@@ -285,6 +432,47 @@ export const donationRoutes = () => {
     const row = await c.env.DB.prepare('SELECT * FROM donations WHERE id = ?').bind(c.req.param('id')).first();
     if (!row) return c.json({ message: 'Not found' }, 404);
     return c.json(serializeDonation(row));
+  });
+
+  // Aggregates for the admin donations dashboard card.
+  router.get('/stats/summary', requireAdmin, async (c) => {
+    const totals = await c.env.DB.prepare(
+      `SELECT
+         COALESCE(SUM(CASE WHEN status = 'completed' THEN amount ELSE 0 END), 0) AS raised_total,
+         COALESCE(SUM(CASE WHEN status = 'completed' AND created_at >= ? THEN amount ELSE 0 END), 0) AS raised_this_month,
+         COUNT(*) AS donation_count,
+         COUNT(DISTINCT CASE WHEN donor_email != '' THEN donor_email END) AS donor_count,
+         COUNT(CASE WHEN status = 'pending' THEN 1 END) AS pending_count
+       FROM donations`
+    )
+      .bind(new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString())
+      .first<Record<string, number>>();
+    return c.json({
+      raisedTotal: Number(totals?.raised_total || 0),
+      raisedThisMonth: Number(totals?.raised_this_month || 0),
+      donationCount: Number(totals?.donation_count || 0),
+      donorCount: Number(totals?.donor_count || 0),
+      pendingCount: Number(totals?.pending_count || 0),
+    });
+  });
+
+  // Manual status correction (e.g. an offline/bank-transfer donation).
+  router.patch('/:id/status', requireAdmin, csrfProtection, async (c) => {
+    const body = await readJson(c);
+    const status = String(body.status || '');
+    if (!['pending', 'completed', 'failed'].includes(status)) {
+      return c.json({ message: 'Status must be pending, completed, or failed' }, 400);
+    }
+    const res = await c.env.DB.prepare('UPDATE donations SET status = ?, updated_at = ? WHERE id = ?')
+      .bind(status, nowIso(), c.req.param('id'))
+      .run();
+    if (res.meta.changes === 0) return c.json({ message: 'Not found' }, 404);
+    if (status === 'completed') {
+      const row = await c.env.DB.prepare('SELECT * FROM donations WHERE id = ?').bind(c.req.param('id')).first<Row>();
+      if (row) void sendDonationReceipt(c.env, row);
+    }
+    const row = await c.env.DB.prepare('SELECT * FROM donations WHERE id = ?').bind(c.req.param('id')).first();
+    return c.json(serializeDonation(row!));
   });
 
   router.post('/', async (c) => {
@@ -323,40 +511,108 @@ export const donationRoutes = () => {
   router.post('/checkout', async (c) => {
     const body = await readJson(c);
     const amount = Number(body.amount) || 10;
-    const email = String(body.email || '');
+    const email = String(body.email || '').trim().toLowerCase();
+    const method = String(body.paymentMethod || 'stripe');
+    const currency = String(body.currency || 'USD').toUpperCase();
+    const type = ['one-time', 'monthly'].includes(String(body.type)) ? String(body.type) : 'one-time';
+    if (email && !isEmail(email)) return c.json({ message: 'Valid email required' }, 400);
+    if (Number.isNaN(amount) || amount < 1) return c.json({ message: 'Amount must be at least 1' }, 400);
+    if (!['paypal', 'stripe', 'paystack', 'flutterwave'].includes(method)) {
+      return c.json({ message: 'Unsupported payment method' }, 400);
+    }
 
     // Record the intent first so the donation appears in the admin list.
     const id = newId();
     await c.env.DB.prepare(
       `INSERT INTO donations (id, donor_name, donor_email, amount, currency, type, message, payment_method, payment_id, status, is_anonymous, created_at, updated_at)
-       VALUES (?, ?, ?, ?, 'USD', 'one-time', '', 'stripe', '', 'pending', 0, ?, ?)`
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, '', 'pending', ?, ?, ?)`
     )
-      .bind(id, String(body.donorName || 'Anonymous'), email, amount, nowIso(), nowIso())
+      .bind(
+        id,
+        String(body.donorName || body.name || 'Anonymous'),
+        email,
+        amount,
+        currency,
+        type,
+        String(body.message || ''),
+        method,
+        body.isAnonymous === true ? 1 : 0,
+        nowIso(),
+        nowIso()
+      )
       .run();
 
-    if (!c.env.STRIPE_SECRET_KEY) {
-      return c.json({ sessionId: `dev_${Date.now()}`, url: `${c.env.CLIENT_URL}/donate?status=success`, donationId: id });
+    const successUrl = `${c.env.CLIENT_URL}/donate?status=success&donation=${id}`;
+    const cancelUrl = `${c.env.CLIENT_URL}/donate?status=cancelled`;
+
+    // Dev mode (no keys): complete the flow locally.
+    if (
+      (method === 'paypal' && !(c.env.PAYPAL_CLIENT_ID && c.env.PAYPAL_CLIENT_SECRET)) ||
+      (method === 'stripe' && !c.env.STRIPE_SECRET_KEY) ||
+      (method === 'paystack' && !c.env.PAYSTACK_SECRET_KEY) ||
+      (method === 'flutterwave' && !c.env.FLUTTERWAVE_SECRET_KEY)
+    ) {
+      return c.json({ sessionId: `dev_${Date.now()}`, url: successUrl, donationId: id, devMode: true });
     }
 
-    const form = new URLSearchParams();
-    form.set('mode', 'payment');
-    form.set('success_url', `${c.env.CLIENT_URL}/donate?status=success`);
-    form.set('cancel_url', `${c.env.CLIENT_URL}/donate?status=cancelled`);
-    form.set('client_reference_id', id);
-    form.set('line_items[0][price_data][currency]', 'usd');
-    form.set('line_items[0][price_data][product_data][name]', 'Donation');
-    form.set('line_items[0][price_data][unit_amount]', String(Math.round(amount * 100)));
-    form.set('line_items[0][quantity]', '1');
     try {
-      const res = await fetch('https://api.stripe.com/v1/checkout/sessions', {
+      if (method === 'stripe') {
+        const form = new URLSearchParams();
+        form.set('mode', 'payment');
+        form.set('success_url', successUrl);
+        form.set('cancel_url', cancelUrl);
+        form.set('client_reference_id', id);
+        form.set('customer_email', email || '');
+        form.set('line_items[0][price_data][currency]', currency.toLowerCase());
+        form.set('line_items[0][price_data][product_data][name]', 'Donation — The Time Is Now');
+        form.set('line_items[0][price_data][unit_amount]', String(Math.round(amount * 100)));
+        form.set('line_items[0][quantity]', '1');
+        const res = await fetch('https://api.stripe.com/v1/checkout/sessions', {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${c.env.STRIPE_SECRET_KEY}`, 'Content-Type': 'application/x-www-form-urlencoded' },
+          body: form.toString(),
+        });
+        const data = (await res.json()) as { id?: string; url?: string; error?: { message?: string } };
+        if (!res.ok) return c.json({ message: data.error?.message || 'Donation checkout failed' }, 500);
+        await c.env.DB.prepare('UPDATE donations SET payment_id = ? WHERE id = ?').bind(data.id || '', id).run();
+        return c.json({ sessionId: data.id, url: data.url, donationId: id });
+      }
+
+      if (method === 'paystack') {
+        // amount is in major units from the client → Paystack expects kobo/cents.
+        const res = await fetch('https://api.paystack.co/transaction/initialize', {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${c.env.PAYSTACK_SECRET_KEY}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            email: email || 'donor@thetimeisnow.org',
+            amount: Math.round(amount * 100),
+            currency,
+            reference: id,
+            callback_url: successUrl,
+            metadata: { donationId: id, custom_fields: [{ display_name: 'Donation', variable_name: 'donation', value: 'TTIN donation' }] },
+          }),
+        });
+        const data = (await res.json()) as { status?: boolean; data?: { authorization_url?: string }; message?: string };
+        if (!res.ok || !data.status) return c.json({ message: data.message || 'Donation checkout failed' }, 500);
+        return c.json({ sessionId: id, url: data.data?.authorization_url, donationId: id });
+      }
+
+      // flutterwave
+      const res = await fetch('https://api.flutterwave.com/v3/payments', {
         method: 'POST',
-        headers: { Authorization: `Bearer ${c.env.STRIPE_SECRET_KEY}`, 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: form.toString(),
+        headers: { Authorization: `Bearer ${c.env.FLUTTERWAVE_SECRET_KEY}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          tx_ref: id,
+          amount,
+          currency,
+          redirect_url: successUrl,
+          customer: { email: email || 'donor@thetimeisnow.org', name: String(body.donorName || body.name || 'Donor') },
+          customizations: { title: 'The Time Is Now', description: 'Donation' },
+        }),
       });
-      const data = (await res.json()) as { id?: string; url?: string; error?: { message?: string } };
-      if (!res.ok) return c.json({ message: data.error?.message || 'Donation checkout failed' }, 500);
-      await c.env.DB.prepare('UPDATE donations SET payment_id = ? WHERE id = ?').bind(data.id || '', id).run();
-      return c.json({ sessionId: data.id, url: data.url, donationId: id });
+      const data = (await res.json()) as { status?: string; data?: { link?: string }; message?: string };
+      if (!res.ok || data.status !== 'success') return c.json({ message: data.message || 'Donation checkout failed' }, 500);
+      return c.json({ sessionId: id, url: data.data?.link, donationId: id });
     } catch (e) {
       return c.json({ message: e instanceof Error ? e.message : 'Donation checkout failed' }, 500);
     }

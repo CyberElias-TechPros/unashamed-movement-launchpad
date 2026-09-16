@@ -2,7 +2,7 @@ import * as React from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/context/AuthContext";
-import { LayoutDashboard, Video, FileText, ShoppingBag, Mail, BarChart3, Settings, FileDown, Users, LogOut, Search, Image, Package, Star, Download, ChevronRight } from "lucide-react";
+import { LayoutDashboard, Video, FileText, ShoppingBag, Mail, BarChart3, Settings, FileDown, Users, LogOut, Search, Image, Package, Star, Download, ChevronRight, Inbox, CalendarDays, Heart, MessageSquareQuote } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -104,6 +104,37 @@ const menuItems: AdminMenuItem[] = [
     icon: Star,
     path: "/admin/reviews",
     description: "Product reviews",
+  },
+  {
+    title: "Testimonials",
+    icon: MessageSquareQuote,
+    path: "/admin/testimonials",
+    description: "Community stories",
+    badge: (stats?: AdminSidebarProps["stats"]) => stats?.totalTestimonials ? `${stats.totalTestimonials}` : undefined,
+  },
+  {
+    title: "Events",
+    icon: CalendarDays,
+    path: "/admin/events",
+    description: "Create & manage events",
+  },
+  {
+    title: "Donations",
+    icon: Heart,
+    path: "/admin/donations",
+    description: "Giving & receipts",
+  },
+  {
+    title: "Contacts",
+    icon: Inbox,
+    path: "/admin/contacts",
+    description: "Message inbox",
+  },
+  {
+    title: "Users",
+    icon: Users,
+    path: "/admin/users",
+    description: "Accounts & roles",
   },
   {
     title: "Newsletter",

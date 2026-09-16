@@ -70,6 +70,30 @@ export const authApi = {
   },
   
   getCsrfToken: () => api.get<{ csrfToken: string }>('/auth/csrf-token'),
+
+  changePassword: (data: { currentPassword: string; newPassword: string }) =>
+    postWithCsrf<{ message: string }>('/auth/change-password', data),
+
+  // --- Admin: user management ---
+  adminListUsers: (params?: { page?: number; limit?: number; search?: string; role?: string; active?: string; verified?: string }) => {
+    const q = new URLSearchParams();
+    if (params?.page) q.set('page', String(params.page));
+    if (params?.limit) q.set('limit', String(params.limit));
+    if (params?.search) q.set('search', params.search);
+    if (params?.role) q.set('role', params.role);
+    if (params?.active) q.set('active', params.active);
+    if (params?.verified) q.set('verified', params.verified);
+    const query = q.toString();
+    return api.get<{ success: boolean; data: User[]; pagination: { page: number; totalPages: number; totalCount: number } }>(
+      `/auth/admin/users${query ? `?${query}` : ''}`
+    );
+  },
+
+  adminUpdateUser: (id: string, data: { role?: 'user' | 'admin'; isActive?: boolean }) =>
+    api.patch<{ user: User }>(`/auth/admin/users/${id}`, data),
+
+  adminResendVerification: (id: string) =>
+    postWithCsrf<{ message: string; verificationUrl?: string }>(`/auth/admin/users/${id}/resend-verification`, {}),
 };
 
 export default authApi;

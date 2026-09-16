@@ -8,8 +8,10 @@ import type { Env, Row } from '../types';
 import { intToBool, parseJsonField, readJson, toApi } from '../types';
 import { insertRow, newId, orderBy, paginateQuery, parsePageParams, searchGroup, updateRow } from '../db';
 import { nowIso } from '../util';
-import { requireAdmin, requireAuth } from '../middleware';
-import { sendEmail } from '../email';
+import { getAuthUser, requireAdmin, requireAuth } from '../middleware';
+import { sendEmail, wrapHtml } from '../email';
+import { issueOrderDownloads, markOrderRefunded, releaseStaleOrders } from '../fulfillment';
+import { paypalRefundCapture } from '../paypal';
 
 type App = Hono<{ Bindings: Env }>;
 
@@ -336,11 +338,11 @@ export const orderRoutes = () => {
     return { reserved };
   };
 
-  const createOrder = async (c: Context<{ Bindings: Env }>, opts: { items: Row[]; customerName: string; customerEmail: string; totalAmount: number; shippingAddress?: unknown; paymentMethod?: string; idempotencyKey?: string | null; userId?: string | null }) => {
+  const createOrder = async (c: Context<{ Bindings: Env }>, opts: { items: Row[]; customerName: string; customerEmail: string; totalAmount: number; shippingAddress?: unknown; paymentMethod?: string; idempotencyKey?: string | null; userId?: string | null; currency?: string }) => {
     const id = newId();
     await c.env.DB.prepare(
-      `INSERT INTO orders (id, user_id, customer_name, customer_email, items, total_amount, status, payment_method, payment_id, idempotency_key, shipping_address, created_at, updated_at)
-       VALUES (?, ?, ?, ?, ?, ?, 'pending', ?, '', ?, ?, ?, ?)`
+      `INSERT INTO orders (id, user_id, customer_name, customer_email, items, total_amount, status, payment_method, payment_id, idempotency_key, shipping_address, currency, created_at, updated_at)
+       VALUES (?, ?, ?, ?, ?, ?, 'pending', ?, '', ?, ?, ?, ?, ?)`
     )
       .bind(
         id,
@@ -352,6 +354,7 @@ export const orderRoutes = () => {
         opts.paymentMethod || '',
         opts.idempotencyKey ?? null,
         opts.shippingAddress ? JSON.stringify(opts.shippingAddress) : null,
+        (opts.currency || 'USD').toUpperCase(),
         nowIso(),
         nowIso()
       )
@@ -359,9 +362,16 @@ export const orderRoutes = () => {
 
     void sendEmail(c.env, {
       to: opts.customerEmail,
-      subject: 'Order received',
-      text: `Thanks for your order ${opts.customerName}. Your order ${id} has been received and is pending processing.`,
-      html: `<p>Thanks for your order, <strong>${opts.customerName}</strong>.</p><p>Your order <strong>${id}</strong> has been received and is pending processing.</p><p>Total: $${Number(opts.totalAmount).toFixed(2)}</p>`,
+      subject: `Order received — ${id}`,
+      text: `Thanks for your order ${opts.customerName}. Your order ${id} has been received and is pending payment confirmation.`,
+      html: wrapHtml(
+        'Order received',
+        `<p>Thanks for your order, <strong>${opts.customerName}</strong>.</p>
+         <p>Your order <strong>${id}</strong> has been received and is pending payment confirmation.</p>
+         <p><strong>Total:</strong> ${Number(opts.totalAmount).toFixed(2)} ${(opts.currency || 'USD').toUpperCase()}</p>
+         <p style="color:#71717a;font-size:14px;">You can check its status any time with our order lookup.</p>`,
+        { label: 'Track my order', url: `${c.env.CLIENT_URL}/order-lookup` }
+      ),
     });
 
     const row = await c.env.DB.prepare('SELECT * FROM orders WHERE id = ?').bind(id).first();
@@ -397,6 +407,59 @@ export const orderRoutes = () => {
     const result = await paginateQuery(c.env.DB, { sql: clauses.join(' AND '), params }, 'SELECT * FROM orders', order, page, limit, offset);
     const names = await loadProductNames(c.env.DB, result.data);
     return c.json({ success: true, data: result.data.map((r) => serializeOrder(r, names)), pagination: result.pagination });
+  });
+
+  // Guest order lookup: email + order id (proof of knowledge of both).
+  router.post('/lookup', async (c) => {
+    const body = await readJson(c);
+    const email = String(body.email || '').trim().toLowerCase();
+    const orderId = String(body.orderId || '').trim();
+    if (!email || !orderId) return c.json({ message: 'Email and order ID are required' }, 400);
+    const row = await c.env.DB.prepare('SELECT * FROM orders WHERE (id = ? OR idempotency_key = ?) AND customer_email = ?')
+      .bind(orderId, orderId, email)
+      .first();
+    if (!row) return c.json({ message: 'No order found for that email and order ID' }, 404);
+    const names = await loadProductNames(c.env.DB, [row]);
+    const order = serializeOrder(row, names) as Record<string, unknown>;
+    // Only expose what a customer needs — not internal payment ids.
+    return c.json({
+      id: order.id,
+      _id: order._id,
+      status: order.status,
+      refundedAt: order.refundedAt ?? null,
+      items: order.items,
+      totalAmount: order.totalAmount,
+      currency: order.currency ?? 'USD',
+      customerName: order.customerName,
+      createdAt: order.createdAt,
+      updatedAt: order.updatedAt,
+    });
+  });
+
+  // Secure digital-product download (token from the payment-received email).
+  router.get('/downloads/:token', async (c) => {
+    const token = c.req.param('token');
+    const dl = await c.env.DB.prepare('SELECT * FROM order_downloads WHERE token = ?').bind(token).first<Row>();
+    if (!dl) return c.json({ message: 'Invalid download link' }, 404);
+    if (Number(dl.expires_at) < Date.now()) return c.json({ message: 'This download link has expired. Please contact support.' }, 410);
+    if (Number(dl.download_count) >= Number(dl.max_downloads)) {
+      return c.json({ message: 'Download limit reached. Please contact support.' }, 429);
+    }
+    const product = await c.env.DB.prepare('SELECT * FROM products WHERE id = ?').bind(String(dl.product_id)).first<Row>();
+    if (!product || !product.download_url) return c.json({ message: 'This product no longer has a file available' }, 404);
+
+    await c.env.DB.prepare('UPDATE order_downloads SET download_count = download_count + 1 WHERE token = ?').bind(token).run();
+    const url = String(product.download_url);
+    const target = url.startsWith('http') || url.startsWith('/api') ? url : `${c.env.CLIENT_URL}${url}`;
+    return c.redirect(target, 302);
+  });
+
+  // Admin: release stock held by abandoned pending orders.
+  router.post('/admin/release-stale', requireAdmin, async (c) => {
+    const body: Record<string, unknown> = await readJson(c).catch(() => ({}));
+    const maxAgeHours = Math.min(24 * 30, Math.max(1, Number(body.maxAgeHours) || 24));
+    const result = await releaseStaleOrders(c.env.DB, maxAgeHours * 3600 * 1000);
+    return c.json({ message: `Released ${result.released} stale order(s)`, ...result });
   });
 
   router.get('/my-orders', requireAuth, async (c) => {
@@ -445,6 +508,7 @@ export const orderRoutes = () => {
       paymentMethod: body.paymentMethod ? String(body.paymentMethod) : '',
       idempotencyKey,
       userId: user?.id ?? null,
+      currency: body.currency ? String(body.currency) : 'USD',
     });
 
     return c.json(
@@ -478,6 +542,7 @@ export const orderRoutes = () => {
       shippingAddress: body.shippingAddress,
       paymentMethod: body.paymentMethod ? String(body.paymentMethod) : '',
       userId: user?.id ?? null,
+      currency: body.currency ? String(body.currency) : 'USD',
     });
     return c.json(order, 201);
   });
@@ -556,6 +621,12 @@ export const orderRoutes = () => {
       }
     }
 
+    // Manual completion (e.g. bank transfer confirmed): issue digital downloads
+    // too. Token creation is idempotent, so webhook + manual never duplicate.
+    if (status === 'completed') {
+      await issueOrderDownloads(c.env, row);
+    }
+
     if (['shipped', 'delivered', 'cancelled'].includes(status)) {
       const subject =
         status === 'shipped'
@@ -578,6 +649,64 @@ export const orderRoutes = () => {
   router.put('/:id/status', requireAdmin, updateStatus);
   router.patch('/:id/status', requireAdmin, updateStatus);
 
+  // Admin: refund an order. Stripe refunds go through the API when the order
+  // was paid by card via Stripe; every path restores stock and emails the buyer.
+  router.post('/:id/refund', requireAdmin, async (c) => {
+    const id = String(c.req.param('id'));
+    const row = await c.env.DB.prepare('SELECT * FROM orders WHERE id = ?').bind(id).first<Row>();
+    if (!row) return c.json({ message: 'Order not found' }, 404);
+    if (row.refunded_at) return c.json({ message: 'Order has already been refunded' }, 400);
+    if (row.status === 'pending') {
+      return c.json({ message: 'Order was never paid — cancel it instead' }, 400);
+    }
+
+    let stripeRefundId = '';
+    if (row.payment_method === 'paypal' && c.env.PAYPAL_CLIENT_ID && row.payment_id) {
+      // payment_id holds the PayPal capture id.
+      const refund = await paypalRefundCapture(c.env, String(row.payment_id));
+      if (!refund.ok) return c.json({ message: refund.error || 'PayPal refund failed' }, 502);
+      stripeRefundId = refund.refundId || 'paypal';
+    } else if (row.payment_method === 'stripe' && c.env.STRIPE_SECRET_KEY && row.payment_id) {
+      try {
+        // payment_id may be a PaymentIntent or Checkout Session id.
+        const res = await fetch('https://api.stripe.com/v1/refunds', {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${c.env.STRIPE_SECRET_KEY}`, 'Content-Type': 'application/x-www-form-urlencoded' },
+          body: new URLSearchParams({ payment_intent: String(row.payment_id) }).toString(),
+        });
+        const data = (await res.json()) as { id?: string; error?: { message?: string } };
+        if (res.ok && data.id) {
+          stripeRefundId = data.id;
+        } else {
+          // Session ids need resolving to a payment_intent first.
+          const session = await fetch(
+            `https://api.stripe.com/v1/checkout/sessions/${encodeURIComponent(String(row.payment_id))}`,
+            { headers: { Authorization: `Bearer ${c.env.STRIPE_SECRET_KEY}` } }
+          );
+          const sessionData = (await session.json()) as { payment_intent?: string };
+          if (sessionData.payment_intent) {
+            const retry = await fetch('https://api.stripe.com/v1/refunds', {
+              method: 'POST',
+              headers: { Authorization: `Bearer ${c.env.STRIPE_SECRET_KEY}`, 'Content-Type': 'application/x-www-form-urlencoded' },
+              body: new URLSearchParams({ payment_intent: sessionData.payment_intent }).toString(),
+            });
+            const retryData = (await retry.json()) as { id?: string; error?: { message?: string } };
+            if (!retry.ok) return c.json({ message: retryData.error?.message || 'Stripe refund failed' }, 502);
+            stripeRefundId = retryData.id || 'stripe';
+          } else {
+            return c.json({ message: data.error?.message || 'Stripe refund failed' }, 502);
+          }
+        }
+      } catch (e) {
+        return c.json({ message: e instanceof Error ? e.message : 'Stripe refund failed' }, 502);
+      }
+    }
+
+    const updated = await markOrderRefunded(c.env, id, stripeRefundId);
+    if (!updated) return c.json({ message: 'Order not found' }, 404);
+    return c.json({ message: 'Refund issued', order: serializeOrder(updated) });
+  });
+
   // Legacy compat endpoint (orders never had stock; kept so old clients don't 404).
   router.patch('/:id/stock', requireAdmin, async (c) => {
     const row = await c.env.DB.prepare('SELECT * FROM orders WHERE id = ?').bind(c.req.param('id')).first();
@@ -588,10 +717,8 @@ export const orderRoutes = () => {
   return router;
 };
 
-const getAuthUserSafe = async (c: { req: { header: (k: string) => string | undefined }; env: Env }) => {
-  const { getAuthUser } = await import('../middleware');
-  return getAuthUser(c as never);
-};
+const getAuthUserSafe = async (c: { req: { header: (k: string) => string | undefined }; env: Env }) =>
+  getAuthUser(c as never);
 
 /* ------------------------------------------------------------------ */
 /* Reviews                                                             */

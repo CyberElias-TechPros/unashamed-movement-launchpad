@@ -1,0 +1,1 @@
+import{g as s}from"./app-DwH0RQZ6.js";const r={getSubscribers:e=>s.getPaginated("/newsletter",e||{}),subscribe:e=>s.post("/newsletter/subscribe",e),unsubscribe:e=>s.delete(`/newsletter/unsubscribe/${e}`),importSubscribers:e=>s.post("/newsletter/import",e),bulkUnsubscribe:e=>s.post("/newsletter/bulk-unsubscribe",{emails:e})};export{r as n};

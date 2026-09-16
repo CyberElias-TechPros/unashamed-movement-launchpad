@@ -8,8 +8,12 @@ export interface Event {
   date: string;
   time?: string;
   location: string;
-  type: 'conference' | 'workshop' | 'meetup' | 'online';
+  type: 'conference' | 'workshop' | 'meetup' | 'online' | 'outreach';
   upcoming?: boolean;
+  endDate?: string | null;
+  capacity?: number;
+  registeredCount?: number;
+  isActive?: boolean;
   imageUrl?: string;
   registrationUrl?: string;
   createdAt?: string;

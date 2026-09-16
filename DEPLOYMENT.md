@@ -7,7 +7,7 @@ Browser ──► Vercel (SPA + /api proxy) ──► Cloudflare Worker (Hono)
                                             ├── D1  (database)
                                             ├── KV  (rate limiting / cache)
                                             ├── R2  (media uploads)
-                                            └── Resend / Stripe / Paystack / Flutterwave
+                                            └── Resend / PayPal (primary) / Paystack / Flutterwave / Stripe
 ```
 
 ## 1. Cloudflare Worker (API)

@@ -1,11 +1,11 @@
 import { useState, useEffect } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import Layout from "@/components/Layout";
 import SectionWrapper from "@/components/SectionWrapper";
 import FloatingParticles from "@/components/FloatingParticles";
 import { Button } from "@/components/ui/button";
-import { ShoppingCart, Eye, X, Heart } from "lucide-react";
+import { ShoppingCart, Eye, X, Heart, ArrowRight } from "lucide-react";
 import { useCart } from "@/context/CartContext";
 import { trackAddToCart } from "@/lib/analytics";
 import { useToast } from "@/hooks/use-toast";
@@ -19,21 +19,6 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 const APPAREL_SIZES = ["S", "M", "L", "XL", "XXL"];
 
-const SubscribeForm = ({ onSubscribe }: { onSubscribe: (email: string) => void }) => {
-  return (
-    <form className="flex gap-2" onSubmit={(e) => {
-      e.preventDefault();
-      const f = e.target as HTMLFormElement;
-      const email = (f.elements.namedItem('notifyEmail') as HTMLInputElement).value;
-      if (!email) return;
-      onSubscribe(email);
-      f.reset();
-    }}>
-      <input name="notifyEmail" placeholder="Email" className="p-2 border border-border rounded w-full" />
-      <button className="btn btn-primary" type="submit">Notify me</button>
-    </form>
-  );
-};
 
 const Shop = () => {
   const location = useLocation();
@@ -109,16 +94,6 @@ const Shop = () => {
   });
   const reviews = reviewsResponse?.data || [];
 
-  const submitReview = useMutation({
-    mutationFn: (payload: { productId: string; data: Partial<Review> }) =>
-      reviewsApi.create(payload.productId, payload.data),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['reviews', productKey] }),
-  });
-
-  const subscribeStock = useMutation({
-    mutationFn: (email: string) => productsApi.subscribeStock(productKey, email),
-  });
-
   const toggleWishlist = (product: Product, e: React.MouseEvent) => {
     e.stopPropagation();
     const pid = product._id || product.id || "";
@@ -133,7 +108,7 @@ const Shop = () => {
           <div className="container-custom">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
               {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
-                <div key={i} className="bg-card rounded-2xl overflow-hidden border border-border">
+                <div key={i} className="template-card bg-card border border-border">
                   <Skeleton className="aspect-square" />
                   <div className="p-5 space-y-2">
                     <Skeleton className="h-3 w-16" />
@@ -163,32 +138,41 @@ const Shop = () => {
 
   return (
     <Layout>
-      <section className="relative min-h-[50vh] flex items-center bg-primary pt-20 overflow-hidden">
-        <div className="absolute inset-0">
-          <div className="absolute bottom-0 right-0 w-48 h-48 sm:w-64 sm:h-64 lg:w-80 lg:h-80 bg-accent/15 rounded-full blur-3xl" />
+            <section
+        className="page-section full-bleed-section section-theme-dark section-height--large"
+        data-test="page-section"
+        data-section-theme="dark"
+      >
+        <div className="section-border" />
+        <div className="section-background">
+          <div className="absolute inset-0 bg-gradient-to-b from-[#0a0a0a] to-[#0d0a0a]" />
+          <div className="absolute top-0 right-0 w-[600px] h-[600px] rounded-full bg-[#eab308]/10 blur-3xl pointer-events-none" />
+          <div className="absolute bottom-0 left-0 w-[400px] h-[400px] rounded-full bg-[#eab308]/5 blur-3xl pointer-events-none" />
         </div>
-        <FloatingParticles count={15} color="hsl(43 78% 56%)" />
-        <div className="container-custom relative z-10">
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7 }}
-            className="text-center"
-          >
-            <p className="font-body text-accent text-sm tracking-[0.3em] uppercase mb-4">
+        <div className="content-wrapper relative z-10">
+          <div className="content container-custom pt-32 pb-16 md:pt-44 md:pb-24">
+            <p className="font-mono text-[#eab308] text-xs tracking-[0.2em] uppercase mb-4">
               Wear Your Faith
             </p>
-            <h1 className="font-heading text-4xl sm:text-6xl md:text-7xl lg:text-8xl tracking-wider text-primary-foreground mb-6">
+            <h1 className="font-heading text-5xl sm:text-7xl md:text-8xl lg:text-9xl tracking-wider text-white mb-6">
               Shop Now
             </h1>
-            <p className="font-body text-primary-foreground/70 text-xl max-w-xl mx-auto">
+            <p className="font-body text-white/50 text-lg max-w-xl">
               Merch and digital resources to fuel your bold faith journey.
             </p>
-          </motion.div>
+          </div>
         </div>
       </section>
 
-      <section className="py-8 bg-background border-b border-border">
+      <section
+        className="page-section full-bleed-section section-theme-bright-inverse"
+        data-test="page-section"
+        data-section-theme="bright-inverse"
+      >
+        <div className="section-border" />
+        <div className="section-background" />
+        <div className="content-wrapper">
+          <div className="content container-custom py-8">
         <div className="container-custom flex flex-wrap gap-3 justify-center">
           {(["all", "merch", "digital"] as const).map((cat) => (
             <button
@@ -204,9 +188,19 @@ const Shop = () => {
             </button>
           ))}
         </div>
+      </div>
+      </div>
       </section>
 
-      <section className="section-padding bg-background">
+      <section
+        className="page-section full-bleed-section section-theme-bright"
+        data-test="page-section"
+        data-section-theme="bright"
+      >
+        <div className="section-border" />
+        <div className="section-background" />
+        <div className="content-wrapper">
+          <div className="content container-custom py-20 md:py-28">
         <div className="container-custom">
           <AnimatePresence mode="wait">
             <motion.div
@@ -224,7 +218,7 @@ const Shop = () => {
                   transition={{ delay: i * 0.08 }}
                   className="group"
                 >
-                  <div className="bg-card rounded-2xl overflow-hidden border border-border hover:border-accent transition-all duration-500 hover:shadow-xl hover:-translate-y-1">
+                  <div className="template-card bg-card border border-border hover:border-accent transition-all duration-500 hover:shadow-xl hover:-translate-y-1">
                     <div className="relative aspect-square bg-muted flex items-center justify-center overflow-hidden">
                       {product.images?.[0] ? (
                         <img 
@@ -268,7 +262,9 @@ const Shop = () => {
                         {product.category}
                       </p>
                       <h3 className="font-heading text-lg tracking-wider text-card-foreground mb-2">
-                        {product.name}
+                        <Link to={`/shop/${product._id || product.id}`} className="hover:text-accent transition-colors">
+                          {product.name}
+                        </Link>
                       </h3>
                       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                         <span className="font-heading text-xl text-accent">
@@ -285,6 +281,8 @@ const Shop = () => {
             </motion.div>
           </AnimatePresence>
         </div>
+      </div>
+      </div>
       </section>
 
       <AnimatePresence>
@@ -366,65 +364,23 @@ const Shop = () => {
                     </div>
                   </div>
                 </div>
-                <div className="p-5 sm:p-8 border-t border-border">
-                  <h4 className="font-heading text-lg mb-2">Reviews</h4>
-                  {reviews && reviews.length > 0 ? (
-                    <div className="space-y-3">
-                      {reviews.map((r) => (
-                        <div key={r._id} className="border border-border rounded p-3">
-                          <div className="font-semibold">{r.name || 'Anonymous'} <span className="text-sm text-muted-foreground">· {r.rating}/5</span></div>
-                          {r.title && <div className="text-sm font-medium">{r.title}</div>}
-                          {r.body && <div className="text-sm text-muted-foreground">{r.body}</div>}
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="text-sm text-muted-foreground">No reviews yet. Be the first to leave a review.</div>
-                  )}
-
-                  <div className="mt-4">
-                    <h5 className="font-medium mb-2">Leave a review</h5>
-                    <form onSubmit={(e) => {
-                      e.preventDefault();
-                      const form = e.target as HTMLFormElement;
-                      const formData = new FormData(form);
-                      const payload: Partial<Review> = {
-                        name: String(formData.get('name') || ''),
-                        email: String(formData.get('email') || ''),
-                        rating: Number(formData.get('rating') || 5),
-                        title: String(formData.get('title') || ''),
-                        body: String(formData.get('body') || ''),
-                      };
-                      const pid = selectedProduct?._id || selectedProduct?.id || '';
-                      submitReview.mutate({ productId: pid, data: payload });
-                      form.reset();
-                    }}>
-                      <input name="name" placeholder="Your name" className="w-full mb-2 p-2 border border-border rounded" />
-                      <input name="email" placeholder="Email (optional)" className="w-full mb-2 p-2 border border-border rounded" />
-                      <select name="rating" defaultValue={5} className="w-full mb-2 p-2 border border-border rounded">
-                        {[5,4,3,2,1].map((n) => (<option key={n} value={n}>{n} stars</option>))}
-                      </select>
-                      <input name="title" placeholder="Review title" className="w-full mb-2 p-2 border border-border rounded" />
-                      <textarea name="body" placeholder="Write your review" className="w-full mb-2 p-2 border border-border rounded" />
-                      <div className="flex gap-2">
-                        <button className="btn btn-primary" type="submit">Submit review</button>
-                      </div>
-                    </form>
-                  </div>
-
-                  {selectedProduct?.stock != null && selectedProduct.stock <= 0 && (
-                    <div className="mt-4">
-                      <p className="text-sm text-muted-foreground mb-2">Out of stock — get notified when available</p>
-                      <SubscribeForm onSubscribe={(email) => subscribeStock.mutate(email)} />
-                    </div>
-                  )}
+                <div className="pt-4 border-t border-border flex flex-col sm:flex-row gap-3">
+                  <Button variant="hero" size="lg" className="gap-2 flex-1" onClick={handleAddToCart}>
+                    <ShoppingCart size={18} /> Add to Cart
+                  </Button>
+                  <Link
+                    to={`/shop/${selectedProduct._id || selectedProduct.id}`}
+                    className="flex-1"
+                  >
+                    <Button variant="outline" size="lg" className="gap-2 w-full">
+                      Full Details <ArrowRight size={16} />
+                    </Button>
+                  </Link>
                 </div>
+
                 {selectedProduct.stock != null && selectedProduct.stock <= 5 && (
-                  <p className="text-sm text-amber-600 mb-2">Only {selectedProduct.stock} left in stock</p>
+                  <p className="text-sm text-amber-600 mt-3">Only {selectedProduct.stock} left in stock</p>
                 )}
-                <Button variant="hero" size="lg" className="gap-2 w-full" onClick={handleAddToCart}>
-                  <ShoppingCart size={18} /> Add to Cart
-                </Button>
               </div>
             </motion.div>
           </motion.div>

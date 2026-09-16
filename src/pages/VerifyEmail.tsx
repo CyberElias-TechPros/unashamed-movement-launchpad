@@ -34,7 +34,7 @@ try {
           {status === 'success' && (
             <div>
               <p className="mb-4 text-green-600">{message}</p>
-              <Link to="/admin/login" className="underline text-primary">Go to login</Link>
+              <Link to="/admin/login" className="underline text-accent">Go to login</Link>
             </div>
           )}
           {status === 'error' && (

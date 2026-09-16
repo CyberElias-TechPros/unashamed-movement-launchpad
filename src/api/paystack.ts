@@ -29,6 +29,10 @@ export const paystackApi = {
   webhook: (signature: string, body: string) => {
     return api.post('/payments/paystack/webhook', { signature, body });
   },
+
+  /** Dev/test-mode order confirmation (worker 403s once real keys exist). */
+  devConfirm: (orderId: string) =>
+    api.post<{ message: string; orderId: string; status: string }>('/payments/dev-confirm', { orderId }),
 };
 
 export default paystackApi;

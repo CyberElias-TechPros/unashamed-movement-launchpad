@@ -6,6 +6,8 @@ interface SEOProps {
   image?: string;
   url?: string;
   type?: string;
+  /** Optional structured data (JSON-LD) — e.g. Organization, Product, Event. */
+  jsonLd?: Record<string, unknown> | Record<string, unknown>[];
 }
 
 export const SEO = ({ 
@@ -13,7 +15,8 @@ export const SEO = ({
   description, 
   image = "/favicon.ico", 
   url = typeof window !== "undefined" ? window.location.href : "",
-  type = "website"
+  type = "website",
+  jsonLd,
 }: SEOProps) => {
   const siteTitle = "The Time Is Now";
   const fullTitle = `${title} | ${siteTitle}`;
@@ -37,6 +40,11 @@ export const SEO = ({
       <meta name="twitter:image" content={image} />
       
       <link rel="canonical" href={url} />
+      {jsonLd && (
+        <script type="application/ld+json">
+          {JSON.stringify(jsonLd)}
+        </script>
+      )}
     </Helmet>
   );
 };

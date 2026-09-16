@@ -8,12 +8,12 @@ const TestimonialsSection = () => {
   const [activeSlide, setActiveSlide] = useState(0);
 
   const testimonials = [
-    "TTIN changed my life. I went from being afraid to share my faith to boldly proclaiming the Gospel everywhere I go.",
-    "After watching the plane preaching video, I felt compelled to preach on my bus. Three people accepted Christ that day!",
-    "The community here is amazing. I finally found people who understand the urgency of the Gospel.",
-    "I never thought I could preach in public, but TTIN gave me the courage and tools I needed.",
-    "The resources and testimonies have equipped me to be a bold witness in my workplace.",
-    "Because of TTIN, I've seen 15 people come to Christ in my neighborhood this year alone.",
+    "I and my friends started preaching from dorm to dorm, room to room. We preached in 594 rooms, winning over 150 souls to Christ.",
+    "Today I preached on the train. All of your videos broke it down and highlighted how easy and important it is to preach open air.",
+    "I finally preached on the plane! Everyone listened quietly until I finished, and at the gate a woman waited just to thank me.",
+    "Half the plane literally started clapping at the end — this is the first time I could audibly hear people saying the prayer of salvation after me.",
+    "I just finished preaching to an uber driver and the Holy Spirit was heavily present. He said goosebumps came over his body.",
+    "After I shared the gospel open air, a man took me to his workplace and I led 18+ people in the prayer of salvation.",
   ];
 
   return (

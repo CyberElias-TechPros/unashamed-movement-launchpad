@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Save, Globe, Bell, Shield, Users, Palette, Search as SearchIcon, Share2, Image as ImageIcon } from "lucide-react";
+import { Save, Globe, Bell, Shield, Users, Palette, Search as SearchIcon, Share2, Image as ImageIcon, CreditCard } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -59,6 +59,12 @@ const AdminSettings = () => {
   const [seoDescription, setSeoDescription] = useState("");
   const [seoMediaPickerOpen, setSeoMediaPickerOpen] = useState(false);
 
+  // Payment methods (toggled per provider; PayPal is the primary option)
+  const [payPaypal, setPayPaypal] = useState(true);
+  const [payStripe, setPayStripe] = useState(false);
+  const [payPaystack, setPayPaystack] = useState(true);
+  const [payFlutterwave, setPayFlutterwave] = useState(true);
+
   // Social fields
   const [socialTwitter, setSocialTwitter] = useState("");
   const [socialInstagram, setSocialInstagram] = useState("");
@@ -86,6 +92,13 @@ const AdminSettings = () => {
       setSeoTitle(remoteSettings.seoTitle || "");
       setSeoDescription(remoteSettings.seoDescription || "");
       setSocialTwitter(remoteSettings.socialTwitter || "");
+      const pm = remoteSettings.paymentMethods;
+      if (pm) {
+        setPayPaypal(pm.paypal !== false);
+        setPayStripe(Boolean(pm.stripe));
+        setPayPaystack(pm.paystack !== false);
+        setPayFlutterwave(pm.flutterwave !== false);
+      }
       setSocialInstagram(remoteSettings.socialInstagram || "");
       setSocialYoutube(remoteSettings.socialYoutube || "");
       setSocialTiktok(remoteSettings.socialTiktok || "");
@@ -132,6 +145,12 @@ const AdminSettings = () => {
         socialInstagram,
         socialYoutube,
         socialTiktok,
+        paymentMethods: {
+          paypal: payPaypal,
+          stripe: payStripe,
+          paystack: payPaystack,
+          flutterwave: payFlutterwave,
+        },
       });
       toast({ title: "Settings saved", description: "Your configuration has been updated." });
     } catch {
@@ -177,6 +196,10 @@ const AdminSettings = () => {
             <TabsTrigger value="seo" className="whitespace-nowrap">
               <SearchIcon className="mr-1.5 h-4 w-4" />
               SEO
+            </TabsTrigger>
+            <TabsTrigger value="payments" className="whitespace-nowrap">
+              <CreditCard className="mr-1.5 h-4 w-4" />
+              Payments
             </TabsTrigger>
             <TabsTrigger value="social" className="whitespace-nowrap">
               <Share2 className="mr-1.5 h-4 w-4" />
@@ -353,8 +376,8 @@ const AdminSettings = () => {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="default">Default</SelectItem>
-                    <SelectItem value="bw-purple">BW Purple</SelectItem>
+                    <SelectItem value="default">Signature Dark &amp; Gold</SelectItem>
+                    <SelectItem value="bw-purple">Dark &amp; Gold (legacy toggle)</SelectItem>
                     <SelectItem value="minimal">Minimal</SelectItem>
                   </SelectContent>
                 </Select>
@@ -380,6 +403,91 @@ const AdminSettings = () => {
                 <Textarea value={seoDescription} onChange={(e) => setSeoDescription(e.target.value)} placeholder="Faith-based movement..." rows={3} maxLength={160} />
                 <p className="text-xs text-muted-foreground">{seoDescription.length}/160 characters</p>
               </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="payments" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Payment Methods</CardTitle>
+              <CardDescription>
+                Choose which payment providers customers can use at checkout and for donations.
+                PayPal is the primary option and is pre-selected for customers.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-5">
+              <div className="flex items-start justify-between gap-4 rounded-lg border p-4">
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2">
+                    <Label className="text-base">PayPal</Label>
+                    <Badge>Primary</Badge>
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    Cards, PayPal balance, and Venmo (US) in 200+ markets. Supports USD, EUR, GBP
+                    and more — not NGN. Configure PAYPAL_CLIENT_ID / PAYPAL_CLIENT_SECRET /
+                    PAYPAL_WEBHOOK_ID / PAYPAL_ENV to go live.
+                  </p>
+                </div>
+                <div className="flex items-center gap-3 pt-1">
+                  <Switch checked={payPaypal} onCheckedChange={setPayPaypal} />
+                  <span className="text-sm text-muted-foreground w-10">
+                    {payPaypal ? "On" : "Off"}
+                  </span>
+                </div>
+              </div>
+
+              <div className="flex items-start justify-between gap-4 rounded-lg border p-4">
+                <div className="space-y-1">
+                  <Label className="text-base">Paystack</Label>
+                  <p className="text-sm text-muted-foreground">
+                    Best for Nigeria — cards, bank transfer, USSD, and mobile money in NGN.
+                  </p>
+                </div>
+                <div className="flex items-center gap-3 pt-1">
+                  <Switch checked={payPaystack} onCheckedChange={setPayPaystack} />
+                  <span className="text-sm text-muted-foreground w-10">
+                    {payPaystack ? "On" : "Off"}
+                  </span>
+                </div>
+              </div>
+
+              <div className="flex items-start justify-between gap-4 rounded-lg border p-4">
+                <div className="space-y-1">
+                  <Label className="text-base">Flutterwave</Label>
+                  <p className="text-sm text-muted-foreground">
+                    Pan-African coverage across Nigeria, Ghana, Kenya, and beyond.
+                  </p>
+                </div>
+                <div className="flex items-center gap-3 pt-1">
+                  <Switch checked={payFlutterwave} onCheckedChange={setPayFlutterwave} />
+                  <span className="text-sm text-muted-foreground w-10">
+                    {payFlutterwave ? "On" : "Off"}
+                  </span>
+                </div>
+              </div>
+
+              <div className="flex items-start justify-between gap-4 rounded-lg border p-4">
+                <div className="space-y-1">
+                  <Label className="text-base">Stripe</Label>
+                  <p className="text-sm text-muted-foreground">
+                    Global cards and wallets (Apple Pay, Google Pay). Not available to Nigerian
+                    merchants.
+                  </p>
+                </div>
+                <div className="flex items-center gap-3 pt-1">
+                  <Switch checked={payStripe} onCheckedChange={setPayStripe} />
+                  <span className="text-sm text-muted-foreground w-10">
+                    {payStripe ? "On" : "Off"}
+                  </span>
+                </div>
+              </div>
+
+              <p className="text-xs text-muted-foreground">
+                Disabled providers disappear from checkout and donation forms. Until provider keys
+                are configured, enabled providers run in dev mode (payments are simulated so you
+                can test the full flow).
+              </p>
             </CardContent>
           </Card>
         </TabsContent>

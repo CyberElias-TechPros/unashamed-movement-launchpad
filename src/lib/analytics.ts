@@ -10,6 +10,17 @@ export interface AnalyticsEvent {
 
 
 export const trackEvent = async (event: AnalyticsEvent): Promise<void> => {
+  // Forward to GA4 when it's loaded (see src/main.tsx).
+  try {
+    if (typeof window !== "undefined" && typeof window.gtag === "function") {
+      window.gtag("event", `${event.category}_${event.action}`, {
+        event_label: event.label,
+        value: event.value,
+      });
+    }
+  } catch {
+    /* never let analytics break the app */
+  }
   try {
     await fetch(`${API_BASE_URL}/analytics`, {
       method: 'POST',
@@ -99,3 +110,9 @@ export const trackEventRegistration = (eventId: string, eventName: string) => {
     value: eventId ? 1 : 0,
   });
 };
+declare global {
+  interface Window {
+    dataLayer?: unknown[];
+    gtag?: (...args: unknown[]) => void;
+  }
+}

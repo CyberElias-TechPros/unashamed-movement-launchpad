@@ -1,207 +1,155 @@
-import { useState, useEffect, FormEvent } from "react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
-import { Menu, X, ShoppingCart } from "lucide-react";
-import { Input } from "@/components/ui/input";
-import { useCart } from "@/context/CartContext";
-import { useLayout } from "@/context/LayoutContext";
-import { motion, AnimatePresence } from "framer-motion";
+import { useState, useEffect } from "react";
+import { Link, useLocation } from "react-router-dom";
+import { Menu, X, Instagram, Youtube, Music2 } from "lucide-react";
 
 const navLinks = [
-  { name: "Home", path: "/" },
-  { name: "About Us", path: "/about" },
+  { name: "About", path: "/about" },
   { name: "Testimonies", path: "/testimonies" },
-  { name: "Shop", path: "/shop" },
-  { name: "Unashamed", path: "/unashamed" },
+  { name: "Unashamed Pod", path: "/unashamed" },
   { name: "Resources", path: "/resources" },
-  { name: "Events", path: "/events" },
-  { name: "Contact", path: "/contact" },
-  { name: "Donate", path: "/donate" },
+  { name: "Contact Us", path: "/contact" },
+];
+
+const socials = [
+  { name: "Instagram", href: "https://instagram.com/__thetimeisnow", Icon: Instagram },
+  { name: "YouTube", href: "https://youtube.com/@tthetimeisnow", Icon: Youtube },
+  { name: "TikTok", href: "https://tiktok.com/@__thetimeisnow", Icon: Music2 },
 ];
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const location = useLocation();
-  const { layoutMode, colorMode } = useLayout();
-  const { totalItems } = useCart();
-  const navigate = useNavigate();
-  const [searchQ, setSearchQ] = useState("");
-
-  const submitSearch = (e: FormEvent) => {
-    e.preventDefault();
-    if (searchQ.trim().length >= 2) {
-      navigate(`/search?q=${encodeURIComponent(searchQ.trim())}`);
-      setIsOpen(false);
-    }
-  };
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 20);
-    window.addEventListener("scroll", handleScroll);
+    handleScroll();
+    window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
   useEffect(() => {
     setIsOpen(false);
-  }, [location]);
+  }, [location.pathname]);
 
   useEffect(() => {
-    if (isOpen) {
-      document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = "";
-    }
+    document.body.style.overflow = isOpen ? "hidden" : "";
     return () => {
       document.body.style.overflow = "";
     };
   }, [isOpen]);
 
-  const getNavbarClasses = () => {
-    const base = "fixed top-0 left-0 right-0 z-50 transition-all duration-500";
-    
-    if (scrolled) {
-      if (colorMode === "bw-purple") {
-        return `${base} bg-black/95 backdrop-blur-md shadow-xl py-3`;
-      }
-      return `${base} bg-primary/95 backdrop-blur-md shadow-xl py-3`;
-    }
-    
-    if (colorMode === "bw-purple") {
-      return `${base} bg-black/80 py-5`;
-    }
-    if (layoutMode === "sympos") {
-      return `${base} bg-background/80 py-5`;
-    }
-    return `${base} bg-primary/80 py-5`;
-  };
-
-  const getTextColor = () => {
-    if (colorMode === "bw-purple") {
-      return "text-white";
-    }
-    if (layoutMode === "sympos" && !scrolled) {
-      return "text-foreground";
-    }
-    return "text-primary-foreground";
-  };
-
-  const getMobileMenuBg = () => {
-    if (colorMode === "bw-purple") {
-      return "bg-black/98";
-    }
-    if (layoutMode === "sympos") {
-      return "bg-background/98";
-    }
-    return "bg-primary/98";
-  };
-
-  const getMobileTextColor = () => {
-    if (colorMode === "bw-purple") {
-      return "text-white";
-    }
-    return "text-primary-foreground";
-  };
-
   return (
-    <nav className={getNavbarClasses()}>
-      <div className="container-custom flex items-center justify-between">
-        <Link to="/" className="flex items-center gap-2">
-          <span className={`font-heading text-3xl tracking-wider ${getTextColor()}`}>
-            TTIN
-          </span>
-        </Link>
-
-        <div className="hidden lg:flex items-center gap-8">
-          {navLinks.map((link) => (
-            <Link
-              key={link.path}
-              to={link.path}
-              aria-current={location.pathname === link.path ? "page" : undefined}
-              className={`relative font-body text-sm font-medium tracking-wide uppercase transition-all duration-300 hover:text-accent group ${
-                location.pathname === link.path
-                  ? "text-accent"
-                  : getTextColor()
-              }`}
-            >
-              {link.name}
-              <motion.span
-                className="absolute -bottom-1 left-0 h-[2px] bg-accent"
-                initial={{ width: location.pathname === link.path ? "100%" : "0%" }}
-                animate={{ width: location.pathname === link.path ? "100%" : "0%" }}
-                whileHover={{ width: "100%" }}
-                transition={{ duration: 0.3 }}
-              />
-            </Link>
-          ))}
-          <form onSubmit={submitSearch} className="hidden xl:flex items-center">
-            <Input
-              type="search"
-              placeholder="Search..."
-              value={searchQ}
-              onChange={(e) => setSearchQ(e.target.value)}
-              className="h-9 w-40 bg-primary-foreground/10 border-primary-foreground/20 text-primary-foreground placeholder:text-primary-foreground/50"
-              aria-label="Search site"
+    <>
+      <header
+        className={`fixed top-0 left-0 right-0 z-40 transition-all duration-500 ${
+          scrolled || isOpen
+            ? "bg-[#0a0a0a]/95 backdrop-blur-xl shadow-xl"
+            : "bg-transparent backdrop-blur-none"
+        }`}
+      >
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between py-4 lg:py-5">
+          <Link to="/" className="flex items-center gap-2">
+            <img
+              src="/images/ttin-primary.svg"
+              alt="TTIN"
+              className="h-10 w-auto brightness-0 invert"
             />
-          </form>
-          
-          <Link
-            to="/cart"
-            className={`relative p-2 rounded-full transition-colors hover:text-accent ${getTextColor()}`}
-            aria-label={`Cart, ${totalItems} items`}
-          >
-            <ShoppingCart size={22} />
-            {totalItems > 0 && (
-              <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] flex items-center justify-center rounded-full bg-accent text-accent-foreground text-[10px] font-bold px-1">
-                {totalItems > 99 ? "99+" : totalItems}
-              </span>
-            )}
           </Link>
-        </div>
 
-        <button
-          onClick={() => setIsOpen(!isOpen)}
-          className={`lg:hidden p-2 ${getTextColor()}`}
-          aria-label="Toggle menu"
-        >
-          {isOpen ? <X size={28} /> : <Menu size={28} />}
-        </button>
-      </div>
-
-      <AnimatePresence>
-        {isOpen && (
-          <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: "auto" }}
-            exit={{ opacity: 0, height: 0 }}
-            transition={{ duration: 0.3 }}
-            className={`lg:hidden ${getMobileMenuBg()} backdrop-blur-md overflow-hidden`}
-          >
-            <div className="container-custom py-6 flex flex-col gap-4">
-              {navLinks.map((link, i) => (
-                <motion.div
+          <nav className="hidden lg:flex items-center gap-8">
+            {navLinks.map((link) => {
+              const isActive = location.pathname === link.path;
+              return (
+                <Link
                   key={link.path}
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: i * 0.05 }}
+                  to={link.path}
+                  className={`relative font-mono text-xs font-medium tracking-[0.15em] uppercase transition-all duration-300 ${
+                    isActive ? "text-white" : "text-white/80 hover:text-white"
+                  }`}
                 >
-                  <Link
-                    to={link.path}
-                    className={`font-heading text-2xl tracking-wider transition-colors ${
-                      location.pathname === link.path
-                        ? "text-accent"
-                        : getMobileTextColor()
-                    }`}
+                  {link.name}
+                  {isActive && (
+                    <span className="absolute -bottom-1 left-0 h-0.5 w-full bg-[#eab308]" />
+                  )}
+                </Link>
+              );
+            })}
+          </nav>
+
+          <div className="hidden md:flex items-center gap-4">
+            <Link
+              to="/donate"
+              className="inline-flex sqs-button-element--primary text-[11px]"
+            >
+              Partner With Us
+            </Link>
+          </div>
+
+          <button
+            onClick={() => setIsOpen(!isOpen)}
+            className="md:hidden p-2 text-white"
+            aria-label="Toggle menu"
+          >
+            {isOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+          </button>
+        </div>
+      </header>
+
+      {/* Mobile menu */}
+      {isOpen && (
+        <div className="md:hidden fixed inset-0 bg-[#0a0a0a] z-50 overflow-y-auto">
+          <div className="flex justify-end p-6">
+            <button
+              onClick={() => setIsOpen(false)}
+              className="text-white/80 hover:text-white"
+              aria-label="Close menu"
+            >
+              <X className="w-6 h-6" />
+            </button>
+          </div>
+          <nav className="px-6 pb-12 flex flex-col gap-8 pt-8">
+            <Link
+              to="/"
+              className="font-heading text-3xl tracking-wider text-white/80 hover:text-white transition-colors block"
+            >
+              Home
+            </Link>
+            {navLinks.map((link) => (
+              <Link
+                key={link.path}
+                to={link.path}
+                className="font-heading text-3xl tracking-wider text-white/80 hover:text-white transition-colors block"
+              >
+                {link.name}
+              </Link>
+            ))}
+            <div className="pt-8 border-t border-white/10">
+              <Link
+                to="/donate"
+                className="inline-block sqs-button-element--primary text-xs w-full text-center"
+              >
+                Partner With Us
+              </Link>
+              <div className="flex items-center gap-4 mt-8">
+                {socials.map(({ name, href, Icon }) => (
+                  <a
+                    key={name}
+                    href={href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label={name}
+                    className="w-11 h-11 rounded-full bg-white/10 flex items-center justify-center hover:bg-[#eab308] transition-all duration-300"
                   >
-                    {link.name}
-                  </Link>
-                </motion.div>
-              ))}
-              
+                    <Icon className="w-5 h-5 text-white" />
+                  </a>
+                ))}
+              </div>
             </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </nav>
+          </nav>
+        </div>
+      )}
+    </>
   );
 };
 

@@ -19,18 +19,42 @@ export interface DonationCreate {
   message?: string;
 }
 
+export interface DonationCheckoutPayload {
+  amount: number;
+  email?: string;
+  donorName?: string;
+  currency?: string;
+  paymentMethod?: 'paypal' | 'stripe' | 'paystack' | 'flutterwave';
+  message?: string;
+  isAnonymous?: boolean;
+}
+
+export interface DonationStats {
+  raisedTotal: number;
+  raisedThisMonth: number;
+  donationCount: number;
+  donorCount: number;
+  pendingCount: number;
+}
+
 export const donationsApi = {
   getAll: () => api.get<Donation[]>('/donations'),
-  
+
   getById: (id: string) => api.get<Donation>(`/donations/${id}`),
-  
+
   create: (data: DonationCreate) => api.post<Donation>('/donations', data),
-  
-  createCheckoutSession: (amount: number, email?: string) => 
-    api.post<{ sessionId: string; url: string }>('/donations/checkout', { amount, email }),
-  
-  verify: (paymentIntentId: string) => 
+
+  checkout: (payload: DonationCheckoutPayload) =>
+    api.post<{ sessionId: string; url: string; donationId: string; devMode?: boolean }>('/donations/checkout', payload),
+
+  verify: (paymentIntentId: string) =>
     api.get<{ status: string; amount: number }>(`/donations/verify/${paymentIntentId}`),
+
+  // --- Admin ---
+  stats: () => api.get<DonationStats>('/donations/stats/summary'),
+
+  updateStatus: (id: string, status: 'pending' | 'completed' | 'failed') =>
+    api.patch<Donation>(`/donations/${id}/status`, { status }),
 };
 
 export default donationsApi;

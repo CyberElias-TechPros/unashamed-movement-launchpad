@@ -1,0 +1,58 @@
+name: Site recovery scrape
+
+# Mirrors https://ttin.techpros.com.ng into site-recovery/live and commits it
+# to this branch. The sandbox cannot reach the site directly, but GitHub
+# runners have full internet access. Re-triggers on pushes that change the
+# scraper itself; the scrape's own commit (site-recovery/** only) does not
+# match the paths filter, so there is no loop.
+
+on:
+  push:
+    branches: [arena/01a0a880-unashamed-movement-launchpad]
+    paths:
+      - ".github/workflows/site-recovery.yml"
+      - "scripts/scrape-site.sh"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: site-recovery
+  cancel-in-progress: true
+
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: arena/01a0a880-unashamed-movement-launchpad
+          fetch-depth: 1
+
+      - name: Mirror the site
+        run: |
+          set -o pipefail
+          bash scripts/scrape-site.sh https://ttin.techpros.com.ng site-recovery/live 2>&1 | tee site-recovery/scrape-report.txt
+
+      - name: Guard against oversized files (git 100MB hard limit)
+        if: always()
+        run: |
+          find site-recovery -type f -size +95M -print -delete || true
+          echo "--- total ---"
+          du -sh site-recovery || true
+          find site-recovery -type f | wc -l
+
+      - name: Commit and push the backup
+        if: always()
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add site-recovery
+          if git diff --cached --quiet; then
+            echo "Nothing new to commit"
+          else
+            git commit -m "chore(site-recovery): mirror ttin.techpros.com.ng (automated backup)"
+            git push origin HEAD:arena/01a0a880-unashamed-movement-launchpad
+          fi

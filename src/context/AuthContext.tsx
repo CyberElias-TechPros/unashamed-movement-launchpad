@@ -6,6 +6,8 @@ interface User {
   email: string;
   name?: string;
   role: 'user' | 'admin';
+  avatar?: string;
+  emailVerified?: boolean;
 }
 
 interface AuthContextType {
@@ -14,8 +16,10 @@ interface AuthContextType {
   isLoading: boolean;
   isAdmin: boolean;
   login: (email: string, password: string) => Promise<void>;
+  register: (name: string, email: string, password: string) => Promise<{ emailVerified?: boolean } | undefined>;
   logout: () => Promise<void>;
   refreshToken: () => Promise<boolean>;
+  refreshUser: () => Promise<void>;
   getCsrfToken: () => string | null;
 }
 
@@ -64,6 +68,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const getCsrfToken = () => csrfToken;
+
+  const mapUser = (u: { id: string; email: string; name?: string; role: string; avatar?: string; emailVerified?: boolean }): User => ({
+    id: u.id,
+    email: u.email,
+    name: u.name,
+    role: u.role as 'user' | 'admin',
+    avatar: u.avatar,
+    emailVerified: u.emailVerified,
+  });
 
   useEffect(() => {
     if (initialized) return;
@@ -114,6 +127,34 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  const register = async (name: string, email: string, password: string) => {
+    setIsLoading(true);
+    try {
+      const response = await authApi.register({ name, email, password });
+      if (response.user) {
+        setUser(mapUser(response.user as never));
+        await fetchCsrfToken();
+        return { emailVerified: (response.user as { emailVerified?: boolean }).emailVerified };
+      }
+      return undefined;
+    } catch (err: unknown) {
+      const error = err as { message?: string; status?: number };
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  /** Re-fetch the profile (e.g. after verifying email or editing the account). */
+  const refreshUser = async () => {
+    try {
+      const profile = await authApi.getProfile();
+      if (profile) setUser(mapUser(profile as never));
+    } catch {
+      /* keep current state on failure */
+    }
+  };
+
   const logout = async () => {
     try {
       await authApi.logout();
@@ -133,8 +174,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     isLoading,
     isAdmin,
     login,
+    register,
     logout,
     refreshToken,
+    refreshUser,
     getCsrfToken,
   };
 

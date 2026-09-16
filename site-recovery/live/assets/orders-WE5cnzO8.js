@@ -1,0 +1,1 @@
+import{g as e}from"./app-DwH0RQZ6.js";const o={create:t=>e.post("/orders",t),getById:t=>e.get(`/orders/${t}`),getAll:()=>e.get("/orders"),getUserOrders:()=>e.get("/orders/my-orders"),updateStatus:(t,r)=>e.patch(`/orders/${t}/status`,{status:r}),checkout:t=>e.post("/orders/checkout",t),bulkUpdateStatus:(t,r)=>e.post("/orders/bulk-update-status",{ids:t,status:r})};export{o};

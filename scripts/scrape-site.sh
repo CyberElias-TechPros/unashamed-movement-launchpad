@@ -1,27 +1,29 @@
 #!/usr/bin/env bash
 #
-# Mirror ttin.techpros.com.ng (static SPA + assets) for backup/recovery.
-# Runs on a GitHub Actions runner (full internet access) — the sandbox
-# cannot reach the site directly.
+# Mirror ttin.techpros.com.ng (static SPA + assets + API data) for backup.
+# v3: fixpoint asset discovery (lazy chunks reference more assets),
+#     SPA-fallback junk filtering, API scrape with proper headers,
+#     self-hosted PDFs, Google Drive thumbnails.
 #
+# Runs on a GitHub Actions runner (full internet access).
 # Usage: scrape-site.sh [base_url] [output_dir]
-# Always exits 0 unless the site is unreachable at all (exit 1) — individual
-# misses are logged with HTTP status codes and reported at the end.
 
 BASE="${1:-https://ttin.techpros.com.ng}"
 OUT="${2:-site-recovery/live}"
 UA="Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36"
+JAR="$PWD/_cookies.txt"
 
 mkdir -p "$OUT" || exit 1
 cd "$OUT" || exit 1
 
 MISSES=0
 
-fetch() { # fetch <url> <dest-relative-to-OUT>
+fetch() { # fetch <url> <dest-relative-to-OUT> [extra-curl-args...]
   local url="$1" dest="$2" code
+  shift 2
   [ -s "$dest" ] && return 0
   mkdir -p "$(dirname "$dest")"
-  code=$(curl -sL --retry 2 --retry-delay 1 --max-time 300 -A "$UA" -o "$dest" -w '%{http_code}' "$url" 2>/dev/null)
+  code=$(curl -sL --retry 2 --retry-delay 1 --max-time 600 -A "$UA" -o "$dest" -w '%{http_code}' "$url" "$@" 2>/dev/null)
   if [ "$code" = "200" ] && [ -s "$dest" ]; then
     echo "ok:   $code $url ($(du -h "$dest" | cut -f1))"
   else
@@ -32,87 +34,132 @@ fetch() { # fetch <url> <dest-relative-to-OUT>
   fi
 }
 
-echo "=== [1/7] root files ==="
+is_junk() { # SPA-fallback HTML saved under a non-HTML name
+  local f="$1"
+  case "$f" in
+    *.html|*.htm) return 1 ;;
+  esac
+  head -c 15 "$f" 2>/dev/null | grep -qiE '^<!doctype|^<html' && return 0
+  return 1
+}
+
+clean_junk() {
+  echo "--- junk filter (SPA fallbacks saved under wrong extensions) ---"
+  find . -type f ! -path './_urls/*' -print0 | while IFS= read -r -d '' f; do
+    if is_junk "$f"; then
+      echo "junk removed: $f"
+      rm -f "$f"
+    fi
+  done
+  # empty files
+  find . -type f -empty ! -path './_urls/*' -delete 2>/dev/null || true
+}
+
+echo "=== [0/8] clean previously-committed SPA-fallback junk ==="
+clean_junk
+
+echo "=== [1/8] root files ==="
 for f in index.html manifest.json robots.txt sitemap.xml sw.js offline.html favicon.ico; do
   fetch "$BASE/$f" "$f"
 done
 
 if [ ! -s index.html ]; then
-  echo "FATAL: index.html could not be fetched (site down or blocking the runner)"
-  exit 1
-fi
-if ! grep -qi "<script" index.html; then
-  echo "FATAL: index.html is not a real page — first 500 bytes:"
-  head -c 500 index.html || true
-  echo ""
+  echo "FATAL: index.html could not be fetched"
   exit 1
 fi
 
-echo "=== [2/7] bundles referenced by index.html ==="
-# Extract all slash-paths, then filter by exact extension (avoids
-# 'manifest.json' matching '.js' etc.)
+echo "=== [2/8] bundles referenced by index.html ==="
 grep -oE '/[A-Za-z0-9_./-]+' index.html | grep -E '\.(js|mjs|css)$' | sort -u > _urls-index.txt
 cat _urls-index.txt
 while IFS= read -r p; do fetch "$BASE$p" ".$p"; done < _urls-index.txt
 
-echo "=== [3/7] source maps for those bundles (original source if deployed) ==="
-while IFS= read -r p; do fetch "$BASE$p.map" ".$p.map"; done < _urls-index.txt
-
-echo "=== [4/7] harvest every asset path from all JS/CSS/HTML ==="
-find . -path ./external -prune -o -type f \( -name '*.js' -o -name '*.mjs' -o -name '*.css' -o -name '*.html' \) -print0 \
-  | xargs -0 cat 2>/dev/null > _bundle-concat.txt || true
-echo "bundle bytes: $(wc -c < _bundle-concat.txt)"
-
-# Remove full and protocol-relative URLs first so '//' paths aren't mistaken
-# for site-absolute paths.
-sed -E 's#(https?:)?//[A-Za-z0-9_./%?&=,:+~_-]+##g' _bundle-concat.txt > _bundle-local.txt || true
-
-# Site-absolute paths (allow spaces/apostrophes/percent-encoding in names)
-grep -oE "/[A-Za-z0-9_./()%,' -]+" _bundle-local.txt \
-  | sed 's/[[:space:]]*$//' \
-  | grep -E '\.(png|jpe?g|svg|webp|gif|avif|mp4|webm|mov|m4v|mp3|wav|pdf|woff2?|ttf|eot|otf|ico|json|txt|xml|js|mjs|css|map)$' \
-  | sort -u > _urls-static.txt || true
-# Relative paths without leading slash (images/..., videos/..., resources/...)
-grep -oE "(images|videos|resources|assets|fonts)/[A-Za-z0-9_./()%,' -]+" _bundle-local.txt \
-  | sed 's/[[:space:]]*$//' \
-  | grep -E '\.(png|jpe?g|svg|webp|gif|mp4|pdf|json|txt|js|css|woff2?)$' \
-  | sort -u | sed 's#^#/#' >> _urls-static.txt || true
-sort -u _urls-static.txt -o _urls-static.txt
-echo "discovered static paths: $(wc -l < _urls-static.txt)"
-while IFS= read -r p; do
-  # Try the raw path first, then the URL-encoded variant (spaces/apostrophes)
-  if ! fetch "$BASE$p" ".$p"; then
-    enc=$(python3 -c 'import sys,urllib.parse; print(urllib.parse.quote(sys.argv[1]))' "$p" 2>/dev/null || true)
-    [ -n "$enc" ] && [ "$enc" != "$p" ] && fetch "$BASE$enc" ".$p"
-  fi
-done < _urls-static.txt
-
-echo "=== [5/7] source maps for every discovered JS chunk ==="
-grep -E '\.js$' _urls-static.txt | while IFS= read -r p; do
-  fetch "$BASE$p.map" ".$p.map"
+echo "=== [3/8] fixpoint harvest: download every referenced asset until nothing new ==="
+for round in 1 2 3 4 5 6 7 8; do
+  find . -path ./external -prune -o -type f \( -name '*.js' -o -name '*.mjs' -o -name '*.css' -o -name '*.html' \) -print0 \
+    | xargs -0 cat 2>/dev/null > _bc.txt || true
+  sed -E 's#(https?:)?//[A-Za-z0-9_./%?&=,:+~_-]+##g' _bc.txt > _bl.txt || true
+  {
+    grep -oE "/[A-Za-z0-9_./()%,' -]+" _bl.txt | sed 's/[[:space:]]*$//' \
+      | grep -E '\.(png|jpe?g|svg|webp|gif|avif|mp4|webm|mov|m4v|mp3|wav|pdf|woff2?|ttf|eot|otf|ico|json|txt|xml|js|mjs|css|map)$' || true
+    grep -oE "(images|videos|resources|assets|fonts)/[A-Za-z0-9_./()%,' -]+" _bl.txt | sed 's/[[:space:]]*$//' \
+      | grep -E '\.(png|jpe?g|svg|webp|gif|mp4|pdf|json|txt|js|css|woff2?)$' | sed 's#^#/#' || true
+  } | sort -u > _urls-round.txt
+  new=0
+  while IFS= read -r p; do
+    [ -f ".$p" ] && continue
+    if ! fetch "$BASE$p" ".$p"; then
+      enc=$(python3 -c 'import sys,urllib.parse; print(urllib.parse.quote(sys.argv[1]))' "$p" 2>/dev/null || true)
+      [ -n "$enc" ] && [ "$enc" != "$p" ] && fetch "$BASE$enc" ".$p" && new=$((new+1))
+    else
+      new=$((new+1))
+    fi
+  done < _urls-round.txt
+  echo "round $round: +$new files"
+  [ "$new" = "0" ] && break
 done
 
-echo "=== [6/7] external assets (Google Drive thumbnails etc.) ==="
-mkdir -p external _urls
-grep -oE 'https://[A-Za-z0-9_./%?&=,:+~_-]+' _bundle-concat.txt | sort -u > _urls-external.txt || true
-echo "external urls: $(wc -l < _urls-external.txt)"
-while IFS= read -r u; do
-  case "$u" in
-    *youtube.com/*|*ytimg.com/*) echo "skip (YouTube CDN, stable): $u"; continue ;;
-    *instagram.com/*|*cdninstagram.com/*) echo "skip (expiring Instagram CDN): $u"; continue ;;
-    *gumroad.com/*) echo "skip (Gumroad page, not an asset): $u"; continue ;;
-    *.css|*.js) echo "skip (external script/style): $u"; continue ;;
-  esac
-  id=$(echo "$u" | grep -oE 'id=[A-Za-z0-9_-]+' | cut -d= -f2)
-  if [ -n "$id" ]; then
-    name="external/drive-$id"
-  else
-    name="external/$(echo "$u" | md5sum | cut -c1-12)-$(basename "${u%%\?*}")"
-  fi
-  fetch "$u" "$name"
-done < _urls-external.txt
+echo "=== [4/8] self-hosted resource PDFs (known paths) ==="
+mkdir -p resources
+while IFS= read -r pdf; do
+  fetch "$BASE/resources/$pdf" "resources/$pdf"
+done <<'PDFS'
+Foxe's Book of Martyrs.pdf
+God's Generals- The Revivalists.pdf
+God's Generals- Why They Succeeded and Why Some Failed.pdf
+I Went To Hell.pdf
+Kathryn Kuhlman- Her Spiritual Legacy.pdf
+Now That You Are Born Again.pdf
+Recreating Your World.pdf
+Revival in the Hebrides.pdf
+The Power of Tongues.pdf
+The Seven Spirits of God.pdf
+Tortured for Christ.pdf
+When God Visits You.pdf
+PDFS
 
-echo "=== [7/7] SPA route shells (for the record) ==="
+echo "=== [5/8] API scrape (JSON; XHR-style headers + session cookie) ==="
+mkdir -p api
+# establish session (cookie jar) like the SPA does
+curl -sL -A "$UA" -c "$JAR" "$BASE/api/auth/csrf-token" -o api/auth-csrf-token.json -w 'csrf: %{http_code}\n' || true
+api_get() { # api_get <path> <dest>
+  local path="$1" dest="api/$2"
+  local code
+  code=$(curl -sL --max-time 60 -A "$UA" -b "$JAR" -c "$JAR" \
+    -H 'Accept: application/json' -H 'X-Requested-With: XMLHttpRequest' \
+    -H "Referer: $BASE/" \
+    -o "$dest" -w '%{http_code}' "$BASE$path" 2>/dev/null)
+  if [ "$code" = "200" ] && head -c 1 "$dest" 2>/dev/null | grep -qE '[{[]'; then
+    echo "api ok:   $code $path ($(du -h "$dest" | cut -f1))"
+  else
+    echo "api MISS: $code $path"
+    rm -f "$dest"
+  fi
+}
+api_get "/api/health" "health.json"
+api_get "/api/settings" "settings.json"
+api_get "/api/content" "content.json"
+api_get "/api/countries" "countries.json"
+api_get "/api/products?limit=100" "products.json"
+api_get "/api/testimonies?limit=100" "testimonies.json"
+api_get "/api/events?limit=100" "events.json"
+api_get "/api/resources?limit=100" "resources.json"
+api_get "/api/videos?limit=100" "videos.json"
+api_get "/api/videos/feed" "videos-feed.json"
+api_get "/api/reviews?limit=100" "reviews.json"
+api_get "/api/search?q=faith" "search-faith.json"
+api_get "/api/analytics/dashboard" "analytics-dashboard.json"
+
+echo "=== [6/8] Google Drive thumbnails for every referenced Drive ID ==="
+mkdir -p external _urls
+find . -path ./external -prune -o -type f \( -name '*.js' -o -name '*.json' \) -print0 \
+  | xargs -0 cat 2>/dev/null | grep -oE '1[A-Za-z0-9_-]{25,40}' | sort -u > _urls/drive-ids.txt || true
+echo "drive ids: $(wc -l < _urls/drive-ids.txt)"
+while IFS= read -r id; do
+  fetch "https://drive.google.com/thumbnail?id=$id&sz=w1200" "external/drive-$id.jpg" \
+    || fetch "https://drive.google.com/thumbnail?id=$id&sz=w400" "external/drive-$id.jpg"
+done < _urls/drive-ids.txt
+
+echo "=== [7/8] SPA route shells (for the record) ==="
 mkdir -p routes
 for r in about testimonies shop unashamed resources events contact donate admin 404; do
   code=$(curl -sL -A "$UA" -o "routes/$r.html" -w '%{http_code}' "$BASE/$r" 2>/dev/null || true)
@@ -120,12 +167,18 @@ for r in about testimonies shop unashamed resources events contact donate admin 
   [ "$code" != "200" ] && rm -f "routes/$r.html"
 done
 
-# Tidy: keep the URL manifests, drop the giant concat temp files
-rm -f _bundle-concat.txt _bundle-local.txt
+echo "=== [8/8] final junk filter + large-file notes ==="
+clean_junk
+rm -f _bc.txt _bl.txt _urls-round.txt
 mkdir -p _urls
-for f in _urls-index.txt _urls-static.txt _urls-external.txt; do
-  [ -f "$f" ] && mv "$f" "_urls/$f"
+[ -f _urls-index.txt ] && mv _urls-index.txt "_urls/_urls-index.txt"
+# files too large for git (>95MB): record their URLs, then remove
+find . -type f -size +95M ! -path './_urls/*' | while IFS= read -r f; do
+  echo "$BASE${f#.}" | sed 's#/#/#g' >> _urls/large-files.txt
+  echo "LARGE (not committed): $f ($(du -h "$f" | cut -f1))"
+  rm -f "$f"
 done
+rm -f "$JAR"
 
 echo "=== RECOVERY SUMMARY ==="
 echo "files: $(find . -type f | wc -l)"

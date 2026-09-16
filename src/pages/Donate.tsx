@@ -151,30 +151,30 @@ const Donate = () => {
   return (
     <Layout>
       <SEO title="Donate" description="Support bold evangelism around the world — give securely by card via Stripe, Paystack or Flutterwave." />
-      <section className="relative min-h-[60vh] flex items-center bg-primary pt-20 overflow-hidden">
-        <div className="absolute inset-0">
-          <div className="absolute top-20 right-10 w-48 h-48 sm:w-72 sm:h-72 bg-secondary/20 rounded-full blur-3xl" />
-          <div className="absolute bottom-10 left-10 w-40 h-40 sm:w-60 sm:h-60 bg-accent/10 rounded-full blur-3xl" />
+            <section
+        className="page-section full-bleed-section section-theme-dark section-height--large"
+        data-test="page-section"
+        data-section-theme="dark"
+      >
+        <div className="section-border" />
+        <div className="section-background">
+          <div className="absolute inset-0 bg-gradient-to-b from-[#0a0a0a] to-[#0d0a0a]" />
+          <div className="absolute top-0 right-0 w-[600px] h-[600px] rounded-full bg-[#eab308]/10 blur-3xl pointer-events-none" />
+          <div className="absolute bottom-0 left-0 w-[400px] h-[400px] rounded-full bg-[#eab308]/5 blur-3xl pointer-events-none" />
         </div>
-        <FloatingParticles count={15} color="hsl(43 78% 56%)" />
-        <div className="container-custom relative z-10">
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7 }}
-            className="text-center"
-          >
-            <p className="font-body text-accent text-sm tracking-[0.3em] uppercase mb-4">
+        <div className="content-wrapper relative z-10">
+          <div className="content container-custom pt-32 pb-16 md:pt-44 md:pb-24">
+            <p className="font-mono text-[#eab308] text-xs tracking-[0.2em] uppercase mb-4">
               Support the Mission
             </p>
-            <h1 className="font-heading text-4xl sm:text-6xl md:text-7xl lg:text-8xl tracking-wider text-primary-foreground mb-6">
+            <h1 className="font-heading text-5xl sm:text-7xl md:text-8xl lg:text-9xl tracking-wider text-white mb-6">
               Give Now
             </h1>
-            <p className="font-body text-primary-foreground/70 text-xl max-w-2xl mx-auto">
-              Your generosity fuels bold evangelism around the world.
-              Every gift helps us reach more souls for Christ.
+            <p className="font-body text-white/50 text-lg max-w-3xl">
+              Your generosity fuels bold evangelism around the world. Every gift helps us reach
+              more souls for Christ.
             </p>
-          </motion.div>
+          </div>
         </div>
       </section>
 
@@ -219,8 +219,15 @@ const Donate = () => {
         </section>
       )}
 
-      <section className="section-padding bg-background">
-        <div className="container-custom max-w-4xl">
+      <section
+        className="page-section full-bleed-section section-theme-bright"
+        data-test="page-section"
+        data-section-theme="bright"
+      >
+        <div className="section-border" />
+        <div className="section-background" />
+        <div className="content-wrapper">
+          <div className="content container-custom py-20 md:py-28 max-w-4xl">
           <SectionWrapper>
             <div className="text-center mb-10">
               <h2 className="font-heading text-3xl tracking-wider text-foreground mb-4">
@@ -257,7 +264,7 @@ const Donate = () => {
           </div>
 
           <SectionWrapper delay={0.2}>
-            <div className="bg-card rounded-2xl p-8 border border-border max-w-xl mx-auto space-y-5">
+            <div className="template-card bg-card border border-border p-8 max-w-xl mx-auto space-y-5">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label htmlFor="donate-amount" className="block font-heading text-lg mb-3">
@@ -415,9 +422,18 @@ const Donate = () => {
             </div>
           </SectionWrapper>
         </div>
+      </div>
       </section>
 
-      <section className="section-padding bg-muted">
+      <section
+        className="page-section full-bleed-section section-theme-bright-inverse"
+        data-test="page-section"
+        data-section-theme="bright-inverse"
+      >
+        <div className="section-border" />
+        <div className="section-background" />
+        <div className="content-wrapper">
+          <div className="content container-custom py-20 md:py-28">
         <div className="container-custom max-w-3xl text-center">
           <SectionWrapper>
             <h3 className="font-heading text-2xl tracking-wider mb-6">Other Ways to Give</h3>
@@ -435,6 +451,8 @@ const Donate = () => {
             </div>
           </SectionWrapper>
         </div>
+      </div>
+      </div>
       </section>
     </Layout>
   );

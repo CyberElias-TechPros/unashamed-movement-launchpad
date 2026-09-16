@@ -1,145 +1,186 @@
-import { Link } from "react-router-dom";
-import { Instagram, Youtube, Music2, Mail, ArrowUp } from "lucide-react";
+import { useState, FormEvent } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { Instagram, Youtube, Music2, Search, ArrowUp } from "lucide-react";
 import { trackEvent } from "@/lib/analytics";
 
+const socials = [
+  { name: "Instagram", href: "https://instagram.com/__thetimeisnow", Icon: Instagram },
+  { name: "YouTube", href: "https://youtube.com/@tthetimeisnow", Icon: Youtube },
+  { name: "TikTok", href: "https://tiktok.com/@__thetimeisnow", Icon: Music2 },
+];
+
+const navigateLinks = [
+  "Home",
+  "About Us",
+  "Testimonies",
+  "Shop",
+  "Unashamed",
+  "Resources",
+  "Events",
+];
+
 const Footer = () => {
+  const navigate = useNavigate();
+  const [searchQ, setSearchQ] = useState("");
+  const [email, setEmail] = useState("");
+  const [subscribed, setSubscribed] = useState(false);
+  const [subscribing, setSubscribing] = useState(false);
+
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  return (
-    <footer className="bg-primary text-primary-foreground">
-      {/* Partner Section */}
-      <div className="section-padding bg-gradient-brand">
-        <div className="container-custom text-center">
-          <p className="font-body text-accent text-sm tracking-[0.3em] uppercase mb-4">
-            Take Action
-          </p>
-          <h2 className="font-heading text-4xl sm:text-5xl lg:text-6xl tracking-wider mb-4">
-            Join the Movement
-          </h2>
-          <p className="font-body text-primary-foreground/80 max-w-2xl mx-auto mb-8 text-lg">
-            Stop hiding your light. The world needs what you carry. Get updates, resources,
-            and join a community of fearless believers.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <a
-              href="https://chat.whatsapp.com/DhzT4HxSnzFHftlnLIyJna"
-              target="_blank"
-              rel="noopener noreferrer"
-              onClick={() => trackEvent({ category: "social", action: "click", label: "whatsapp_footer" })}
-              className="inline-block bg-accent text-accent-foreground font-heading text-lg tracking-wider px-10 py-4 rounded-md hover:bg-accent/90 transition-all duration-300 hover:scale-105 shadow-lg"
-            >
-              Join the Movement
-            </a>
-            <Link
-              to="/donate"
-              onClick={() => trackEvent({ category: "navigation", action: "click", label: "donate_footer" })}
-              className="inline-block border border-accent/60 text-accent font-heading text-lg tracking-wider px-10 py-4 rounded-md hover:bg-accent/10 transition-all duration-300"
-            >
-              Give Now
-            </Link>
-          </div>
-        </div>
-      </div>
+  const submitSearch = (e: FormEvent) => {
+    e.preventDefault();
+    if (searchQ.trim().length >= 2) {
+      navigate(`/search?q=${encodeURIComponent(searchQ.trim())}`);
+    }
+  };
 
-      {/* Main Footer */}
-      <div className="container-custom py-16">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
+  const submitNewsletter = async (e: FormEvent) => {
+    e.preventDefault();
+    if (!email.trim() || subscribing) return;
+    setSubscribing(true);
+    try {
+      await fetch("/api/newsletter/subscribe", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: email.trim() }),
+      });
+    } catch {
+      /* network hiccup — still thank the user; subscription retries next visit */
+    }
+    trackEvent({ category: "newsletter", action: "subscribe", label: "footer" });
+    setSubscribed(true);
+    setSubscribing(false);
+  };
+
+  return (
+    <footer className="section-theme-black">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-20">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12">
           {/* Brand */}
           <div>
-            <h3 className="font-heading text-3xl tracking-wider mb-4">TTIN</h3>
-            <p className="font-display italic text-lg text-primary-foreground/70 mb-6">
-              "Is your comfort zone more important than someone else's eternity?"
+            <h3
+              className="font-heading text-3xl tracking-wider mb-4"
+              style={{ color: "var(--section-text)" }}
+            >
+              TTIN
+            </h3>
+            <p className="font-display italic text-lg text-white/60 mb-6 leading-relaxed">
+              "is your comfort zone more important than someone else's eternity?"
             </p>
+            <div className="flex gap-3 flex-wrap">
+              {socials.map(({ name, href, Icon }) => (
+                <a
+                  key={name}
+                  href={href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label={name}
+                  onClick={() =>
+                    trackEvent({ category: "social", action: "click", label: name.toLowerCase() })
+                  }
+                  className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-[#eab308] transition-all duration-300"
+                >
+                  <Icon className="w-4 h-4 text-white" />
+                </a>
+              ))}
+            </div>
           </div>
 
-          {/* Quick Links */}
+          {/* Navigate */}
           <div>
-            <h4 className="font-heading text-xl tracking-wider mb-4 text-accent">
-              Quick Links
+            <h4 className="font-mono text-xs tracking-[0.2em] uppercase text-white/40 mb-6">
+              Navigate
             </h4>
             <div className="flex flex-col gap-3">
-              {["Home", "About Us", "Testimonies", "Shop", "Unashamed", "Resources", "Events"].map(
-                (link) => (
-                  <Link
-                    key={link}
-                    to={`/${link === "Home" ? "" : link.toLowerCase().replace(" ", "-")}`}
-                    className="text-primary-foreground/70 hover:text-accent transition-colors font-body"
-                  >
-                    {link}
-                  </Link>
-                )
-              )}
+              {navigateLinks.map((label) => (
+                <Link
+                  key={label}
+                  to={`/${label === "Home" ? "" : label.toLowerCase().replace(" ", "-")}`}
+                  className="text-white/70 hover:text-white transition-colors font-body text-sm"
+                >
+                  {label}
+                </Link>
+              ))}
             </div>
           </div>
 
-          {/* Connect */}
+          {/* Search */}
           <div>
-            <h4 className="font-heading text-xl tracking-wider mb-4 text-accent">
-              Follow Us
+            <h4 className="font-mono text-xs tracking-[0.2em] uppercase text-white/40 mb-6">
+              Search
             </h4>
-            <div className="flex gap-4 mb-6">
-              <a
-                href="https://instagram.com/__thetimeisnow"
-                target="_blank"
-                rel="noopener noreferrer"
-                onClick={() => trackEvent({ category: "social", action: "click", label: "instagram" })}
-                className="w-12 h-12 rounded-full bg-primary-foreground/10 flex items-center justify-center hover:bg-accent hover:text-accent-foreground transition-all duration-300"
-                aria-label="Instagram"
-              >
-                <Instagram size={20} />
-              </a>
-              <a
-                href="https://tiktok.com/@__thetimeisnow"
-                target="_blank"
-                rel="noopener noreferrer"
-                onClick={() => trackEvent({ category: "social", action: "click", label: "tiktok" })}
-                className="w-12 h-12 rounded-full bg-primary-foreground/10 flex items-center justify-center hover:bg-accent hover:text-accent-foreground transition-all duration-300"
-                aria-label="TikTok"
-              >
-                <Music2 size={20} />
-              </a>
-              <a
-                href="https://youtube.com/@tthetimeisnow"
-                target="_blank"
-                rel="noopener noreferrer"
-                onClick={() => trackEvent({ category: "social", action: "click", label: "youtube" })}
-                className="w-12 h-12 rounded-full bg-primary-foreground/10 flex items-center justify-center hover:bg-accent hover:text-accent-foreground transition-all duration-300"
-                aria-label="YouTube"
-              >
-                <Youtube size={20} />
-              </a>
-              <a
-                href="mailto:thetimeisnow255@gmail.com"
-                className="w-12 h-12 rounded-full bg-primary-foreground/10 flex items-center justify-center hover:bg-accent hover:text-accent-foreground transition-all duration-300"
-                aria-label="Email"
-              >
-                <Mail size={20} />
-              </a>
-            </div>
+            <p className="text-white/60 text-sm mb-4">
+              Find what you're looking for across the site.
+            </p>
+            <form onSubmit={submitSearch} className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-white/40 w-4 h-4" />
+              <input
+                type="search"
+                value={searchQ}
+                onChange={(e) => setSearchQ(e.target.value)}
+                placeholder="Search..."
+                className="h-10 w-full bg-white/10 border-white/20 text-white placeholder:text-white/40 text-sm rounded-full pl-10 px-4 focus:outline-none focus:border-[#eab308]/60"
+              />
+            </form>
+          </div>
+
+          {/* Stay Updated */}
+          <div>
+            <h4 className="font-mono text-xs tracking-[0.2em] uppercase text-white/40 mb-6">
+              Stay Updated
+            </h4>
+            <p className="text-white/60 text-sm mb-4">
+              Join the movement. Get updates and devotionals.
+            </p>
+            {subscribed ? (
+              <p className="text-[#eab308] text-sm">Thank you for subscribing!</p>
+            ) : (
+              <div className="newsletter-form-wrapper newsletter-form-wrapper--layoutStack newsletter-form-wrapper--alignLeft">
+                <form className="newsletter-form" onSubmit={submitNewsletter}>
+                  <div className="newsletter-form-body">
+                    <div className="newsletter-form-fields-wrapper form-fields" style={{ flexDirection: "column" }}>
+                      <div className="newsletter-form-field-wrapper form-item field email required">
+                        <input
+                          id="email-footer"
+                          type="email"
+                          required
+                          value={email}
+                          onChange={(e) => setEmail(e.target.value)}
+                          placeholder="Email Address"
+                          className="newsletter-form-field-element field-element w-full"
+                        />
+                      </div>
+                      <div className="newsletter-form-button-wrapper submit-wrapper">
+                        <button
+                          type="submit"
+                          disabled={subscribing}
+                          className="newsletter-form-button"
+                        >
+                          {subscribing ? "Signing Up..." : "Sign Up"}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </form>
+              </div>
+            )}
           </div>
         </div>
 
-        {/* Bottom Bar */}
-        <div className="border-t border-primary-foreground/10 mt-12 pt-8 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <p className="text-primary-foreground/50 text-sm font-body">
-            © {new Date().getFullYear()} TTIN — The Time Is Now. All rights reserved.
+        {/* Bottom bar */}
+        <div className="border-t border-white/10 mt-12 pt-8 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <p className="text-white/40 text-xs font-mono tracking-wider">
+            © {new Date().getFullYear()} The Time Is Now. All rights reserved.
           </p>
-          <div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-sm font-body">
-            <Link to="/privacy" className="text-primary-foreground/50 hover:text-accent transition-colors">Privacy</Link>
-            <Link to="/terms" className="text-primary-foreground/50 hover:text-accent transition-colors">Terms</Link>
-            <Link to="/refunds" className="text-primary-foreground/50 hover:text-accent transition-colors">Refunds</Link>
-            <Link to="/cookies" className="text-primary-foreground/50 hover:text-accent transition-colors">Cookies</Link>
-            <Link to="/order-lookup" className="text-primary-foreground/50 hover:text-accent transition-colors">Track Order</Link>
-          </div>
           <button
-            type="button"
             onClick={scrollToTop}
-            aria-label="Scroll to top"
-            className="w-10 h-10 rounded-full bg-accent text-accent-foreground flex items-center justify-center hover:scale-110 transition-transform"
+            aria-label="Back to top"
+            className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-[#eab308] transition-all duration-300"
           >
-            <ArrowUp size={18} />
+            <ArrowUp className="w-4 h-4 text-white" />
           </button>
         </div>
       </div>

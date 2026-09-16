@@ -133,7 +133,7 @@ const Shop = () => {
           <div className="container-custom">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
               {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
-                <div key={i} className="bg-card rounded-2xl overflow-hidden border border-border">
+                <div key={i} className="template-card bg-card border border-border">
                   <Skeleton className="aspect-square" />
                   <div className="p-5 space-y-2">
                     <Skeleton className="h-3 w-16" />
@@ -163,32 +163,41 @@ const Shop = () => {
 
   return (
     <Layout>
-      <section className="relative min-h-[50vh] flex items-center bg-primary pt-20 overflow-hidden">
-        <div className="absolute inset-0">
-          <div className="absolute bottom-0 right-0 w-48 h-48 sm:w-64 sm:h-64 lg:w-80 lg:h-80 bg-accent/15 rounded-full blur-3xl" />
+            <section
+        className="page-section full-bleed-section section-theme-dark section-height--large"
+        data-test="page-section"
+        data-section-theme="dark"
+      >
+        <div className="section-border" />
+        <div className="section-background">
+          <div className="absolute inset-0 bg-gradient-to-b from-[#0a0a0a] to-[#0d0a0a]" />
+          <div className="absolute top-0 right-0 w-[600px] h-[600px] rounded-full bg-[#eab308]/10 blur-3xl pointer-events-none" />
+          <div className="absolute bottom-0 left-0 w-[400px] h-[400px] rounded-full bg-[#eab308]/5 blur-3xl pointer-events-none" />
         </div>
-        <FloatingParticles count={15} color="hsl(43 78% 56%)" />
-        <div className="container-custom relative z-10">
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7 }}
-            className="text-center"
-          >
-            <p className="font-body text-accent text-sm tracking-[0.3em] uppercase mb-4">
+        <div className="content-wrapper relative z-10">
+          <div className="content container-custom pt-32 pb-16 md:pt-44 md:pb-24">
+            <p className="font-mono text-[#eab308] text-xs tracking-[0.2em] uppercase mb-4">
               Wear Your Faith
             </p>
-            <h1 className="font-heading text-4xl sm:text-6xl md:text-7xl lg:text-8xl tracking-wider text-primary-foreground mb-6">
+            <h1 className="font-heading text-5xl sm:text-7xl md:text-8xl lg:text-9xl tracking-wider text-white mb-6">
               Shop Now
             </h1>
-            <p className="font-body text-primary-foreground/70 text-xl max-w-xl mx-auto">
+            <p className="font-body text-white/50 text-lg max-w-xl">
               Merch and digital resources to fuel your bold faith journey.
             </p>
-          </motion.div>
+          </div>
         </div>
       </section>
 
-      <section className="py-8 bg-background border-b border-border">
+      <section
+        className="page-section full-bleed-section section-theme-bright-inverse"
+        data-test="page-section"
+        data-section-theme="bright-inverse"
+      >
+        <div className="section-border" />
+        <div className="section-background" />
+        <div className="content-wrapper">
+          <div className="content container-custom py-8">
         <div className="container-custom flex flex-wrap gap-3 justify-center">
           {(["all", "merch", "digital"] as const).map((cat) => (
             <button
@@ -204,9 +213,19 @@ const Shop = () => {
             </button>
           ))}
         </div>
+      </div>
+      </div>
       </section>
 
-      <section className="section-padding bg-background">
+      <section
+        className="page-section full-bleed-section section-theme-bright"
+        data-test="page-section"
+        data-section-theme="bright"
+      >
+        <div className="section-border" />
+        <div className="section-background" />
+        <div className="content-wrapper">
+          <div className="content container-custom py-20 md:py-28">
         <div className="container-custom">
           <AnimatePresence mode="wait">
             <motion.div
@@ -224,7 +243,7 @@ const Shop = () => {
                   transition={{ delay: i * 0.08 }}
                   className="group"
                 >
-                  <div className="bg-card rounded-2xl overflow-hidden border border-border hover:border-accent transition-all duration-500 hover:shadow-xl hover:-translate-y-1">
+                  <div className="template-card bg-card border border-border hover:border-accent transition-all duration-500 hover:shadow-xl hover:-translate-y-1">
                     <div className="relative aspect-square bg-muted flex items-center justify-center overflow-hidden">
                       {product.images?.[0] ? (
                         <img 
@@ -285,6 +304,8 @@ const Shop = () => {
             </motion.div>
           </AnimatePresence>
         </div>
+      </div>
+      </div>
       </section>
 
       <AnimatePresence>

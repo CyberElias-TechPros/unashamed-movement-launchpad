@@ -98,11 +98,19 @@ const Events = () => {
   if (loading) {
     return (
       <Layout>
-        <section className="section-padding bg-background pt-20">
+        <section
+        className="page-section full-bleed-section section-theme-bright"
+        data-test="page-section"
+        data-section-theme="bright"
+      >
+        <div className="section-border" />
+        <div className="section-background" />
+        <div className="content-wrapper">
+          <div className="content container-custom py-20 md:py-28 max-w-4xl">
           <div className="container-custom max-w-4xl">
             <div className="space-y-6">
               {[1, 2, 3, 4, 5, 6].map((i) => (
-                <div key={i} className="bg-card rounded-2xl p-6 lg:p-8 border border-border">
+                <div key={i} className="template-card bg-card border border-border p-6 lg:p-8">
                   <div className="flex flex-col lg:flex-row gap-6">
                     <div className="flex-shrink-0">
                       <Skeleton className="w-20 h-20 rounded-xl" />
@@ -126,7 +134,9 @@ const Events = () => {
               ))}
             </div>
           </div>
-        </section>
+        </div>
+      </div>
+      </section>
       </Layout>
     );
   }
@@ -146,24 +156,42 @@ const Events = () => {
   return (
     <Layout>
       {/* Hero */}
-      <section className="relative min-h-[50vh] flex items-center bg-primary pt-20 overflow-hidden">
-        <div className="absolute inset-0">
-          <div className="absolute top-20 right-20 w-48 h-48 sm:w-72 sm:h-72 bg-accent/10 rounded-full blur-3xl" />
+            <section
+        className="page-section full-bleed-section section-theme-dark section-height--large"
+        data-test="page-section"
+        data-section-theme="dark"
+      >
+        <div className="section-border" />
+        <div className="section-background">
+          <div className="absolute inset-0 bg-gradient-to-b from-[#0a0a0a] to-[#0d0a0a]" />
+          <div className="absolute top-0 right-0 w-[600px] h-[600px] rounded-full bg-[#eab308]/10 blur-3xl pointer-events-none" />
+          <div className="absolute bottom-0 left-0 w-[400px] h-[400px] rounded-full bg-[#eab308]/5 blur-3xl pointer-events-none" />
         </div>
-        <FloatingParticles count={15} color="hsl(43 78% 56%)" />
-        <div className="container-custom relative z-10 text-center">
-          <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7 }}>
-            <p className="font-body text-accent text-sm tracking-[0.3em] uppercase mb-4">Come Together</p>
-            <h1 className="font-heading text-4xl sm:text-6xl md:text-7xl lg:text-8xl tracking-wider text-primary-foreground mb-6">Events</h1>
-            <p className="font-body text-primary-foreground/70 text-xl max-w-xl mx-auto">
+        <div className="content-wrapper relative z-10">
+          <div className="content container-custom pt-32 pb-16 md:pt-44 md:pb-24">
+            <p className="font-mono text-[#eab308] text-xs tracking-[0.2em] uppercase mb-4">
+              Come Together
+            </p>
+            <h1 className="font-heading text-5xl sm:text-7xl md:text-8xl lg:text-9xl tracking-wider text-white mb-6">
+              Events
+            </h1>
+            <p className="font-body text-white/50 text-lg max-w-xl">
               Join us for life-changing events, workshops, and gatherings.
             </p>
-          </motion.div>
+          </div>
         </div>
       </section>
 
       {/* Filter */}
-      <section className="py-8 bg-background border-b border-border">
+      <section
+        className="page-section full-bleed-section section-theme-bright-inverse"
+        data-test="page-section"
+        data-section-theme="bright-inverse"
+      >
+        <div className="section-border" />
+        <div className="section-background" />
+        <div className="content-wrapper">
+          <div className="content container-custom py-8">
         <div className="container-custom flex flex-wrap gap-3 justify-center">
           {["all", "conference", "workshop", "outreach", "online"].map((t) => (
             <button
@@ -177,6 +205,8 @@ const Events = () => {
             </button>
           ))}
         </div>
+      </div>
+      </div>
       </section>
 
       {featured && (
@@ -200,12 +230,20 @@ const Events = () => {
       />
 
       {/* Events List */}
-      <section className="section-padding bg-background">
+      <section
+        className="page-section full-bleed-section section-theme-bright"
+        data-test="page-section"
+        data-section-theme="bright"
+      >
+        <div className="section-border" />
+        <div className="section-background" />
+        <div className="content-wrapper">
+          <div className="content container-custom py-20 md:py-28 max-w-4xl">
         <div className="container-custom max-w-4xl">
           <div className="space-y-6">
             {filtered.map((event, i) => (
               <SectionWrapper key={event.id || event._id} delay={i * 0.1}>
-                <div className="bg-card rounded-2xl p-6 lg:p-8 border border-border hover:border-accent transition-all duration-500 hover:shadow-xl">
+                <div className="template-card bg-card border border-border p-6 lg:p-8 hover:border-accent transition-all duration-500 hover:shadow-xl">
                   <div className="flex flex-col lg:flex-row gap-6">
                     {/* Date badge */}
                     <div className="flex-shrink-0">
@@ -260,6 +298,8 @@ const Events = () => {
             ))}
           </div>
         </div>
+      </div>
+      </div>
       </section>
     </Layout>
   );

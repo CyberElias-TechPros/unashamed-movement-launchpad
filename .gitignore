@@ -36,3 +36,4 @@ playwright-report/
 
 # TypeScript build info
 tsconfig.tsbuildinfo
+*.tsbuildinfo

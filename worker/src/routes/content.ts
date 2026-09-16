@@ -242,6 +242,7 @@ const serializeResource = (row: Row) => {
   // Legacy compat: `free` mirrors isFree; downloadUrl falls back like the Mongo transform.
   api.free = api.isFree;
   api.downloadUrl = api.downloadUrl || api.externalUrl || api.fileUrl || '';
+  api.imageUrl = api.image;
   return api;
 };
 

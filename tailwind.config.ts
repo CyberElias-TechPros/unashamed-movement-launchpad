@@ -15,9 +15,12 @@ export default {
     },
     extend: {
       fontFamily: {
-        heading: ['"Bebas Neue"', 'sans-serif'],
-        display: ['"Playfair Display"', 'serif'],
-        body: ['"Inter"', 'sans-serif'],
+        heading: ["Delight", '"Lilita One"', '"Bebas Neue"', "sans-serif"],
+        display: ["Delight", '"Lilita One"', '"Playfair Display"', "serif"],
+        body: ["Delight", "Roboto", "Inter", "sans-serif"],
+        mono: ['"Sometype Mono"', "monospace"],
+        sans: ["Delight", "Roboto", "Inter", "sans-serif"],
+        serif: ["Delight", '"Lilita One"', '"Playfair Display"', "serif"],
       },
       colors: {
         border: "hsl(var(--border))",

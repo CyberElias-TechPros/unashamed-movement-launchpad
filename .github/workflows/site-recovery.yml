@@ -2,8 +2,9 @@ name: Site recovery scrape
 
 # Mirrors https://ttin.techpros.com.ng into site-recovery/live and commits it
 # to this branch. The sandbox cannot reach the site directly, but GitHub
-# runners have full internet access. Trigger manually with:
-#   gh workflow run site-recovery.yml --ref arena/01a0a880-unashamed-movement-launchpad
+# runners have full internet access. Re-triggers on pushes that change the
+# scraper itself; the scrape's own commit (site-recovery/** only) does not
+# match the paths filter, so there is no loop.
 
 on:
   push:
@@ -31,9 +32,12 @@ jobs:
           fetch-depth: 1
 
       - name: Mirror the site
-        run: bash scripts/scrape-site.sh https://ttin.techpros.com.ng site-recovery/live
+        run: |
+          set -o pipefail
+          bash scripts/scrape-site.sh https://ttin.techpros.com.ng site-recovery/live 2>&1 | tee site-recovery/scrape.log
 
       - name: Guard against oversized files (git 100MB hard limit)
+        if: always()
         run: |
           find site-recovery -type f -size +95M -print -delete || true
           echo "--- total ---"
@@ -41,6 +45,7 @@ jobs:
           find site-recovery -type f | wc -l
 
       - name: Commit and push the backup
+        if: always()
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"

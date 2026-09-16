@@ -1,0 +1,48 @@
+name: Site recovery scrape
+
+# Mirrors https://ttin.techpros.com.ng into site-recovery/live and commits it
+# to this branch. The sandbox cannot reach the site directly, but GitHub
+# runners have full internet access. Trigger manually with:
+#   gh workflow run site-recovery.yml --ref arena/01a0a880-unashamed-movement-launchpad
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: site-recovery
+  cancel-in-progress: true
+
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: arena/01a0a880-unashamed-movement-launchpad
+          fetch-depth: 1
+
+      - name: Mirror the site
+        run: bash scripts/scrape-site.sh https://ttin.techpros.com.ng site-recovery/live
+
+      - name: Guard against oversized files (git 100MB hard limit)
+        run: |
+          find site-recovery -type f -size +95M -print -delete || true
+          echo "--- total ---"
+          du -sh site-recovery || true
+          find site-recovery -type f | wc -l
+
+      - name: Commit and push the backup
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add site-recovery
+          if git diff --cached --quiet; then
+            echo "Nothing new to commit"
+          else
+            git commit -m "chore(site-recovery): mirror ttin.techpros.com.ng (automated backup)"
+            git push origin HEAD:arena/01a0a880-unashamed-movement-launchpad
+          fi

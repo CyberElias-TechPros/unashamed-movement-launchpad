@@ -339,6 +339,113 @@ describe('donations', () => {
   });
 });
 
+describe('paypal (primary provider, dev mode)', () => {
+  const buyer = new Client();
+  let orderId = '';
+  let donationId = '';
+
+  it('initialize reports dev mode when credentials are absent', async () => {
+    const { status, body } = await buyer.json<{ configured: boolean; mode: string }>(
+      '/api/payments/paypal/initialize'
+    );
+    expect(status).toBe(200);
+    expect(body.configured).toBe(false);
+    expect(body.mode).toBe('sandbox');
+  });
+
+  it('shop order: create-order returns a dev approve URL, capture settles the order', async () => {
+    const checkout = await buyer.mutate<{ orderId: string }>('POST', '/api/orders/checkout', {
+      customerName: 'PayPal Buyer',
+      customerEmail: 'paypal-buyer@test.dev',
+      items: [{ product: '650a1b2c3d4e5f6a7b8c9d01', name: 'UNASHAMED Classic Tee', quantity: 1, price: 28 }],
+      totalAmount: 28,
+      paymentMethod: 'paypal',
+      currency: 'USD',
+    });
+    expect(checkout.status).toBe(201);
+    orderId = checkout.body.orderId;
+
+    const created = await buyer.mutate<{ approveUrl: string; paypalOrderId: string; devMode: boolean }>(
+      'POST',
+      '/api/payments/paypal/create-order',
+      { orderId }
+    );
+    expect(created.status).toBe(200);
+    expect(created.body.devMode).toBe(true);
+    expect(created.body.paypalOrderId).toBe(`dev_${orderId}`);
+    expect(created.body.approveUrl).toContain(`/order-success?order=${orderId}&paypal=1`);
+
+    const captured = await buyer.mutate<{ status: string; referenceId: string }>(
+      'POST',
+      `/api/payments/paypal/capture/dev_${orderId}`,
+      {}
+    );
+    expect(captured.status).toBe(200);
+    expect(captured.body.status).toBe('completed');
+    expect(captured.body.referenceId).toBe(orderId);
+
+    const row = await env.DB.prepare(
+      'SELECT status, payment_method, payment_id FROM orders WHERE id = ?'
+    )
+      .bind(orderId)
+      .first<{ status: string; payment_method: string; payment_id: string }>();
+    expect(row!.status).toBe('processing');
+    expect(row!.payment_method).toBe('paypal');
+    expect(row!.payment_id).toBe(`dev_${orderId}`);
+  });
+
+  it('donation: create-order → capture marks the donation completed', async () => {
+    const checkout = await buyer.mutate<{ donationId: string }>('POST', '/api/donations/checkout', {
+      amount: 25,
+      currency: 'USD',
+      email: 'paypal-donor@test.dev',
+      donorName: 'PayPal Donor',
+      paymentMethod: 'paypal',
+    });
+    expect(checkout.status).toBe(200);
+    donationId = checkout.body.donationId;
+
+    const created = await buyer.mutate<{ approveUrl: string; paypalOrderId: string }>(
+      'POST',
+      '/api/payments/paypal/create-order',
+      { donationId }
+    );
+    expect(created.status).toBe(200);
+    expect(created.body.paypalOrderId).toBe(`dev_${donationId}`);
+    expect(created.body.approveUrl).toContain('status=paypal-return');
+
+    const captured = await buyer.mutate<{ status: string }>(
+      'POST',
+      `/api/payments/paypal/capture/dev_${donationId}`,
+      {}
+    );
+    expect(captured.status).toBe(200);
+    expect(captured.body.status).toBe('completed');
+
+    const row = await env.DB.prepare('SELECT status, payment_method FROM donations WHERE id = ?')
+      .bind(donationId)
+      .first<{ status: string; payment_method: string }>();
+    expect(row!.status).toBe('completed');
+    expect(row!.payment_method).toBe('paypal');
+  });
+
+  it('guards: rejects bogus capture ids and refuses unconfigured webhooks', async () => {
+    const bogus = await buyer.mutate('POST', '/api/payments/paypal/capture/not-a-dev-id', {});
+    expect(bogus.status).toBe(400);
+
+    const unknown = await buyer.mutate('POST', '/api/payments/paypal/capture/dev_0000000000000000000000ff', {});
+    expect(unknown.status).toBe(404);
+
+    // No CSRF token and no signature: webhooks must stay reachable (503, not 403/404).
+    const hook = await buyer.json<{ message: string }>('/api/payments/paypal/webhook', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ event_type: 'CHECKOUT.ORDER.APPROVED' }),
+    });
+    expect(hook.status).toBe(503);
+  });
+});
+
 describe('stale order release', () => {
   it('releases stock from old pending orders', async () => {
     // Create an order that will be "stale" by backdating it.

@@ -1,19 +1,220 @@
 /**
- * Payment provider routes: Stripe, Paystack, Flutterwave.
+ * Payment provider routes: PayPal (primary), Stripe, Paystack, Flutterwave.
  * All providers work in "dev mode" (no keys configured) so the full checkout
  * flow is testable end-to-end without real credentials.
  */
 import { Hono } from 'hono';
 import type { Env } from '../types';
 import { readJson } from '../types';
-import { hmacSha256Hex, hmacSha512Hex, safeEqual } from '../util';
+import { hmacSha256Hex, hmacSha512Hex, nowIso, safeEqual } from '../util';
 import { onOrderPaid } from '../fulfillment';
 import { settleDonation } from './community';
+import {
+  PAYPAL_SUPPORTED_CURRENCIES,
+  paypalCaptureOrder,
+  paypalConfigured,
+  paypalCreateOrder,
+  paypalVerifyWebhook,
+} from '../paypal';
 
 type App = Hono<{ Bindings: Env }>;
 
 export const paymentRoutes = () => {
   const router = new Hono<{ Bindings: Env }>();
+
+  /* ---------------- PayPal (primary) ---------------- */
+
+  router.get('/paypal/initialize', (c) =>
+    c.json({
+      configured: paypalConfigured(c.env),
+      mode: c.env.PAYPAL_ENV === 'live' ? 'live' : 'sandbox',
+      message: paypalConfigured(c.env) ? 'PayPal configured' : 'PayPal dev mode',
+    })
+  );
+
+  /**
+   * Create a PayPal order for an existing shop order or donation.
+   * The amount is read from OUR database (never the client), and our
+   * order/donation id travels in custom_id so captures and webhooks can
+   * settle it no matter how the buyer returns.
+   */
+  router.post('/paypal/create-order', async (c) => {
+    const body = await readJson(c);
+    const orderId = body.orderId ? String(body.orderId) : '';
+    const donationId = body.donationId ? String(body.donationId) : '';
+
+    let amount = 0;
+    let currency = String(body.currency || 'USD').toUpperCase();
+    let referenceId = '';
+    let description = '';
+
+    // Prefer the browser's origin (proxy/preview hosts) so PayPal returns the
+    // buyer to the site they actually came from; fall back to CLIENT_URL.
+    const originHeader = c.req.header('origin') || '';
+    const base = /^https?:\/\//i.test(originHeader) ? originHeader.replace(/\/$/, '') : c.env.CLIENT_URL;
+    let returnUrl = '';
+    let cancelUrl = '';
+
+    if (orderId) {
+      const row = await c.env.DB.prepare('SELECT * FROM orders WHERE id = ?').bind(orderId).first();
+      if (!row) return c.json({ message: 'Order not found' }, 404);
+      amount = Number(row.total_amount);
+      currency = String(row.currency || currency || 'USD').toUpperCase();
+      referenceId = String(row.id);
+      description = `TTIN order ${row.id}`;
+      returnUrl = `${base}/order-success?order=${row.id}&paypal=1`;
+      cancelUrl = `${base}/payment-cancelled?order=${row.id}`;
+    } else if (donationId) {
+      const row = await c.env.DB.prepare('SELECT * FROM donations WHERE id = ?').bind(donationId).first();
+      if (!row) return c.json({ message: 'Donation not found' }, 404);
+      amount = Number(row.amount);
+      currency = String(row.currency || currency || 'USD').toUpperCase();
+      referenceId = String(row.id);
+      description = 'Donation — The Time Is Now';
+      returnUrl = `${base}/donate?status=paypal-return&donation=${row.id}`;
+      cancelUrl = `${base}/donate?status=cancelled`;
+    } else {
+      return c.json({ message: 'orderId or donationId is required' }, 400);
+    }
+
+    if (!Number.isFinite(amount) || amount < 0.5) {
+      return c.json({ message: 'Invalid amount' }, 400);
+    }
+
+    // Dev mode (no credentials): simulate approval and land on the return URL.
+    if (!paypalConfigured(c.env)) {
+      return c.json({ approveUrl: returnUrl, paypalOrderId: `dev_${referenceId}`, devMode: true });
+    }
+
+    if (!PAYPAL_SUPPORTED_CURRENCIES.includes(currency)) {
+      return c.json(
+        { message: `PayPal does not support ${currency}. Please pay with Paystack or Flutterwave instead.` },
+        400
+      );
+    }
+
+    const result = await paypalCreateOrder(c.env, {
+      referenceId,
+      amount,
+      currency,
+      description,
+      returnUrl,
+      cancelUrl,
+    });
+    if ('error' in result) return c.json({ message: result.error }, 502);
+
+    // Record the chosen method so refunds know which provider to call.
+    if (orderId) {
+      await c.env.DB.prepare("UPDATE orders SET payment_method = 'paypal', updated_at = ? WHERE id = ?")
+        .bind(nowIso(), orderId)
+        .run();
+    } else {
+      await c.env.DB.prepare("UPDATE donations SET payment_method = 'paypal', updated_at = ? WHERE id = ?")
+        .bind(nowIso(), donationId)
+        .run();
+    }
+    return c.json({ approveUrl: result.approveUrl, paypalOrderId: result.id });
+  });
+
+  /** Capture an approved PayPal order (called by the return pages; webhooks also capture). */
+  router.post('/paypal/capture/:paypalOrderId', async (c) => {
+    const ppId = c.req.param('paypalOrderId');
+
+    // Dev mode: the id encodes our reference (dev_<refId>) — settle directly.
+    if (!paypalConfigured(c.env)) {
+      if (!ppId.startsWith('dev_')) return c.json({ message: 'Invalid PayPal order id' }, 400);
+      const referenceId = ppId.slice(4);
+      const settled = await updateOrderStatus(c.env, {
+        orderId: referenceId,
+        status: 'processing',
+        paymentId: ppId,
+        paymentMethod: 'paypal',
+      });
+      if (!settled) return c.json({ message: 'No order or donation found for that payment' }, 404);
+      return c.json({ status: 'completed', referenceId, devMode: true });
+    }
+
+    const result = await paypalCaptureOrder(c.env, ppId);
+    if (!result.ok) return c.json({ message: result.error || 'PayPal capture failed' }, 502);
+
+    let settledRef = '';
+    if (result.referenceId) {
+      const settled = await updateOrderStatus(c.env, {
+        orderId: result.referenceId,
+        status: 'processing',
+        paymentId: result.captureId || ppId,
+        paymentMethod: 'paypal',
+      });
+      if (settled) settledRef = result.referenceId;
+    }
+    return c.json({
+      status: 'completed',
+      referenceId: settledRef || result.referenceId || '',
+      alreadyCaptured: result.alreadyCaptured || false,
+    });
+  });
+
+  // PayPal webhook — signatures verified against PayPal's verification API.
+  router.post('/paypal/webhook', async (c) => {
+    if (!paypalConfigured(c.env) || !c.env.PAYPAL_WEBHOOK_ID) {
+      return c.json({ message: 'PayPal webhook not configured' }, 503);
+    }
+    const raw = await c.req.text();
+    let event: { event_type?: string; resource?: Record<string, unknown> };
+    try {
+      event = JSON.parse(raw);
+    } catch {
+      return c.json({ message: 'Invalid payload' }, 400);
+    }
+
+    const verified = await paypalVerifyWebhook(
+      c.env,
+      {
+        authAlgo: c.req.header('paypal-auth-algo') || '',
+        certUrl: c.req.header('paypal-cert-url') || '',
+        transmissionId: c.req.header('paypal-transmission-id') || '',
+        transmissionSig: c.req.header('paypal-transmission-sig') || '',
+        transmissionTime: c.req.header('paypal-transmission-time') || '',
+      },
+      event
+    );
+    if (!verified) return c.json({ message: 'Invalid signature' }, 400);
+
+    try {
+      if (event.event_type === 'CHECKOUT.ORDER.APPROVED') {
+        // Buyer approved inside PayPal — capture now, covering buyers who never
+        // make it back to the site. Double-capture (return page raced here) is
+        // treated as success by the capture helper.
+        const ppId = String(event.resource?.id || '');
+        if (ppId) {
+          const result = await paypalCaptureOrder(c.env, ppId);
+          if (result.ok && result.referenceId) {
+            await updateOrderStatus(c.env, {
+              orderId: result.referenceId,
+              status: 'processing',
+              paymentId: result.captureId || ppId,
+              paymentMethod: 'paypal',
+            });
+          }
+        }
+      } else if (event.event_type === 'PAYMENT.CAPTURE.COMPLETED') {
+        const ref = String(event.resource?.custom_id || '');
+        const captureId = String(event.resource?.id || '');
+        if (ref) {
+          await updateOrderStatus(c.env, {
+            orderId: ref,
+            status: 'processing',
+            paymentId: captureId,
+            paymentMethod: 'paypal',
+          });
+        }
+      }
+      return c.json({ received: true });
+    } catch (e) {
+      console.error('PayPal webhook error:', e);
+      return c.json({ message: 'PayPal webhook processing failed' }, 500);
+    }
+  });
 
   /* ---------------- Stripe ---------------- */
 
@@ -249,14 +450,15 @@ const updateOrderStatus = async (
   if (!opts.orderId) return null;
   const isHexId = /^[0-9a-f]{24}$/.test(opts.orderId);
   const result = await env.DB.prepare(
-    `UPDATE orders SET status = ?1,
-       payment_id = COALESCE(NULLIF(?2, ''), payment_id),
-       payment_method = COALESCE(NULLIF(?3, ''), payment_method),
-       updated_at = ?4
-     WHERE id = ?1 OR (?5 != '' AND idempotency_key = ?5) OR (?6 != '' AND payment_id = ?6)`
+    `UPDATE orders SET status = ?2,
+       payment_id = COALESCE(NULLIF(?3, ''), payment_id),
+       payment_method = COALESCE(NULLIF(?4, ''), payment_method),
+       updated_at = ?5
+     WHERE id = ?1 OR (?6 != '' AND idempotency_key = ?6) OR (?7 != '' AND payment_id = ?7)`
   )
     .bind(
       opts.orderId,
+      opts.status,
       opts.paymentId || '',
       opts.paymentMethod || '',
       new Date().toISOString(),

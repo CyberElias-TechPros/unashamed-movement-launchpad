@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Heart, Coffee, Gift, Globe, CreditCard, Loader2, CheckCircle2, XCircle } from "lucide-react";
 import { donationsApi } from "@/api/donations";
+import { paypalApi } from "@/api/paypal";
 import { useAuth } from "@/context/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { SEO } from "@/components/SEO";
@@ -27,7 +28,14 @@ const donationOptions = [
   { amount: 100, label: "Event", icon: Globe, description: "Sponsor a preaching event" },
 ];
 
-type PaymentMethod = "stripe" | "paystack" | "flutterwave";
+type PaymentMethod = "paypal" | "stripe" | "paystack" | "flutterwave";
+
+const METHOD_LABELS: Record<PaymentMethod, string> = {
+  paypal: "PayPal",
+  stripe: "Stripe",
+  paystack: "Paystack",
+  flutterwave: "Flutterwave",
+};
 
 const Donate = () => {
   const { user } = useAuth();
@@ -37,13 +45,40 @@ const Donate = () => {
   const [selectedAmount, setSelectedAmount] = useState<number | null>(null);
   const [customAmount, setCustomAmount] = useState("");
   const [currency, setCurrency] = useState("USD");
-  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("paystack");
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("paypal"); // PayPal is the primary option
   const [donorName, setDonorName] = useState("");
   const [donorEmail, setDonorEmail] = useState("");
   const [message, setMessage] = useState("");
   const [anonymous, setAnonymous] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [status, setStatus] = useState<string | null>(searchParams.get("status"));
+  const paypalToken = searchParams.get("token"); // PayPal appends token & PayerID on return
+  const [confirming, setConfirming] = useState(
+    searchParams.get("status") === "paypal-return" && Boolean(paypalToken)
+  );
+
+  // PayPal return: capture the approved payment server-side, then celebrate.
+  // Live mode: PayPal appends token & PayerID. Dev mode: our simulated order
+  // id is dev_<donation id> (the return URL carries the donation id).
+  useEffect(() => {
+    if (status !== "paypal-return") return;
+    const donationId = searchParams.get("donation");
+    const captureId = paypalToken || (donationId ? `dev_${donationId}` : "");
+    setConfirming(true);
+    if (!captureId) {
+      setConfirming(false);
+      setStatus("cancelled");
+      return;
+    }
+    paypalApi
+      .capture(captureId)
+      .catch(() => undefined) // webhook settles as a safety net either way
+      .finally(() => {
+        setConfirming(false);
+        setStatus("success");
+      });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Pre-fill for signed-in users.
   useEffect(() => {
@@ -80,6 +115,17 @@ const Donate = () => {
         message: message || undefined,
         isAnonymous: anonymous,
       });
+
+      if (paymentMethod === "paypal") {
+        if (currency === "NGN") {
+          throw new Error("PayPal doesn't support Naira (₦) — please choose Paystack or Flutterwave.");
+        }
+        const pp = await paypalApi.createOrder({ donationId: res.donationId, currency });
+        if (!pp.approveUrl) throw new Error(pp.message || "PayPal checkout failed");
+        window.location.href = pp.approveUrl; // dev mode: lands back on /donate success
+        return;
+      }
+
       if (res.url) {
         if (res.devMode) {
           // Dev mode: no real gateway — land on the success screen directly.
@@ -132,6 +178,16 @@ const Donate = () => {
         </div>
       </section>
 
+      {confirming && (
+        <section className="pt-10">
+          <div className="container-custom max-w-xl">
+            <div className="rounded-2xl border border-primary/30 bg-primary/5 p-6 text-center">
+              <Loader2 className="w-10 h-10 text-primary mx-auto mb-3 animate-spin" />
+              <p className="font-medium">Confirming your gift with PayPal…</p>
+            </div>
+          </div>
+        </section>
+      )}
       {status === "success" && (
         <section className="pt-10">
           <div className="container-custom max-w-xl">
@@ -229,7 +285,14 @@ const Donate = () => {
                   <label htmlFor="donate-currency" className="block font-heading text-lg mb-3">
                     Currency
                   </label>
-                  <Select value={currency} onValueChange={(v) => { setCurrency(v); setSelectedAmount(null); }}>
+                  <Select
+                    value={currency}
+                    onValueChange={(v) => {
+                      setCurrency(v);
+                      setSelectedAmount(null);
+                      if (v === "NGN" && paymentMethod === "paypal") setPaymentMethod("paystack");
+                    }}
+                  >
                     <SelectTrigger id="donate-currency" className="h-[50px] text-lg">
                       <SelectValue />
                     </SelectTrigger>
@@ -291,24 +354,41 @@ const Donate = () => {
 
               <div>
                 <p className="font-body text-sm mb-2">Pay with</p>
-                <div className="grid grid-cols-3 gap-2" role="radiogroup" aria-label="Payment method">
-                  {(["paystack", "flutterwave", "stripe"] as PaymentMethod[]).map((m) => (
-                    <button
-                      key={m}
-                      type="button"
-                      role="radio"
-                      aria-checked={paymentMethod === m}
-                      onClick={() => setPaymentMethod(m)}
-                      className={`py-2.5 px-3 rounded-lg border text-sm font-medium capitalize transition-colors ${
-                        paymentMethod === m
-                          ? "bg-primary text-primary-foreground border-primary"
-                          : "bg-background border-border hover:border-primary"
-                      }`}
-                    >
-                      {m}
-                    </button>
-                  ))}
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2" role="radiogroup" aria-label="Payment method">
+                  {(Object.keys(METHOD_LABELS) as PaymentMethod[]).map((m) => {
+                    const unsupported = m === "paypal" && currency === "NGN";
+                    return (
+                      <button
+                        key={m}
+                        type="button"
+                        role="radio"
+                        aria-checked={paymentMethod === m}
+                        disabled={unsupported}
+                        onClick={() => setPaymentMethod(m)}
+                        title={unsupported ? "PayPal doesn't support NGN" : undefined}
+                        className={`relative py-2.5 px-3 rounded-lg border text-sm font-medium transition-colors ${
+                          unsupported
+                            ? "opacity-40 cursor-not-allowed bg-background border-border"
+                            : paymentMethod === m
+                              ? "bg-primary text-primary-foreground border-primary"
+                              : "bg-background border-border hover:border-primary"
+                        }`}
+                      >
+                        {m === "paypal" && (
+                          <span className="absolute -top-2 left-1/2 -translate-x-1/2 bg-accent text-accent-foreground text-[9px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded-full">
+                            Recommended
+                          </span>
+                        )}
+                        {METHOD_LABELS[m]}
+                      </button>
+                    );
+                  })}
                 </div>
+                {currency === "NGN" && (
+                  <p className="text-xs text-muted-foreground">
+                    PayPal doesn't support Naira — Paystack and Flutterwave do.
+                  </p>
+                )}
               </div>
 
               <Button
@@ -329,7 +409,7 @@ const Donate = () => {
                 )}
               </Button>
               <p className="text-xs text-muted-foreground text-center">
-                Secure checkout via {paymentMethod === "stripe" ? "Stripe" : paymentMethod === "paystack" ? "Paystack" : "Flutterwave"}.
+                Secure checkout via {METHOD_LABELS[paymentMethod]}.
                 See our <a href="/refunds" className="text-accent hover:underline">donation policy</a>.
               </p>
             </div>

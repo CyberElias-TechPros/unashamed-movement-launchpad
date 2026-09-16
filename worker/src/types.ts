@@ -14,6 +14,11 @@ export interface Env {
   CONTACT_NOTIFICATION_EMAIL?: string;
   STRIPE_SECRET_KEY?: string;
   STRIPE_WEBHOOK_SECRET?: string;
+  PAYPAL_CLIENT_ID?: string;
+  PAYPAL_CLIENT_SECRET?: string;
+  PAYPAL_WEBHOOK_ID?: string;
+  /** 'live' | 'sandbox' — defaults to sandbox. */
+  PAYPAL_ENV?: string;
   PAYSTACK_SECRET_KEY?: string;
   PAYSTACK_WEBHOOK_SECRET?: string;
   FLUTTERWAVE_SECRET_KEY?: string;

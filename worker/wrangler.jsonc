@@ -9,6 +9,8 @@
   //   npx wrangler d1 execute ttin-db --remote --file=./schema.sql
   //   npx wrangler d1 execute ttin-db --remote --file=./seed.sql   (optional sample data)
   //   npx wrangler secret put JWT_SECRET        (and the other secrets — see .dev.vars.example)
+//   PayPal is the primary provider: PAYPAL_CLIENT_ID / PAYPAL_CLIENT_SECRET /
+//   PAYPAL_WEBHOOK_ID / PAYPAL_ENV=live (see worker/src/paypal.ts)
   //   npx wrangler deploy
   "name": "ttin-api",
   "main": "src/index.ts",

@@ -25,3 +25,6 @@ CREATE TABLE IF NOT EXISTS order_downloads (
   created_at TEXT NOT NULL
 );
 CREATE INDEX IF NOT EXISTS idx_order_downloads_order ON order_downloads (order_id);
+
+-- PayPal is now the primary payment provider — enable it on existing sites.
+UPDATE site_settings SET pay_paypal = 1, updated_at = '2026-09-16T00:00:00.000Z' WHERE id = 1;

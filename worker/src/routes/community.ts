@@ -517,7 +517,7 @@ export const donationRoutes = () => {
     const type = ['one-time', 'monthly'].includes(String(body.type)) ? String(body.type) : 'one-time';
     if (email && !isEmail(email)) return c.json({ message: 'Valid email required' }, 400);
     if (Number.isNaN(amount) || amount < 1) return c.json({ message: 'Amount must be at least 1' }, 400);
-    if (!['stripe', 'paystack', 'flutterwave'].includes(method)) {
+    if (!['paypal', 'stripe', 'paystack', 'flutterwave'].includes(method)) {
       return c.json({ message: 'Unsupported payment method' }, 400);
     }
 
@@ -547,6 +547,7 @@ export const donationRoutes = () => {
 
     // Dev mode (no keys): complete the flow locally.
     if (
+      (method === 'paypal' && !(c.env.PAYPAL_CLIENT_ID && c.env.PAYPAL_CLIENT_SECRET)) ||
       (method === 'stripe' && !c.env.STRIPE_SECRET_KEY) ||
       (method === 'paystack' && !c.env.PAYSTACK_SECRET_KEY) ||
       (method === 'flutterwave' && !c.env.FLUTTERWAVE_SECRET_KEY)

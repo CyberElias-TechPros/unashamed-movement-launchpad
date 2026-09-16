@@ -14,7 +14,7 @@ backend.
 | Cache/rate-limit | **Cloudflare Workers KV**     | bound as `CACHE`                         |
 | Media     | **Cloudflare R2**                    | bound as `MEDIA`                         |
 | Email     | Resend HTTP API (optional in dev)    | `RESEND_API_KEY` secret                  |
-| Payments  | Stripe / Paystack / Flutterwave      | `*_SECRET_KEY` secrets (dev mode without)|
+| Payments  | **PayPal (primary)** / Paystack / Flutterwave / Stripe | `PAYPAL_*`, `*_SECRET_KEY` secrets (dev mode without) |
 
 The frontend talks to the API **same-origin**: Vercel rewrites `/api/*` to the
 Worker (`CF_API_URL` env var), so no CORS and cookies just work.
@@ -29,7 +29,8 @@ Worker (`CF_API_URL` env var), so no CORS and cookies just work.
 profile & password change, order history, wishlist, guest order lookup
 (`/order-lookup`), secure expiring download links for paid digital products.
 
-**Shop & giving:** cart + checkout with Stripe/Paystack/Flutterwave and
+**Shop & giving:** cart + checkout with PayPal (primary), Paystack/Flutterwave
+(NGN), or Stripe, and
 USD/EUR/GBP/NGN, stock reservation, idempotent checkout, refunds (admin),
 donation receipts by email, automatic release of stock from abandoned checkouts
 (hourly cron), back-in-stock notifications.
@@ -116,9 +117,16 @@ A cron trigger (hourly) releases stock held by abandoned checkouts.
    Vercel URL and `wrangler deploy` again (needed for direct API calls only).
 
 Webhooks (when payments go live):
+- PayPal (primary): `https://<worker>/api/payments/paypal/webhook`
+  — set `PAYPAL_CLIENT_ID`, `PAYPAL_CLIENT_SECRET`, `PAYPAL_WEBHOOK_ID`
+  (from the PayPal developer dashboard), and `PAYPAL_ENV=live`.
+  Events handled: `CHECKOUT.ORDER.APPROVED` (auto-captures), `PAYMENT.CAPTURE.COMPLETED`.
+  PayPal does not process NGN — the UI hides it for Naira and offers Paystack/Flutterwave.
 - Stripe:  `https://<worker>/api/payments/stripe/webhook`
 - Paystack: `https://<worker>/api/payments/paystack/webhook`
 - Flutterwave: `https://<worker>/api/payments/flutterwave/webhook`
+
+Payment methods are toggled per provider in **Admin → Settings → Payments**.
 
 ### Backups
 

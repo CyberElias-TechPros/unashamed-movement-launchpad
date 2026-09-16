@@ -77,3 +77,79 @@
 3. **RESEND_API_KEY + verified sending domain** for real email delivery.
 4. Playwright e2e needs `npx playwright install` on a dev machine/CI runner (browser download is blocked in some sandboxes).
 5. Newsletter *campaign sending* (broadcasts) is still export-only — needs a provider integration when the list grows.
+
+---
+
+# Addendum: PayPal as the primary payment option
+
+PayPal is now the **default, pre-selected payment method** for both the shop
+checkout and donations, ahead of Paystack/Flutterwave (NGN) and Stripe.
+
+## Backend (`worker/`)
+
+- **`src/paypal.ts` (new)** — full PayPal client: OAuth token (KV-cached),
+  Orders v2 create/capture (sandbox + live base URLs), capture refund, and
+  webhook signature verification via PayPal's verify-webhook-signature API.
+  Supported-currency list excludes NGN (PayPal can't process Naira).
+- **`src/routes/payments.ts`** — `/api/payments/paypal/*`:
+  - `GET /initialize` — reports configured/dev mode.
+  - `POST /create-order` — amount is always read from **our** D1 row (never the
+    client); our order/donation id travels in PayPal's `custom_id`. Return URLs
+    use the request origin when the SPA is behind a proxy/preview host.
+  - `POST /capture/:paypalOrderId` — settles orders (→ `processing`, triggers
+    fulfillment emails + digital downloads) and donations (→ `completed`).
+    Idempotent: `ORDER_ALREADY_CAPTURED` is treated as success.
+  - `POST /webhook` — signature-verified; `CHECKOUT.ORDER.APPROVED` auto-captures
+    (covers buyers who never return), `PAYMENT.CAPTURE.COMPLETED` settles by
+    `custom_id`.
+- **`src/routes/shop.ts`** — refunds: PayPal captures are refunded via the
+  PayPal API when `payment_method = 'paypal'` (Stripe branch unchanged).
+- **`src/routes/community.ts`** — donations accept `paypal` as a method.
+- **`schema.sql` / `seed.sql` / `migrations.sql`** — new `pay_paypal` settings
+  column (default **on** = primary).
+- **Types & config** — `PAYPAL_CLIENT_ID`, `PAYPAL_CLIENT_SECRET`,
+  `PAYPAL_WEBHOOK_ID`, `PAYPAL_ENV` (`live` | `sandbox`) in `types.ts`,
+  `.dev.vars.example`, `wrangler.jsonc`.
+- **Bug fixed (found by the new tests):** `updateOrderStatus` had mismatched
+  SQL parameter binds — `?1` was used for both the row id *and* the status, so
+  every webhook settlement (all providers) would have failed with a CHECK
+  constraint error. Parameters are now bound correctly.
+- **Dev mode:** with no PayPal credentials, create-order returns a simulated
+  approve URL (`dev_<our ref id>`) so the full journey — checkout → approval →
+  capture → fulfillment/receipt — is testable end-to-end, same as other providers.
+
+## Frontend (`src/`)
+
+- **`api/paypal.ts` (new)** — typed client (initialize / createOrder / capture).
+- **`pages/Checkout.tsx`** — PayPal is the default method, listed first as
+  "PayPal (recommended)"; hidden for NGN (auto-switches to Paystack with a
+  toast); submit creates a PayPal order and redirects to the approval URL.
+- **`pages/Donate.tsx`** — PayPal default + "Recommended" badge on the method
+  picker; disabled with an explanation when the currency is NGN; PayPal-return
+  handling captures the payment then shows the thank-you state.
+- **`pages/OrderSuccess.tsx`** — captures the approved PayPal payment on return
+  (live: PayPal `token`; dev: derived `dev_<orderId>`), with a "Confirming
+  payment…" state and a webhook-safety-net message if capture fails.
+- **`pages/admin/AdminSettings.tsx`** — new **Payments tab** with per-provider
+  toggles (PayPal marked primary; Stripe/Paystack/Flutterwave descriptions),
+  wired to the existing `paymentMethods` settings contract.
+- **`api/donations.ts`** — `paymentMethod` type widened to include `paypal`.
+
+## Verification
+
+- Worker: **19/19 tests pass** (15 existing + 4 new: initialize dev-mode, shop
+  order create→capture→settled, donation create→capture→completed, guards for
+  bogus ids/unconfigured webhook).
+- Frontend: lint 0 errors, `tsc` clean, production build, unit tests 6/6.
+- Live stack (worker :8787 + SPA :8080): PayPal dev-mode shop order and donation
+  journeys verified end-to-end via the proxy (order → `processing` with
+  `payment_method=paypal`, donation → `completed`), plus admin settings PATCH
+  round-trip for `paymentMethods`.
+
+## Production checklist
+
+1. `wrangler secret put PAYPAL_CLIENT_ID / PAYPAL_CLIENT_SECRET / PAYPAL_WEBHOOK_ID`,
+   and set `PAYPAL_ENV` to `live`.
+2. Register the webhook `https://<worker>/api/payments/paypal/webhook` for events
+   `CHECKOUT.ORDER.APPROVED` and `PAYMENT.CAPTURE.COMPLETED`; copy the webhook id.
+3. Toggle providers under **Admin → Settings → Payments**.

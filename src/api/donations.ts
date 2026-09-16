@@ -24,7 +24,7 @@ export interface DonationCheckoutPayload {
   email?: string;
   donorName?: string;
   currency?: string;
-  paymentMethod?: 'stripe' | 'paystack' | 'flutterwave';
+  paymentMethod?: 'paypal' | 'stripe' | 'paystack' | 'flutterwave';
   message?: string;
   isAnonymous?: boolean;
 }

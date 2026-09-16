@@ -11,6 +11,7 @@ import { nowIso } from '../util';
 import { getAuthUser, requireAdmin, requireAuth } from '../middleware';
 import { sendEmail, wrapHtml } from '../email';
 import { issueOrderDownloads, markOrderRefunded, releaseStaleOrders } from '../fulfillment';
+import { paypalRefundCapture } from '../paypal';
 
 type App = Hono<{ Bindings: Env }>;
 
@@ -660,7 +661,12 @@ export const orderRoutes = () => {
     }
 
     let stripeRefundId = '';
-    if (row.payment_method === 'stripe' && c.env.STRIPE_SECRET_KEY && row.payment_id) {
+    if (row.payment_method === 'paypal' && c.env.PAYPAL_CLIENT_ID && row.payment_id) {
+      // payment_id holds the PayPal capture id.
+      const refund = await paypalRefundCapture(c.env, String(row.payment_id));
+      if (!refund.ok) return c.json({ message: refund.error || 'PayPal refund failed' }, 502);
+      stripeRefundId = refund.refundId || 'paypal';
+    } else if (row.payment_method === 'stripe' && c.env.STRIPE_SECRET_KEY && row.payment_id) {
       try {
         // payment_id may be a PaymentIntent or Checkout Session id.
         const res = await fetch('https://api.stripe.com/v1/refunds', {

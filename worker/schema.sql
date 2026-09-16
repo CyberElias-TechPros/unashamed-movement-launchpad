@@ -242,7 +242,7 @@ CREATE TABLE IF NOT EXISTS site_settings (
   smtp_host TEXT NOT NULL DEFAULT '',
   smtp_port TEXT NOT NULL DEFAULT '587',
   pay_stripe INTEGER NOT NULL DEFAULT 1,
-  pay_paypal INTEGER NOT NULL DEFAULT 0,
+  pay_paypal INTEGER NOT NULL DEFAULT 1,
   pay_paystack INTEGER NOT NULL DEFAULT 1,
   pay_flutterwave INTEGER NOT NULL DEFAULT 1,
   updated_at TEXT NOT NULL

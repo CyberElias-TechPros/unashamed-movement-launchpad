@@ -17,7 +17,7 @@
     { "handle": "filesystem" },
     {
       "src": "/api/(.*)",
-      "dest": "https://ttin-api.painpointsolutions.workers.dev/api/$1"
+      "dest": "https://unashamed-movement.cyberelias-tk.workers.dev/api/$1"
     },
     { "src": "/(.*)", "dest": "/index.html" }
   ]

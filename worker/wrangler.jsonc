@@ -20,28 +20,24 @@
     {
       "binding": "DB",
       "database_name": "ttin-db",
-      // Placeholder — replace with the id printed by `wrangler d1 create ttin-db`.
-      "database_id": "00000000-0000-0000-0000-000000000000"
+      // Cloudflare account: Pain (ba3a0c06ca86c6e61d2c6b0350abb80b)
+      "database_id": "21662f12-1dcc-4703-988a-94c73bc29e45"
     }
   ],
   "kv_namespaces": [
     {
       "binding": "CACHE",
-      // Placeholder — replace with the id printed by `wrangler kv namespace create CACHE`.
-      "id": "00000000000000000000000000000000"
+      "id": "664b74f482eb4093a2b18f78b015d699"
     }
   ],
-  "r2_buckets": [
-    {
-      "binding": "MEDIA",
-      "bucket_name": "ttin-media"
-    }
-  ],
+  // R2 media uploads are not bound yet: R2 is not enabled on the Pain account.
+  // Routes that need MEDIA return 503 until the bucket exists, so re-enable this
+  // block (bucket "ttin-media") once R2 is activated for the account.
   "vars": {
     // Non-secret configuration. Secrets (JWT_SECRET, CSRF_SECRET, payment keys…)
     // are set with `wrangler secret put` or in .dev.vars for local dev.
-    "CLIENT_URL": "http://localhost:8080",
-    "ALLOWED_ORIGINS": "http://localhost:8080,http://localhost:4173",
+    "CLIENT_URL": "https://unashamed-movement-launchpad.vercel.app",
+    "ALLOWED_ORIGINS": "https://unashamed-movement-launchpad.vercel.app,http://localhost:8080,http://localhost:4173",
     "EMAIL_FROM": "TTIN <no-reply@thetimeisnow.org>"
     // "CONTACT_NOTIFICATION_EMAIL": "team@thetimeisnow.org"  // where contact-form messages are sent
   },

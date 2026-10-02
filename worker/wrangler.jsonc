@@ -2,49 +2,56 @@
   // Cloudflare Worker backend for TTIN (The Time Is Now).
   // Database: Cloudflare D1 · Cache/rate-limit: Workers KV · Media: R2
   //
-  // First-time setup:
-  //   npx wrangler d1 create ttin-db            -> paste the returned database_id below
-  //   npx wrangler kv namespace create CACHE    -> paste id below
-  //   npx wrangler r2 bucket create ttin-media
-  //   npx wrangler d1 execute ttin-db --remote --file=./schema.sql
-  //   npx wrangler d1 execute ttin-db --remote --file=./seed.sql   (optional sample data)
-  //   npx wrangler secret put JWT_SECRET        (and the other secrets — see .dev.vars.example)
-//   PayPal is the primary provider: PAYPAL_CLIENT_ID / PAYPAL_CLIENT_SECRET /
-//   PAYPAL_WEBHOOK_ID / PAYPAL_ENV=live (see worker/src/paypal.ts)
-  //   npx wrangler deploy
-  "name": "ttin-api",
+  // Canonical production deployment (Cyberelias account b7399f90…):
+  //   worker   : unashamed-movement  (workers.dev /api + ttin.techpros.com.ng)
+  //   D1       : unashamed-movement-db (b87763f3-2fbd-476d-9f64-a827d9ac386d)
+  //   KV       : CACHE -> 4f8172c01be543e984aa74c6dfde1335
+  //   R2       : MEDIA -> ttin-uploads (existing bucket, empty after migration)
+  //   secrets  : JWT_SECRET, JWT_REFRESH_SECRET, CSRF_SECRET (set via wrangler secret put)
+  //
+  // The live DB was migrated from the older deployed schema on 2026-10-02:
+  // users.password (bcrypt) -> users.password_hash (PBKDF2), order_items removed,
+  // order_downloads created; preserved data reinserted from backups.
+  "name": "unashamed-movement",
   "main": "src/index.ts",
-  "compatibility_date": "2026-08-01",
+  // compatibility_date/flags mirror the current production environment (nodejs_compat).
+  "compatibility_date": "2025-07-08",
+  "compatibility_flags": ["nodejs_compat"],
   "workers_dev": true,
+  "preview_urls": true,
   "d1_databases": [
     {
       "binding": "DB",
-      "database_name": "ttin-db",
-      // Cloudflare account: Pain (ba3a0c06ca86c6e61d2c6b0350abb80b)
-      "database_id": "21662f12-1dcc-4703-988a-94c73bc29e45"
+      // Cloudflare account: Cyberelias (b7399f904cf2b63772526dd43507f630)
+      "database_id": "b87763f3-2fbd-476d-9f64-a827d9ac386d",
+      "database_name": "unashamed-movement-db"
     }
   ],
   "kv_namespaces": [
     {
       "binding": "CACHE",
-      "id": "664b74f482eb4093a2b18f78b015d699"
+      // Cloudflare account: Cyberelias (b7399f904cf2b63772526dd43507f630)
+      "id": "4f8172c01be543e984aa74c6dfde1335"
     }
   ],
-  // R2 media uploads are not bound yet: R2 is not enabled on the Pain account.
-  // Routes that need MEDIA return 503 until the bucket exists, so re-enable this
-  // block (bucket "ttin-media") once R2 is activated for the account.
+  "r2_buckets": [
+    {
+      "binding": "MEDIA",
+      // Cloudflare account: Cyberelias (b7399f904cf2b63772526dd43507f630)
+      "bucket_name": "ttin-uploads"
+    }
+  ],
   "vars": {
-    // Non-secret configuration. Secrets (JWT_SECRET, CSRF_SECRET, payment keys…)
+    // Non-secret configuration. Secrets (JWT_SECRET, CSRF_SECRET, JWT_REFRESH_SECRET…)
     // are set with `wrangler secret put` or in .dev.vars for local dev.
-    "CLIENT_URL": "https://unashamed-movement-launchpad.vercel.app",
-    "ALLOWED_ORIGINS": "https://unashamed-movement-launchpad.vercel.app,http://localhost:8080,http://localhost:4173",
-    "EMAIL_FROM": "TTIN <no-reply@thetimeisnow.org>"
+    "CLIENT_URL": "https://ttin.techpros.com.ng",
+    "ALLOWED_ORIGINS": "https://unashamed-movement-launchpad.vercel.app,https://ttin.techpros.com.ng,http://localhost:8080,http://localhost:4173",
+    "EMAIL_FROM": "The Time Is Now <noreply@thetimeisnow.org>",
+    "FROM_EMAIL": "noreply@thetimeisnow.org"
     // "CONTACT_NOTIFICATION_EMAIL": "team@thetimeisnow.org"  // where contact-form messages are sent
   },
-  // Hourly: release stock held by abandoned (never-paid) checkouts.
-  "triggers": {
-    "crons": ["0 * * * *"]
-  },
+  // Note: production intentionally has no cron trigger (matches deployed state;
+  // the empty-shop stock-release job is omitted to preserve behavior).
   "observability": {
     "enabled": true
   }
